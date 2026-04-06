@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Generator Libraries — Live Demos</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0f0f0f;
+      --bg-card: #161616;
+      --text: #d3d4d9;
+      --text-muted: #8b8d97;
+      --accent: #42dca3;
+      --accent-hover: #2fc48e;
+      --border: #2a2a2a;
+      --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: var(--font-sans);
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      padding: 2rem 1.5rem;
+    }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { color: var(--accent-hover); }
+
+    .container { max-width: 900px; margin: 0 auto; }
+
+    h1 {
+      font-size: 2rem;
+      font-weight: 700;
+      margin-bottom: .5rem;
+      letter-spacing: -.02em;
+    }
+    .subtitle {
+      color: var(--text-muted);
+      margin-bottom: 3rem;
+      font-size: 1rem;
+    }
+
+    .demo-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 2rem;
+      margin-bottom: 2rem;
+    }
+    .demo-card h2 {
+      font-size: 1.25rem;
+      margin-bottom: .25rem;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+    }
+    .demo-card .desc {
+      color: var(--text-muted);
+      font-size: .9rem;
+      margin-bottom: 1.5rem;
+    }
+    .demo-card a.repo-link {
+      font-size: .8rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+    }
+
+    .controls {
+      display: flex;
+      gap: .75rem;
+      flex-wrap: wrap;
+      align-items: end;
+      margin-bottom: 1rem;
+    }
+    .field { display: flex; flex-direction: column; gap: .3rem; }
+    .field label {
+      font-size: .75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      letter-spacing: .04em;
+    }
+    select, input[type="text"] {
+      font-family: var(--font-sans);
+      font-size: .85rem;
+      background: var(--bg);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: .45rem .75rem;
+      outline: none;
+    }
+    select:focus, input[type="text"]:focus {
+      border-color: var(--accent);
+    }
+    select option { background: var(--bg); color: var(--text); }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: .4rem;
+      padding: .55rem 1.25rem;
+      font-family: var(--font-sans);
+      font-size: .85rem;
+      font-weight: 600;
+      border: 1px solid var(--accent);
+      border-radius: 6px;
+      background: var(--accent);
+      color: var(--bg);
+      cursor: pointer;
+      transition: all .2s;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+    }
+    .btn:hover { background: var(--accent-hover); }
+    .btn:disabled { opacity: .4; cursor: not-allowed; }
+
+    .output {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 1rem;
+      font-family: var(--font-mono);
+      font-size: .85rem;
+      min-height: 2.5rem;
+      white-space: pre-wrap;
+      word-break: break-word;
+      color: var(--accent);
+    }
+    .output.empty { color: var(--text-muted); font-style: italic; }
+
+    .status {
+      font-size: .75rem;
+      color: var(--text-muted);
+      margin-top: .5rem;
+    }
+    .status.ready { color: var(--accent); }
+    .status.error { color: #e55; }
+
+    /* Entity table */
+    .entity-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: .85rem;
+    }
+    .entity-table th, .entity-table td {
+      padding: .4rem .75rem;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+    .entity-table th {
+      font-size: .75rem;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      letter-spacing: .04em;
+    }
+    .entity-table td:first-child {
+      font-family: var(--font-mono);
+      color: var(--accent);
+    }
+
+    footer {
+      text-align: center;
+      margin-top: 3rem;
+      font-size: .8rem;
+      color: var(--text-muted);
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h1>Generator Libraries — Live Demos</h1>
+  <p class="subtitle">
+    C++23 header-only libraries compiled to WebAssembly with Emscripten.
+    Everything runs in your browser — no server required.
+  </p>
+
+  <!-- ─── Name Generator ─── -->
+  <div class="demo-card" id="namegen-card">
+    <h2>name-generator</h2>
+    <p class="desc">
+      Generate real-world first names and surnames from culture/gender-specific lists.
+      <a class="repo-link" href="https://github.com/dasmig/name-generator" target="_blank" rel="noopener">GitHub →</a>
+    </p>
+    <div class="controls">
+      <div class="field">
+        <label for="ng-gender">Gender</label>
+        <select id="ng-gender">
+          <option value="">Any</option>
+          <option value="male">Male</option>
+          <option value="female">Female</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="ng-culture">Culture</label>
+        <select id="ng-culture">
+          <option value="">Any</option>
+          <option value="us">American</option>
+          <option value="ar">Argentinian</option>
+          <option value="au">Australian</option>
+          <option value="br">Brazilian</option>
+          <option value="gb">British</option>
+          <option value="bg">Bulgarian</option>
+          <option value="ca">Canadian</option>
+          <option value="cn">Chinese</option>
+          <option value="dk">Danish</option>
+          <option value="fi">Finnish</option>
+          <option value="fr">French</option>
+          <option value="de">German</option>
+          <option value="kz">Kazakh</option>
+          <option value="mx">Mexican</option>
+          <option value="no">Norwegian</option>
+          <option value="pl">Polish</option>
+          <option value="pt">Portuguese</option>
+          <option value="ru">Russian</option>
+          <option value="es">Spanish</option>
+          <option value="se">Swedish</option>
+          <option value="tr">Turkish</option>
+          <option value="ua">Ukrainian</option>
+        </select>
+      </div>
+      <button class="btn" id="ng-generate" disabled>Generate</button>
+    </div>
+    <div class="output empty" id="ng-output">Waiting for module to load…</div>
+    <div class="status" id="ng-status">Loading WebAssembly…</div>
+  </div>
+
+  <!-- ─── Nickname Generator ─── -->
+  <div class="demo-card" id="nickgen-card">
+    <h2>nickname-generator</h2>
+    <p class="desc">
+      Generate gamer-style nicknames — from a real name or fully random.
+      <a class="repo-link" href="https://github.com/dasmig/nickname-generator" target="_blank" rel="noopener">GitHub →</a>
+    </p>
+    <div class="controls">
+      <div class="field">
+        <label for="nng-name">Name (optional)</label>
+        <input type="text" id="nng-name" placeholder="e.g. John Smith" style="width:200px">
+      </div>
+      <button class="btn" id="nng-generate" disabled>Generate</button>
+    </div>
+    <div class="output empty" id="nng-output">Waiting for module to load…</div>
+    <div class="status" id="nng-status">Loading WebAssembly…</div>
+  </div>
+
+  <!-- ─── Entity Generator ─── -->
+  <div class="demo-card" id="entitygen-card">
+    <h2>entity-generator</h2>
+    <p class="desc">
+      Composable entity generation with typed components. This demo generates an RPG character sheet.
+      <a class="repo-link" href="https://github.com/dasmig/entity-generator" target="_blank" rel="noopener">GitHub →</a>
+    </p>
+    <div class="controls">
+      <button class="btn" id="eg-generate" disabled>Generate Character</button>
+    </div>
+    <div id="eg-output">
+      <div class="output empty">Waiting for module to load…</div>
+    </div>
+    <div class="status" id="eg-status">Loading WebAssembly…</div>
+  </div>
+</div>
+
+<footer>
+  <p>Built by <a href="https://dasmig.github.io">Diego Dasso Migotto</a> — C++23 compiled to WebAssembly via Emscripten.</p>
+</footer>
+
+<!-- Wasm modules -->
+<script src="namegen_demo.js"></script>
+<script src="nickgen_demo.js"></script>
+<script src="entitygen_demo.js"></script>
+
+<script>
+  // ─── Name Generator ───
+  let ngMod = null;
+  createNamegenModule().then(mod => {
+    ngMod = mod;
+    const ok = mod.init();
+    document.getElementById('ng-generate').disabled = false;
+    const st = document.getElementById('ng-status');
+    if (ok) {
+      st.textContent = 'Ready — resources loaded.';
+      st.className = 'status ready';
+    } else {
+      st.textContent = 'Warning: resources not found.';
+      st.className = 'status error';
+    }
+    document.getElementById('ng-output').textContent = 'Click "Generate" to create a name.';
+  }).catch(err => {
+    document.getElementById('ng-status').textContent = 'Failed to load: ' + err;
+    document.getElementById('ng-status').className = 'status error';
+  });
+
+  document.getElementById('ng-generate').addEventListener('click', () => {
+    if (!ngMod) return;
+    const gender = document.getElementById('ng-gender').value;
+    const culture = document.getElementById('ng-culture').value;
+    const result = ngMod.generateName(gender, culture, true);
+    const el = document.getElementById('ng-output');
+    el.textContent = result;
+    el.className = 'output';
+  });
+
+  // ─── Nickname Generator ───
+  let nngMod = null;
+  createNickgenModule().then(mod => {
+    nngMod = mod;
+    const ok = mod.init();
+    document.getElementById('nng-generate').disabled = false;
+    const st = document.getElementById('nng-status');
+    if (ok) {
+      st.textContent = 'Ready — wordlists loaded.';
+      st.className = 'status ready';
+    } else {
+      st.textContent = 'Warning: wordlists not found.';
+      st.className = 'status error';
+    }
+    document.getElementById('nng-output').textContent = 'Click "Generate" to create a nickname.';
+  }).catch(err => {
+    document.getElementById('nng-status').textContent = 'Failed to load: ' + err;
+    document.getElementById('nng-status').className = 'status error';
+  });
+
+  document.getElementById('nng-generate').addEventListener('click', () => {
+    if (!nngMod) return;
+    const name = document.getElementById('nng-name').value.trim();
+    const result = name
+      ? nngMod.generateNickname(name)
+      : nngMod.generateRandomNickname();
+    const el = document.getElementById('nng-output');
+    el.textContent = result;
+    el.className = 'output';
+  });
+
+  // ─── Entity Generator ───
+  let egMod = null;
+  createEntitygenModule().then(mod => {
+    egMod = mod;
+    mod.setup();
+    document.getElementById('eg-generate').disabled = false;
+    const st = document.getElementById('eg-status');
+    st.textContent = 'Ready — RPG components loaded.';
+    st.className = 'status ready';
+    document.getElementById('eg-output').innerHTML =
+      '<div class="output">Click "Generate Character" to create an entity.</div>';
+  }).catch(err => {
+    document.getElementById('eg-status').textContent = 'Failed to load: ' + err;
+    document.getElementById('eg-status').className = 'status error';
+  });
+
+  document.getElementById('eg-generate').addEventListener('click', () => {
+    if (!egMod) return;
+    const json = egMod.generateEntityJson();
+    const data = JSON.parse(json);
+
+    let html = '<table class="entity-table"><thead><tr><th>Component</th><th>Value</th></tr></thead><tbody>';
+    for (const [key, val] of Object.entries(data)) {
+      html += `<tr><td>${esc(key)}</td><td>${esc(val)}</td></tr>`;
+    }
+    html += '</tbody></table>';
+    document.getElementById('eg-output').innerHTML = html;
+  });
+
+  function esc(s) {
+    const d = document.createElement('div');
+    d.textContent = s;
+    return d.innerHTML;
+  }
+</script>
+
+</body>
+</html>

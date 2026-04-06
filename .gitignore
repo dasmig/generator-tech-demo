@@ -1,0 +1,5 @@
+build/
+*.js
+*.wasm
+*.data
+emsdk/
