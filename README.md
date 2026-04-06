@@ -55,14 +55,6 @@ python3 -m http.server 8080
 
 Then open `http://localhost:8080`.
 
-## Deploy to GitHub Pages
-
-Pushes to `master` automatically build and deploy via GitHub Actions.
-To enable, go to **Settings → Pages** and set the source to **GitHub Actions**.
-
-The workflow (`.github/workflows/deploy.yml`) checks out the three library repos,
-builds with Emscripten, and publishes the result to GitHub Pages.
-
 ## License
 
 MIT
