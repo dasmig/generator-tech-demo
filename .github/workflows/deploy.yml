@@ -25,19 +25,19 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: dasmig/name-generator
-          path: ../name-generator
+          path: name-generator
 
       - name: Checkout nickname-generator
         uses: actions/checkout@v4
         with:
           repository: dasmig/nickname-generator
-          path: ../nickname-generator
+          path: nickname-generator
 
       - name: Checkout entity-generator
         uses: actions/checkout@v4
         with:
           repository: dasmig/entity-generator
-          path: ../entity-generator
+          path: entity-generator
 
       - name: Setup Emscripten
         uses: mymindstorm/setup-emsdk@v14
@@ -45,7 +45,11 @@ jobs:
           version: latest
 
       - name: Configure
-        run: emcmake cmake -B build -DCMAKE_BUILD_TYPE=Release -G Ninja
+        run: >
+          emcmake cmake -B build -DCMAKE_BUILD_TYPE=Release -G Ninja
+          -DNAME_GEN_DIR=${{ github.workspace }}/name-generator
+          -DNICK_GEN_DIR=${{ github.workspace }}/nickname-generator
+          -DENTITY_GEN_DIR=${{ github.workspace }}/entity-generator
 
       - name: Build
         run: cmake --build build
