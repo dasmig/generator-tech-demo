@@ -1,0 +1,74 @@
+name: Build & Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout generator-tech-demo
+        uses: actions/checkout@v4
+
+      - name: Checkout name-generator
+        uses: actions/checkout@v4
+        with:
+          repository: dasmig/name-generator
+          path: ../name-generator
+
+      - name: Checkout nickname-generator
+        uses: actions/checkout@v4
+        with:
+          repository: dasmig/nickname-generator
+          path: ../nickname-generator
+
+      - name: Checkout entity-generator
+        uses: actions/checkout@v4
+        with:
+          repository: dasmig/entity-generator
+          path: ../entity-generator
+
+      - name: Setup Emscripten
+        uses: mymindstorm/setup-emsdk@v14
+        with:
+          version: latest
+
+      - name: Configure
+        run: emcmake cmake -B build -DCMAKE_BUILD_TYPE=Release -G Ninja
+
+      - name: Build
+        run: cmake --build build
+
+      - name: Prepare site
+        run: |
+          mkdir -p _site
+          cp index.html _site/
+          cp build/*.js build/*.wasm _site/
+          cp build/*.data _site/ 2>/dev/null || true
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

@@ -57,7 +57,11 @@ Then open `http://localhost:8080`.
 
 ## Deploy to GitHub Pages
 
-Push `index.html` plus the `.js`, `.wasm`, and `.data` files to the `gh-pages` branch or configure GitHub Pages to serve from the repo root.
+Pushes to `master` automatically build and deploy via GitHub Actions.
+To enable, go to **Settings → Pages** and set the source to **GitHub Actions**.
+
+The workflow (`.github/workflows/deploy.yml`) checks out the three library repos,
+builds with Emscripten, and publishes the result to GitHub Pages.
 
 ## License
 
