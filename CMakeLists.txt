@@ -22,7 +22,7 @@ target_link_options(namegen_demo PRIVATE
   -sMODULARIZE=1
   -sEXPORT_NAME=createNamegenModule
   -sENVIRONMENT=web
-  --preload-file "${NAME_GEN_DIR}/resources@/resources"
+  --preload-file "${NAME_GEN_DIR}/resources/lite@/resources/lite"
 )
 
 # nickname-generator demo

@@ -97,7 +97,7 @@ bool init()
     auto& gen = dasmig::ng::instance();
     if (!gen.has_resources())
     {
-        gen.load("/resources");
+        gen.load("/resources/lite");
     }
     return gen.has_resources();
 }
