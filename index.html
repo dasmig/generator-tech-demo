@@ -194,22 +194,25 @@
       color: var(--text-muted);
     }
     .persona-grid {
+      display: flex;
+      flex-direction: column;
+    }
+    .persona-row {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 0;
     }
     @media (max-width: 600px) {
-      .persona-grid { grid-template-columns: repeat(2, 1fr); }
+      .persona-row { grid-template-columns: repeat(2, 1fr); }
     }
     .persona-stat {
       padding: .75rem 1.25rem;
       border-bottom: 1px solid var(--border);
       border-right: 1px solid var(--border);
     }
-    .persona-grid > .persona-stat:nth-child(3n) { border-right: none; }
+    .persona-row > .persona-stat:last-child { border-right: none; }
     @media (max-width: 600px) {
-      .persona-grid > .persona-stat:nth-child(3n) { border-right: 1px solid var(--border); }
-      .persona-grid > .persona-stat:nth-child(2n) { border-right: none; }
+      .persona-row > .persona-stat:nth-child(2n) { border-right: none; }
+      .persona-row > .persona-stat:last-child { border-right: none; }
     }
     .persona-stat-label {
       font-size: .65rem;
@@ -225,7 +228,6 @@
       color: var(--text);
     }
     .persona-section-title {
-      grid-column: 1 / -1;
       padding: .5rem 1.25rem .3rem;
       font-size: .7rem;
       font-weight: 700;
@@ -250,12 +252,14 @@
     }
     .country-chevron.open { transform: rotate(90deg); }
     .country-details {
-      grid-column: 1 / -1;
       display: none;
       border-bottom: 1px solid var(--border);
       background: rgba(66,220,163,.03);
     }
-    .country-details.open { display: grid; grid-template-columns: repeat(3, 1fr); }
+    .country-details.open {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+    }
     @media (max-width: 600px) {
       .country-details.open { grid-template-columns: repeat(2, 1fr); }
     }
@@ -263,9 +267,18 @@
       border-bottom: none;
       padding: .5rem 1.25rem;
     }
+    .country-details .persona-stat:last-child { border-right: none; }
     .country-details .persona-stat-value {
       font-size: .8rem;
       color: var(--text-muted);
+    }
+    /* Flag image in header */
+    .persona-flag-img {
+      width: 32px;
+      height: 24px;
+      object-fit: cover;
+      border-radius: 3px;
+      box-shadow: 0 1px 3px rgba(0,0,0,.3);
     }
 
     footer {
@@ -997,14 +1010,26 @@
       return isNaN(n) ? s : n.toLocaleString();
     };
     const skinMap = {
-      'I':   'Type I — Very fair, always burns',
-      'II':  'Type II — Fair, burns easily',
-      'III': 'Type III — Medium, sometimes burns',
-      'IV':  'Type IV — Olive, rarely burns',
-      'V':   'Type V — Brown, very rarely burns',
-      'VI':  'Type VI — Dark, never burns'
+      'I':   'Very fair, always burns',
+      'II':  'Fair, burns easily',
+      'III': 'Medium, sometimes burns',
+      'IV':  'Olive, rarely burns',
+      'V':   'Brown, very rarely burns',
+      'VI':  'Dark, never burns'
     };
     const fmtSkin = s => skinMap[s] || s;
+    const fmtBmi = s => {
+      const v = parseFloat(s);
+      if (isNaN(v)) return s;
+      let cat = '';
+      if (v < 18.5) cat = 'Underweight';
+      else if (v < 25) cat = 'Normal';
+      else if (v < 30) cat = 'Overweight';
+      else if (v < 35) cat = 'Obese I';
+      else if (v < 40) cat = 'Obese II';
+      else cat = 'Obese III';
+      return s + ' — ' + cat;
+    };
 
     const stat = (label, value) =>
       '<div class="persona-stat"><div class="persona-stat-label">'
@@ -1019,27 +1044,31 @@
       + '<div class="persona-stat-label">' + esc(label) + '</div>'
       + '<div class="persona-stat-value">' + esc(display) + ' <span class="country-chevron">▸</span></div></div>';
 
+    // ── Flag image URL from CCA2 ──
+    const cca2 = (d['CCA2'] || '').toLowerCase();
+    const flagUrl = cca2 ? 'https://flagcdn.com/w80/' + encodeURIComponent(cca2) + '.png' : '';
+
     let html = '<div class="persona">';
 
-    // ── Header: flag + name + tagline ──
+    // ── Header: flag image + name + tagline ──
     html += '<div class="persona-header"><div class="persona-name">';
-    if (d['Flag']) html += '<span class="persona-flag">' + esc(d['Flag']) + '</span>';
+    if (flagUrl) html += '<img class="persona-flag-img" src="' + flagUrl + '" alt="flag">';
     html += '<h3>' + esc(d['Name'] || '—') + '</h3></div>';
     html += '<div class="persona-tagline">'
-      + esc(d['Age'] || '') + ' · ' + esc(cap(d['Sex'] || '')) + ' · '
-      + esc(d['Flag'] || '') + ' ' + esc(d['Country'] || '')
+      + esc(d['Age'] || '') + ' · ' + esc(cap(d['Sex'] || '')) + ' · ' + esc(d['Country'] || '')
       + '</div></div>';
 
-    // ── Grid ──
+    // ── Sections ──
     html += '<div class="persona-grid">';
 
-    // Location section
+    // Location
     html += section('Location');
+    html += '<div class="persona-row">';
     html += toggle('pg-country-details', 'Country', d['Country'] || '');
     html += toggle('pg-city-details', 'City', d['City'] || '');
     if (d['Timezone']) html += stat('Timezone', fmtTz(d['Timezone']));
+    html += '</div>';
 
-    // Expandable country details
     html += '<div class="country-details" id="pg-country-details">';
     if (d['Capital']) html += stat('Capital', d['Capital']);
     if (d['Region']) html += stat('Region', d['Region']);
@@ -1047,7 +1076,6 @@
     if (d['Currency']) html += stat('Currency', d['Currency']);
     html += '</div>';
 
-    // Expandable city details
     html += '<div class="country-details" id="pg-city-details">';
     if (d['State/Province']) html += stat('State / Province', d['State/Province']);
     if (d['City Population']) html += stat('Population', fmtPop(d['City Population']));
@@ -1055,23 +1083,27 @@
     if (d['Elevation']) html += stat('Elevation', d['Elevation']);
     html += '</div>';
 
-    // Demographics section
+    // Demographics
     html += section('Demographics');
+    html += '<div class="persona-row">';
     if (d['Birthday']) html += stat('Birthday', d['Birthday']);
     if (d['Age']) html += stat('Age', d['Age']);
     if (d['Sex']) html += stat('Sex', cap(d['Sex']));
     if (d['Life Expectancy Remaining']) html += stat('Life Expectancy', d['Life Expectancy Remaining']);
+    html += '</div>';
 
-    // Physical section
+    // Physical
     html += section('Physical');
+    html += '<div class="persona-row">';
     if (d['Height']) html += stat('Height', d['Height']);
     if (d['Weight']) html += stat('Weight', d['Weight']);
-    if (d['BMI']) html += stat('BMI', d['BMI']);
+    if (d['BMI']) html += stat('BMI', fmtBmi(d['BMI']));
     if (d['Eye Color']) html += stat('Eye Color', cap(d['Eye Color']));
     if (d['Hair Color']) html += stat('Hair Color', cap(d['Hair Color']));
     if (d['Skin Type']) html += stat('Skin Type', fmtSkin(d['Skin Type']));
     if (d['Blood Type']) html += stat('Blood Type', d['Blood Type']);
     if (d['Handedness']) html += stat('Handedness', cap(d['Handedness']) + '-handed');
+    html += '</div>';
 
     html += '</div></div>';
     document.getElementById('pg-output').innerHTML = html;

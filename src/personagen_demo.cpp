@@ -151,6 +151,21 @@ class country_component : public dasmig::component
 
 // ── Country field extractors ──
 
+class cca2_component : public dasmig::component
+{
+  public:
+    [[nodiscard]] std::wstring key() const override { return L"CCA2"; }
+    [[nodiscard]] std::any generate(
+        const dasmig::generation_context& ctx) const override
+    {
+        return ctx.get<dasmig::country>(L"Country").cca2;
+    }
+    [[nodiscard]] std::wstring to_string(const std::any& val) const override
+    {
+        return to_wstr(std::any_cast<std::string>(val));
+    }
+};
+
 class flag_component : public dasmig::component
 {
   public:
@@ -586,6 +601,7 @@ bool init()
 
     // Location group
     gen.add(std::make_unique<country_component>());
+    gen.add(std::make_unique<cca2_component>());
     gen.add(std::make_unique<flag_component>());
     gen.add(std::make_unique<capital_component>());
     gen.add(std::make_unique<region_component>());
