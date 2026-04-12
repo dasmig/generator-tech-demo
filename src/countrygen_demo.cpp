@@ -1,3 +1,4 @@
+#include "cpp23_polyfill.hpp"
 #include <dasmig/countrygen.hpp>
 #include <emscripten/bind.h>
 #include <string>

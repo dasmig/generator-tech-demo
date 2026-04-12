@@ -131,10 +131,10 @@ target_link_options(personagen_demo PRIVATE
   -sMODULARIZE=1
   -sEXPORT_NAME=createPersonagenModule
   -sENVIRONMENT=web
-  --preload-file "${COUNTRY_GEN_DIR}/resources/lite@/resources/country/lite"
-  --preload-file "${CITY_GEN_DIR}/resources/lite@/resources/city/lite"
-  --preload-file "${BIRTH_GEN_DIR}/resources/lite@/resources/birth/lite"
-  --preload-file "${BIODATA_GEN_DIR}/resources/lite@/resources/biodata/lite"
-  --preload-file "${NAME_GEN_DIR}/resources/lite@/resources/name/lite"
-  --preload-file "${NICK_GEN_DIR}/resources@/resources/nickname"
+  "SHELL:--preload-file ${COUNTRY_GEN_DIR}/resources/lite@/resources/country/lite"
+  "SHELL:--preload-file ${CITY_GEN_DIR}/resources/lite@/resources/city/lite"
+  "SHELL:--preload-file ${BIRTH_GEN_DIR}/resources/lite@/resources/birth/lite"
+  "SHELL:--preload-file ${BIODATA_GEN_DIR}/resources/lite@/resources/biodata/lite"
+  "SHELL:--preload-file ${NAME_GEN_DIR}/resources/lite@/resources/name/lite"
+  "SHELL:--preload-file ${NICK_GEN_DIR}/resources@/resources/nickname"
 )
