@@ -9,7 +9,6 @@
 #include <dasmig/birthgen.hpp>
 #include <dasmig/biodatagen.hpp>
 #include <dasmig/namegen.hpp>
-#include <dasmig/nicknamegen.hpp>
 #include <emscripten/bind.h>
 
 #include <algorithm>
@@ -110,6 +109,9 @@ std::wstring fmt1(double v)
     return std::to_wstring(x / 10) + L"." + std::to_wstring(x % 10);
 }
 
+// Module-level state for country selection from the UI.
+std::string g_selected_country;
+
 // ═══════════════════════════════════════════════════════════════════
 // Adapter Components — each wraps a library call
 // ═══════════════════════════════════════════════════════════════════
@@ -124,10 +126,13 @@ class country_component : public dasmig::component
     [[nodiscard]] std::any generate(
         const dasmig::generation_context& /*ctx*/) const override
     {
-        // Generate random countries until one falls in the supported set.
-        // With ~80/195 countries (and population-weighted selection), this
-        // converges in ~2-3 iterations on average.
         auto& gen = dasmig::cntg::instance();
+
+        // If a specific country was requested, look it up directly.
+        if (!g_selected_country.empty())
+            return gen.find_country(g_selected_country);
+
+        // Otherwise pick a random supported country.
         for (;;)
         {
             auto c = gen.get_country();
@@ -482,25 +487,6 @@ class name_component : public dasmig::component
     }
 };
 
-// ── 6. Nickname (reads name from context) ──
-
-class nickname_component : public dasmig::component
-{
-  public:
-    [[nodiscard]] std::wstring key() const override { return L"Nickname"; }
-    [[nodiscard]] std::any generate(
-        const dasmig::generation_context& ctx) const override
-    {
-        auto full_name = ctx.get<std::wstring>(L"Name");
-        auto nick = dasmig::nng::instance().get_nickname(full_name);
-        return static_cast<std::wstring>(nick);
-    }
-    [[nodiscard]] std::wstring to_string(const std::any& val) const override
-    {
-        return std::any_cast<std::wstring>(val);
-    }
-};
-
 // ═══════════════════════════════════════════════════════════════════
 // Init & Generate
 // ═══════════════════════════════════════════════════════════════════
@@ -529,10 +515,6 @@ bool init()
     auto& ng = dasmig::ng::instance();
     if (!ng.has_resources()) ng.load("/resources/name/lite");
     ok &= ng.has_resources();
-
-    auto& nng = dasmig::nng::instance();
-    if (!nng.has_wordlists()) nng.load("/resources/nickname");
-    ok &= nng.has_wordlists();
 
     // Register adapter components in dependency order
     auto& gen = dasmig::eg::instance();
@@ -566,13 +548,14 @@ bool init()
 
     // Identity group (depends on country + sex)
     gen.add(std::make_unique<name_component>());
-    gen.add(std::make_unique<nickname_component>());
 
     return ok;
 }
 
-std::string generate_persona()
+std::string generate_persona(const std::string& country_cca2)
 {
+    g_selected_country = country_cca2;
+
     auto& gen = dasmig::eg::instance();
     auto entity = gen.generate();
     auto m = entity.to_map();

@@ -121,7 +121,6 @@ target_include_directories(personagen_demo PRIVATE
   "${BIRTH_GEN_DIR}"
   "${BIODATA_GEN_DIR}"
   "${NAME_GEN_DIR}"
-  "${NICK_GEN_DIR}"
 )
 target_link_options(personagen_demo PRIVATE
   --bind
@@ -136,5 +135,4 @@ target_link_options(personagen_demo PRIVATE
   "SHELL:--preload-file ${BIRTH_GEN_DIR}/resources/lite@/resources/birth/lite"
   "SHELL:--preload-file ${BIODATA_GEN_DIR}/resources/lite@/resources/biodata/lite"
   "SHELL:--preload-file ${NAME_GEN_DIR}/resources/lite@/resources/name/lite"
-  "SHELL:--preload-file ${NICK_GEN_DIR}/resources@/resources/nickname"
 )
