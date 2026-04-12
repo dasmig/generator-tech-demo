@@ -181,6 +181,23 @@
     Everything runs in your browser — no server required.
   </p>
 
+  <!-- ─── Persona Generator (composite) ─── -->
+  <div class="demo-card" id="personagen-card" style="border-color: var(--accent);">
+    <h2>⭐ Persona Generator</h2>
+    <p class="desc">
+      Generates a complete fictional persona by composing all seven libraries
+      through entity-generator adapter components. Country, city, birthday,
+      physical traits, name, and nickname — all coherent in a single entity.
+    </p>
+    <div class="controls">
+      <button class="btn" id="pg-generate" disabled>Generate Persona</button>
+    </div>
+    <div id="pg-output">
+      <div class="output empty">Waiting for module to load…</div>
+    </div>
+    <div class="status" id="pg-status">Loading WebAssembly…</div>
+  </div>
+
   <!-- ─── Name Generator ─── -->
   <div class="demo-card" id="namegen-card">
     <h2>name-generator</h2>
@@ -530,6 +547,7 @@
 <script src="citygen_demo.js"></script>
 <script src="birthgen_demo.js"></script>
 <script src="biodatagen_demo.js"></script>
+<script src="personagen_demo.js"></script>
 
 <script>
   // ─── Name Generator ───
@@ -752,6 +770,54 @@
     const region = document.getElementById('ctg-region').value;
     const json = ctgMod.generateCountry(region);
     renderTable('ctg-output', JSON.parse(json));
+  });
+
+  // ─── Persona Generator ───
+  let pgMod = null;
+  createPersonagenModule().then(mod => {
+    pgMod = mod;
+    const ok = mod.init();
+    document.getElementById('pg-generate').disabled = false;
+    const st = document.getElementById('pg-status');
+    if (ok) {
+      st.textContent = 'Ready — all seven libraries loaded.';
+      st.className = 'status ready';
+    } else {
+      st.textContent = 'Warning: some resources failed to load.';
+      st.className = 'status error';
+    }
+    document.getElementById('pg-output').innerHTML =
+      '<div class="output">Click "Generate Persona" to create a complete profile.</div>';
+  }).catch(err => {
+    document.getElementById('pg-status').textContent = 'Failed to load: ' + err;
+    document.getElementById('pg-status').className = 'status error';
+  });
+
+  document.getElementById('pg-generate').addEventListener('click', () => {
+    if (!pgMod) return;
+    const json = pgMod.generatePersona();
+    const data = JSON.parse(json);
+
+    // Group fields into sections for display
+    const sections = [
+      { title: 'Identity', keys: ['Name', 'Nickname', 'Sex', 'Age', 'Birthday'] },
+      { title: 'Location', keys: ['Country', 'Flag', 'Capital', 'Region', 'City', 'Timezone', 'Languages', 'Currency'] },
+      { title: 'Physical', keys: ['Height', 'Weight', 'BMI', 'Eye Color', 'Hair Color', 'Skin Type', 'Blood Type', 'Handedness'] },
+      { title: 'Demographics', keys: ['Life Expectancy Remaining'] }
+    ];
+
+    let html = '<table class="entity-table"><thead><tr><th>Field</th><th>Value</th></tr></thead><tbody>';
+    for (const section of sections) {
+      html += '<tr><td colspan="2" style="font-weight:700;color:var(--text-muted);padding-top:1rem;border-bottom:2px solid var(--border)">'
+        + esc(section.title) + '</td></tr>';
+      for (const key of section.keys) {
+        if (data[key] !== undefined) {
+          html += '<tr><td>' + esc(key) + '</td><td>' + esc(data[key]) + '</td></tr>';
+        }
+      }
+    }
+    html += '</tbody></table>';
+    document.getElementById('pg-output').innerHTML = html;
   });
 </script>
 

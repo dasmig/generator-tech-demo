@@ -111,3 +111,30 @@ target_link_options(biodatagen_demo PRIVATE
   -sENVIRONMENT=web
   --preload-file "${BIODATA_GEN_DIR}/resources/lite@/resources/lite"
 )
+
+# persona-generator demo (composes all 7 libraries)
+add_executable(personagen_demo src/personagen_demo.cpp)
+target_include_directories(personagen_demo PRIVATE
+  "${ENTITY_GEN_DIR}"
+  "${COUNTRY_GEN_DIR}"
+  "${CITY_GEN_DIR}"
+  "${BIRTH_GEN_DIR}"
+  "${BIODATA_GEN_DIR}"
+  "${NAME_GEN_DIR}"
+  "${NICK_GEN_DIR}"
+)
+target_link_options(personagen_demo PRIVATE
+  --bind
+  -sWASM=1
+  -sALLOW_MEMORY_GROWTH=1
+  -sEXPORTED_RUNTIME_METHODS=['UTF8ToString','stringToUTF8']
+  -sMODULARIZE=1
+  -sEXPORT_NAME=createPersonagenModule
+  -sENVIRONMENT=web
+  --preload-file "${COUNTRY_GEN_DIR}/resources/lite@/resources/country/lite"
+  --preload-file "${CITY_GEN_DIR}/resources/lite@/resources/city/lite"
+  --preload-file "${BIRTH_GEN_DIR}/resources/lite@/resources/birth/lite"
+  --preload-file "${BIODATA_GEN_DIR}/resources/lite@/resources/biodata/lite"
+  --preload-file "${NAME_GEN_DIR}/resources/lite@/resources/name/lite"
+  --preload-file "${NICK_GEN_DIR}/resources@/resources/nickname"
+)

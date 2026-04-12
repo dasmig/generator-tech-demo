@@ -51,6 +51,10 @@ This produces in `build/`:
 - `biodatagen_demo.js` + `biodatagen_demo.wasm` + `biodatagen_demo.data`
 - `citygen_demo.js` + `citygen_demo.wasm` + `citygen_demo.data`
 - `countrygen_demo.js` + `countrygen_demo.wasm` + `countrygen_demo.data`
+- `personagen_demo.js` + `personagen_demo.wasm` + `personagen_demo.data`
+
+The **persona** demo bundles resources from all six data-driven libraries into a
+single Wasm module (~80 countries supported across all libraries).
 
 ## Run locally
 
