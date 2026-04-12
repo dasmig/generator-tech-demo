@@ -7,6 +7,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin></script>
   <style>
     :root {
       --bg: #0f0f0f;
@@ -280,6 +282,14 @@
       border-radius: 3px;
       box-shadow: 0 1px 3px rgba(0,0,0,.3);
     }
+    /* Mini map in city details */
+    .persona-map {
+      width: 100%;
+      height: 180px;
+      grid-column: 1 / -1;
+      border-top: 1px solid var(--border);
+    }
+    .persona-map .leaflet-control-attribution { font-size: .6rem; }
 
     footer {
       text-align: center;
@@ -1081,6 +1091,7 @@
     if (d['City Population']) html += stat('Population', fmtPop(d['City Population']));
     if (d['Coordinates']) html += stat('Coordinates', d['Coordinates']);
     if (d['Elevation']) html += stat('Elevation', d['Elevation']);
+    html += '<div class="persona-map" id="pg-map"></div>';
     html += '</div>';
 
     // Demographics
@@ -1107,6 +1118,39 @@
 
     html += '</div></div>';
     document.getElementById('pg-output').innerHTML = html;
+
+    // ── Initialize Leaflet map when city panel toggles open ──
+    const lat = parseFloat(d['Latitude']);
+    const lon = parseFloat(d['Longitude']);
+    let pgMap = null;
+    const cityToggle = document.querySelector('#pg-output .country-toggle:nth-child(2)');
+    if (cityToggle && !isNaN(lat) && !isNaN(lon)) {
+      const origClick = cityToggle.getAttribute('onclick');
+      cityToggle.removeAttribute('onclick');
+      cityToggle.addEventListener('click', function() {
+        const panel = document.getElementById('pg-city-details');
+        panel.classList.toggle('open');
+        this.querySelector('.country-chevron').classList.toggle('open');
+        if (panel.classList.contains('open') && !pgMap) {
+          pgMap = L.map('pg-map', {
+            zoomControl: false,
+            dragging: false,
+            scrollWheelZoom: false,
+            doubleClickZoom: false,
+            boxZoom: false,
+            keyboard: false,
+            touchZoom: false
+          }).setView([lat, lon], 8);
+          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OSM'
+          }).addTo(pgMap);
+          L.circleMarker([lat, lon], {
+            radius: 6, color: '#42dca3', fillColor: '#42dca3',
+            fillOpacity: .8, weight: 2
+          }).addTo(pgMap);
+        }
+      });
+    }
   });
 </script>
 

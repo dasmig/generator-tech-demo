@@ -298,7 +298,9 @@ class city_admin1_component : public dasmig::component
     [[nodiscard]] std::any generate(
         const dasmig::generation_context& ctx) const override
     {
-        return ctx.get<dasmig::city>(L"City").admin1_code;
+        auto c = ctx.get<dasmig::city>(L"City");
+        return dasmig::cg::instance().resolve_admin1(
+            c.country_code, c.admin1_code);
     }
     [[nodiscard]] std::wstring to_string(const std::any& val) const override
     {
@@ -320,6 +322,36 @@ class city_coords_component : public dasmig::component
     {
         auto [lat, lon] = std::any_cast<std::pair<double, double>>(val);
         return fmt1(lat) + L"°, " + fmt1(lon) + L"°";
+    }
+};
+
+class city_lat_component : public dasmig::component
+{
+  public:
+    [[nodiscard]] std::wstring key() const override { return L"Latitude"; }
+    [[nodiscard]] std::any generate(
+        const dasmig::generation_context& ctx) const override
+    {
+        return ctx.get<dasmig::city>(L"City").latitude;
+    }
+    [[nodiscard]] std::wstring to_string(const std::any& val) const override
+    {
+        return fmt1(std::any_cast<double>(val)) + L"°";
+    }
+};
+
+class city_lon_component : public dasmig::component
+{
+  public:
+    [[nodiscard]] std::wstring key() const override { return L"Longitude"; }
+    [[nodiscard]] std::any generate(
+        const dasmig::generation_context& ctx) const override
+    {
+        return ctx.get<dasmig::city>(L"City").longitude;
+    }
+    [[nodiscard]] std::wstring to_string(const std::any& val) const override
+    {
+        return fmt1(std::any_cast<double>(val)) + L"°";
     }
 };
 
@@ -581,6 +613,7 @@ bool init()
 
     auto& cg = dasmig::cg::instance();
     if (!cg.has_data()) cg.load("/resources/city/lite/cities.tsv");
+    if (!cg.has_admin1()) cg.load_admin1("/resources/city/admin1CodesASCII.txt");
     ok &= cg.has_data();
 
     auto& bthg = dasmig::bthg::instance();
@@ -612,6 +645,8 @@ bool init()
     gen.add(std::make_unique<city_population_component>());
     gen.add(std::make_unique<city_admin1_component>());
     gen.add(std::make_unique<city_coords_component>());
+    gen.add(std::make_unique<city_lat_component>());
+    gen.add(std::make_unique<city_lon_component>());
     gen.add(std::make_unique<city_elevation_component>());
 
     // Demographics group

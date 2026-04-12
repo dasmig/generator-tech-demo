@@ -132,6 +132,7 @@ target_link_options(personagen_demo PRIVATE
   -sENVIRONMENT=web
   "SHELL:--preload-file ${COUNTRY_GEN_DIR}/resources/lite@/resources/country/lite"
   "SHELL:--preload-file ${CITY_GEN_DIR}/resources/lite@/resources/city/lite"
+  "SHELL:--preload-file ${CITY_GEN_DIR}/resources/admin1CodesASCII.txt@/resources/city/admin1CodesASCII.txt"
   "SHELL:--preload-file ${BIRTH_GEN_DIR}/resources/lite@/resources/birth/lite"
   "SHELL:--preload-file ${BIODATA_GEN_DIR}/resources/lite@/resources/biodata/lite"
   "SHELL:--preload-file ${NAME_GEN_DIR}/resources/lite@/resources/name/lite"
