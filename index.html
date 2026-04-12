@@ -164,6 +164,110 @@
       color: var(--accent);
     }
 
+    /* ── Persona card ── */
+    .persona {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      overflow: hidden;
+    }
+    .persona-header {
+      padding: 1.5rem 1.5rem 1rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .persona-name {
+      display: flex;
+      align-items: center;
+      gap: .6rem;
+    }
+    .persona-flag { font-size: 2rem; line-height: 1; }
+    .persona-name h3 {
+      font-size: 1.4rem;
+      font-weight: 700;
+      letter-spacing: -.01em;
+      color: var(--text);
+      margin: 0;
+    }
+    .persona-tagline {
+      margin-top: .35rem;
+      font-size: .85rem;
+      color: var(--text-muted);
+    }
+    .persona-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0;
+    }
+    @media (max-width: 600px) {
+      .persona-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    .persona-stat {
+      padding: .75rem 1.25rem;
+      border-bottom: 1px solid var(--border);
+      border-right: 1px solid var(--border);
+    }
+    .persona-grid > .persona-stat:nth-child(3n) { border-right: none; }
+    @media (max-width: 600px) {
+      .persona-grid > .persona-stat:nth-child(3n) { border-right: 1px solid var(--border); }
+      .persona-grid > .persona-stat:nth-child(2n) { border-right: none; }
+    }
+    .persona-stat-label {
+      font-size: .65rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      color: var(--text-muted);
+      margin-bottom: .15rem;
+    }
+    .persona-stat-value {
+      font-size: .9rem;
+      font-weight: 500;
+      color: var(--text);
+    }
+    .persona-section-title {
+      grid-column: 1 / -1;
+      padding: .5rem 1.25rem .3rem;
+      font-size: .7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      color: var(--accent);
+      border-bottom: 1px solid var(--border);
+      background: rgba(66,220,163,.04);
+    }
+    /* Expandable country details */
+    .country-toggle {
+      cursor: pointer;
+      user-select: none;
+    }
+    .country-toggle:hover .persona-stat-value { color: var(--accent); }
+    .country-chevron {
+      display: inline-block;
+      font-size: .65rem;
+      transition: transform .2s;
+      margin-left: .3rem;
+      color: var(--text-muted);
+    }
+    .country-chevron.open { transform: rotate(90deg); }
+    .country-details {
+      grid-column: 1 / -1;
+      display: none;
+      border-bottom: 1px solid var(--border);
+      background: rgba(66,220,163,.03);
+    }
+    .country-details.open { display: grid; grid-template-columns: repeat(3, 1fr); }
+    @media (max-width: 600px) {
+      .country-details.open { grid-template-columns: repeat(2, 1fr); }
+    }
+    .country-details .persona-stat {
+      border-bottom: none;
+      padding: .5rem 1.25rem;
+    }
+    .country-details .persona-stat-value {
+      font-size: .8rem;
+      color: var(--text-muted);
+    }
+
     footer {
       text-align: center;
       margin-top: 3rem;
@@ -883,27 +987,64 @@
     if (!pgMod) return;
     const country = document.getElementById('pg-country').value;
     const json = pgMod.generatePersona(country);
-    const data = JSON.parse(json);
+    const d = JSON.parse(json);
 
-    // Group fields into sections for display
-    const sections = [
-      { title: 'Identity', keys: ['Name', 'Sex', 'Age', 'Birthday'] },
-      { title: 'Location', keys: ['Country', 'Flag', 'Capital', 'Region', 'City', 'Timezone', 'Languages', 'Currency'] },
-      { title: 'Physical', keys: ['Height', 'Weight', 'BMI', 'Eye Color', 'Hair Color', 'Skin Type', 'Blood Type', 'Handedness'] },
-      { title: 'Demographics', keys: ['Life Expectancy Remaining'] }
-    ];
+    const stat = (label, value) =>
+      '<div class="persona-stat"><div class="persona-stat-label">'
+      + esc(label) + '</div><div class="persona-stat-value">'
+      + esc(value) + '</div></div>';
 
-    let html = '<table class="entity-table"><thead><tr><th>Field</th><th>Value</th></tr></thead><tbody>';
-    for (const section of sections) {
-      html += '<tr><td colspan="2" style="font-weight:700;color:var(--text-muted);padding-top:1rem;border-bottom:2px solid var(--border)">'
-        + esc(section.title) + '</td></tr>';
-      for (const key of section.keys) {
-        if (data[key] !== undefined) {
-          html += '<tr><td>' + esc(key) + '</td><td>' + esc(data[key]) + '</td></tr>';
-        }
-      }
-    }
-    html += '</tbody></table>';
+    const section = (title) =>
+      '<div class="persona-section-title">' + esc(title) + '</div>';
+
+    let html = '<div class="persona">';
+
+    // ── Header: flag + name + tagline ──
+    html += '<div class="persona-header"><div class="persona-name">';
+    if (d['Flag']) html += '<span class="persona-flag">' + esc(d['Flag']) + '</span>';
+    html += '<h3>' + esc(d['Name'] || '—') + '</h3></div>';
+    html += '<div class="persona-tagline">'
+      + esc(d['Age'] || '') + ' · ' + esc(d['Sex'] || '') + ' · ' + esc(d['Country'] || '')
+      + '</div></div>';
+
+    // ── Grid ──
+    html += '<div class="persona-grid">';
+
+    // Location section
+    html += section('Location');
+    html += '<div class="persona-stat country-toggle" onclick="document.getElementById(\'pg-country-details\').classList.toggle(\'open\');this.querySelector(\'.country-chevron\').classList.toggle(\'open\')">'
+      + '<div class="persona-stat-label">Country</div>'
+      + '<div class="persona-stat-value">' + esc(d['Country'] || '') + ' <span class="country-chevron">▸</span></div></div>';
+    if (d['City']) html += stat('City', d['City']);
+    if (d['Timezone']) html += stat('Timezone', d['Timezone']);
+
+    // Expandable country details
+    html += '<div class="country-details" id="pg-country-details">';
+    if (d['Capital']) html += stat('Capital', d['Capital']);
+    if (d['Region']) html += stat('Region', d['Region']);
+    if (d['Languages']) html += stat('Languages', d['Languages']);
+    if (d['Currency']) html += stat('Currency', d['Currency']);
+    html += '</div>';
+
+    // Demographics section
+    html += section('Demographics');
+    if (d['Birthday']) html += stat('Birthday', d['Birthday']);
+    if (d['Age']) html += stat('Age', d['Age']);
+    if (d['Sex']) html += stat('Sex', d['Sex']);
+    if (d['Life Expectancy Remaining']) html += stat('Life Expectancy', d['Life Expectancy Remaining']);
+
+    // Physical section
+    html += section('Physical');
+    if (d['Height']) html += stat('Height', d['Height']);
+    if (d['Weight']) html += stat('Weight', d['Weight']);
+    if (d['BMI']) html += stat('BMI', d['BMI']);
+    if (d['Eye Color']) html += stat('Eye Color', d['Eye Color']);
+    if (d['Hair Color']) html += stat('Hair Color', d['Hair Color']);
+    if (d['Skin Type']) html += stat('Skin Type', d['Skin Type']);
+    if (d['Blood Type']) html += stat('Blood Type', d['Blood Type']);
+    if (d['Handedness']) html += stat('Handedness', d['Handedness']);
+
+    html += '</div></div>';
     document.getElementById('pg-output').innerHTML = html;
   });
 </script>
