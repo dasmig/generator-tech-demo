@@ -1066,6 +1066,7 @@
     html += '<h3>' + esc(d['Name'] || '—') + '</h3></div>';
     html += '<div class="persona-tagline">'
       + esc(d['Age'] || '') + ' · ' + esc(cap(d['Sex'] || '')) + ' · ' + esc(d['Country'] || '')
+      + (d['Blood Type'] ? ' · ' + esc(d['Blood Type']) : '')
       + '</div></div>';
 
     // ── Sections ──
@@ -1100,7 +1101,6 @@
     if (d['Birthday']) html += stat('Birthday', d['Birthday']);
     if (d['Age']) html += stat('Age', d['Age']);
     if (d['Sex']) html += stat('Sex', cap(d['Sex']));
-    if (d['Life Expectancy Remaining']) html += stat('Life Expectancy', d['Life Expectancy Remaining']);
     html += '</div>';
 
     // Physical
@@ -1112,8 +1112,6 @@
     if (d['Eye Color']) html += stat('Eye Color', cap(d['Eye Color']));
     if (d['Hair Color']) html += stat('Hair Color', cap(d['Hair Color']));
     if (d['Skin Type']) html += stat('Skin Type', fmtSkin(d['Skin Type']));
-    if (d['Blood Type']) html += stat('Blood Type', d['Blood Type']);
-    if (d['Handedness']) html += stat('Handedness', cap(d['Handedness']) + '-handed');
     html += '</div>';
 
     html += '</div></div>';

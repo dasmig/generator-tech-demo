@@ -424,21 +424,6 @@ class sex_component : public dasmig::component
     }
 };
 
-class life_expectancy_component : public dasmig::component
-{
-  public:
-    [[nodiscard]] std::wstring key() const override { return L"Life Expectancy Remaining"; }
-    [[nodiscard]] std::any generate(
-        const dasmig::generation_context& ctx) const override
-    {
-        return ctx.get<dasmig::birth>(L"Birthday").le_remaining;
-    }
-    [[nodiscard]] std::wstring to_string(const std::any& val) const override
-    {
-        return fmt1(std::any_cast<double>(val)) + L" years";
-    }
-};
-
 // ── 4. Biodata (reads country + sex from context) ──
 
 class biodata_component : public dasmig::component
@@ -552,22 +537,6 @@ class blood_type_component : public dasmig::component
     }
 };
 
-class handedness_component : public dasmig::component
-{
-  public:
-    [[nodiscard]] std::wstring key() const override { return L"Handedness"; }
-    [[nodiscard]] std::any generate(
-        const dasmig::generation_context& ctx) const override
-    {
-        return ctx.get<dasmig::biodata>(L"Height").hand;
-    }
-    [[nodiscard]] std::wstring to_string(const std::any& val) const override
-    {
-        return to_wstr(std::string(
-            dasmig::biodata::handedness_str(std::any_cast<dasmig::handedness>(val))));
-    }
-};
-
 // ── 5. Name (reads country → culture, sex → gender from context) ──
 
 class name_component : public dasmig::component
@@ -653,8 +622,6 @@ bool init()
     gen.add(std::make_unique<birth_component>());
     gen.add(std::make_unique<age_component>());
     gen.add(std::make_unique<sex_component>());
-    gen.add(std::make_unique<life_expectancy_component>());
-
     // Physical group
     gen.add(std::make_unique<biodata_component>());
     gen.add(std::make_unique<weight_component>());
@@ -663,7 +630,6 @@ bool init()
     gen.add(std::make_unique<hair_color_component>());
     gen.add(std::make_unique<skin_type_component>());
     gen.add(std::make_unique<blood_type_component>());
-    gen.add(std::make_unique<handedness_component>());
 
     // Identity group (depends on country + sex)
     gen.add(std::make_unique<name_component>());
