@@ -261,6 +261,70 @@ class timezone_component : public dasmig::component
     }
 };
 
+class city_population_component : public dasmig::component
+{
+  public:
+    [[nodiscard]] std::wstring key() const override { return L"City Population"; }
+    [[nodiscard]] std::any generate(
+        const dasmig::generation_context& ctx) const override
+    {
+        return ctx.get<dasmig::city>(L"City").population;
+    }
+    [[nodiscard]] std::wstring to_string(const std::any& val) const override
+    {
+        return std::to_wstring(std::any_cast<std::uint64_t>(val));
+    }
+};
+
+class city_admin1_component : public dasmig::component
+{
+  public:
+    [[nodiscard]] std::wstring key() const override { return L"State/Province"; }
+    [[nodiscard]] std::any generate(
+        const dasmig::generation_context& ctx) const override
+    {
+        return ctx.get<dasmig::city>(L"City").admin1_code;
+    }
+    [[nodiscard]] std::wstring to_string(const std::any& val) const override
+    {
+        return to_wstr(std::any_cast<std::string>(val));
+    }
+};
+
+class city_coords_component : public dasmig::component
+{
+  public:
+    [[nodiscard]] std::wstring key() const override { return L"Coordinates"; }
+    [[nodiscard]] std::any generate(
+        const dasmig::generation_context& ctx) const override
+    {
+        auto c = ctx.get<dasmig::city>(L"City");
+        return std::make_pair(c.latitude, c.longitude);
+    }
+    [[nodiscard]] std::wstring to_string(const std::any& val) const override
+    {
+        auto [lat, lon] = std::any_cast<std::pair<double, double>>(val);
+        return fmt1(lat) + L"°, " + fmt1(lon) + L"°";
+    }
+};
+
+class city_elevation_component : public dasmig::component
+{
+  public:
+    [[nodiscard]] std::wstring key() const override { return L"Elevation"; }
+    [[nodiscard]] std::any generate(
+        const dasmig::generation_context& ctx) const override
+    {
+        return static_cast<int>(ctx.get<dasmig::city>(L"City").elevation);
+    }
+    [[nodiscard]] std::wstring to_string(const std::any& val) const override
+    {
+        auto v = std::any_cast<int>(val);
+        if (v <= -9999) return L"N/A";
+        return std::to_wstring(v) + L" m";
+    }
+};
+
 // ── 3. Birth (reads country from context) ──
 
 class birth_component : public dasmig::component
@@ -529,6 +593,10 @@ bool init()
     gen.add(std::make_unique<currency_component>());
     gen.add(std::make_unique<city_component>());
     gen.add(std::make_unique<timezone_component>());
+    gen.add(std::make_unique<city_population_component>());
+    gen.add(std::make_unique<city_admin1_component>());
+    gen.add(std::make_unique<city_coords_component>());
+    gen.add(std::make_unique<city_elevation_component>());
 
     // Demographics group
     gen.add(std::make_unique<birth_component>());

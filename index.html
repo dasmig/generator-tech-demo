@@ -989,6 +989,23 @@
     const json = pgMod.generatePersona(country);
     const d = JSON.parse(json);
 
+    // ── Formatting helpers ──
+    const cap = s => s ? s.charAt(0).toUpperCase() + s.slice(1) : '';
+    const fmtTz = s => s ? s.replace(/_/g, ' ') : '';
+    const fmtPop = s => {
+      const n = parseInt(s, 10);
+      return isNaN(n) ? s : n.toLocaleString();
+    };
+    const skinMap = {
+      'I':   'Type I — Very fair, always burns',
+      'II':  'Type II — Fair, burns easily',
+      'III': 'Type III — Medium, sometimes burns',
+      'IV':  'Type IV — Olive, rarely burns',
+      'V':   'Type V — Brown, very rarely burns',
+      'VI':  'Type VI — Dark, never burns'
+    };
+    const fmtSkin = s => skinMap[s] || s;
+
     const stat = (label, value) =>
       '<div class="persona-stat"><div class="persona-stat-label">'
       + esc(label) + '</div><div class="persona-stat-value">'
@@ -997,6 +1014,11 @@
     const section = (title) =>
       '<div class="persona-section-title">' + esc(title) + '</div>';
 
+    const toggle = (id, label, display) =>
+      '<div class="persona-stat country-toggle" onclick="document.getElementById(\'' + id + '\').classList.toggle(\'open\');this.querySelector(\'.country-chevron\').classList.toggle(\'open\')">'
+      + '<div class="persona-stat-label">' + esc(label) + '</div>'
+      + '<div class="persona-stat-value">' + esc(display) + ' <span class="country-chevron">▸</span></div></div>';
+
     let html = '<div class="persona">';
 
     // ── Header: flag + name + tagline ──
@@ -1004,7 +1026,8 @@
     if (d['Flag']) html += '<span class="persona-flag">' + esc(d['Flag']) + '</span>';
     html += '<h3>' + esc(d['Name'] || '—') + '</h3></div>';
     html += '<div class="persona-tagline">'
-      + esc(d['Age'] || '') + ' · ' + esc(d['Sex'] || '') + ' · ' + esc(d['Country'] || '')
+      + esc(d['Age'] || '') + ' · ' + esc(cap(d['Sex'] || '')) + ' · '
+      + esc(d['Flag'] || '') + ' ' + esc(d['Country'] || '')
       + '</div></div>';
 
     // ── Grid ──
@@ -1012,11 +1035,9 @@
 
     // Location section
     html += section('Location');
-    html += '<div class="persona-stat country-toggle" onclick="document.getElementById(\'pg-country-details\').classList.toggle(\'open\');this.querySelector(\'.country-chevron\').classList.toggle(\'open\')">'
-      + '<div class="persona-stat-label">Country</div>'
-      + '<div class="persona-stat-value">' + esc(d['Country'] || '') + ' <span class="country-chevron">▸</span></div></div>';
-    if (d['City']) html += stat('City', d['City']);
-    if (d['Timezone']) html += stat('Timezone', d['Timezone']);
+    html += toggle('pg-country-details', 'Country', d['Country'] || '');
+    html += toggle('pg-city-details', 'City', d['City'] || '');
+    if (d['Timezone']) html += stat('Timezone', fmtTz(d['Timezone']));
 
     // Expandable country details
     html += '<div class="country-details" id="pg-country-details">';
@@ -1026,11 +1047,19 @@
     if (d['Currency']) html += stat('Currency', d['Currency']);
     html += '</div>';
 
+    // Expandable city details
+    html += '<div class="country-details" id="pg-city-details">';
+    if (d['State/Province']) html += stat('State / Province', d['State/Province']);
+    if (d['City Population']) html += stat('Population', fmtPop(d['City Population']));
+    if (d['Coordinates']) html += stat('Coordinates', d['Coordinates']);
+    if (d['Elevation']) html += stat('Elevation', d['Elevation']);
+    html += '</div>';
+
     // Demographics section
     html += section('Demographics');
     if (d['Birthday']) html += stat('Birthday', d['Birthday']);
     if (d['Age']) html += stat('Age', d['Age']);
-    if (d['Sex']) html += stat('Sex', d['Sex']);
+    if (d['Sex']) html += stat('Sex', cap(d['Sex']));
     if (d['Life Expectancy Remaining']) html += stat('Life Expectancy', d['Life Expectancy Remaining']);
 
     // Physical section
@@ -1038,11 +1067,11 @@
     if (d['Height']) html += stat('Height', d['Height']);
     if (d['Weight']) html += stat('Weight', d['Weight']);
     if (d['BMI']) html += stat('BMI', d['BMI']);
-    if (d['Eye Color']) html += stat('Eye Color', d['Eye Color']);
-    if (d['Hair Color']) html += stat('Hair Color', d['Hair Color']);
-    if (d['Skin Type']) html += stat('Skin Type', d['Skin Type']);
+    if (d['Eye Color']) html += stat('Eye Color', cap(d['Eye Color']));
+    if (d['Hair Color']) html += stat('Hair Color', cap(d['Hair Color']));
+    if (d['Skin Type']) html += stat('Skin Type', fmtSkin(d['Skin Type']));
     if (d['Blood Type']) html += stat('Blood Type', d['Blood Type']);
-    if (d['Handedness']) html += stat('Handedness', d['Handedness']);
+    if (d['Handedness']) html += stat('Handedness', cap(d['Handedness']) + '-handed');
 
     html += '</div></div>';
     document.getElementById('pg-output').innerHTML = html;
