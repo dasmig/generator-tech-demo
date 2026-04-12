@@ -104,9 +104,11 @@ const std::vector<std::string> supported_countries = {
 
 std::wstring fmt1(double v)
 {
+    bool neg = v < 0;
+    if (neg) v = -v;
     int x = static_cast<int>(v * 10);
-    if (x < 0) x = -x;
-    return std::to_wstring(x / 10) + L"." + std::to_wstring(x % 10);
+    auto s = std::to_wstring(x / 10) + L"." + std::to_wstring(x % 10);
+    return neg ? L"-" + s : s;
 }
 
 // Module-level state for country selection from the UI.

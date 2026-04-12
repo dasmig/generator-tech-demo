@@ -1046,6 +1046,18 @@
       + esc(label) + '</div><div class="persona-stat-value">'
       + esc(value) + '</div></div>';
 
+    const statHtml = (label, valueHtml) =>
+      '<div class="persona-stat"><div class="persona-stat-label">'
+      + esc(label) + '</div><div class="persona-stat-value">'
+      + valueHtml + '</div></div>';
+
+    const eyeColors = { brown: '#8B4513', blue: '#4682B4', green: '#2E8B57', hazel: '#C4A35A', amber: '#FFBF00', gray: '#9E9E9E', grey: '#9E9E9E' };
+    const hairColors = { black: '#222', brown: '#6B3A2A', blond: '#F5DEB3', red: '#B7410E', auburn: '#A52A2A', gray: '#9E9E9E', grey: '#9E9E9E', white: '#E8E8E8' };
+    const colorDot = (name, map) => {
+      const c = (map || {})[name.toLowerCase()];
+      return c ? '<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:' + c + ';margin-right:5px;vertical-align:middle"></span>' : '';
+    };
+
     const section = (title) =>
       '<div class="persona-section-title">' + esc(title) + '</div>';
 
@@ -1064,8 +1076,9 @@
     html += '<div class="persona-header"><div class="persona-name">';
     if (flagUrl) html += '<img class="persona-flag-img" src="' + flagUrl + '" alt="flag">';
     html += '<h3>' + esc(d['Name'] || '—') + '</h3></div>';
+    const sexIcon = (d['Sex'] || '').toLowerCase() === 'female' ? '♀' : '♂';
     html += '<div class="persona-tagline">'
-      + esc(d['Age'] || '') + ' · ' + esc(cap(d['Sex'] || '')) + ' · ' + esc(d['Country'] || '')
+      + esc(d['Age'] || '') + ' · ' + sexIcon + ' · ' + esc(d['Country'] || '')
       + (d['Blood Type'] ? ' · ' + esc(d['Blood Type']) : '')
       + '</div></div>';
 
@@ -1109,8 +1122,8 @@
     if (d['Height']) html += stat('Height', d['Height']);
     if (d['Weight']) html += stat('Weight', d['Weight']);
     if (d['BMI']) html += stat('BMI', fmtBmi(d['BMI']));
-    if (d['Eye Color']) html += stat('Eye Color', cap(d['Eye Color']));
-    if (d['Hair Color']) html += stat('Hair Color', cap(d['Hair Color']));
+    if (d['Eye Color']) html += statHtml('Eye Color', colorDot(d['Eye Color'], eyeColors) + esc(cap(d['Eye Color'])));
+    if (d['Hair Color']) html += statHtml('Hair Color', colorDot(d['Hair Color'], hairColors) + esc(cap(d['Hair Color'])));
     if (d['Skin Type']) html += stat('Skin Type', fmtSkin(d['Skin Type']));
     html += '</div>';
 
