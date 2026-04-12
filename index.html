@@ -1078,7 +1078,7 @@
     html += '<h3>' + esc(d['Name'] || '—') + '</h3></div>';
     const sexIcon = (d['Sex'] || '').toLowerCase() === 'female' ? '♀' : '♂';
     html += '<div class="persona-tagline">'
-      + esc(d['Age'] || '') + ' · ' + sexIcon + ' · ' + esc(d['Country'] || '')
+      + esc(d['Age'] || '') + ' · ' + sexIcon
       + (d['Blood Type'] ? ' · ' + esc(d['Blood Type']) : '')
       + '</div></div>';
 
