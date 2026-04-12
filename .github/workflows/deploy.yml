@@ -39,6 +39,30 @@ jobs:
           repository: dasmig/entity-generator
           path: entity-generator
 
+      - name: Checkout country-generator
+        uses: actions/checkout@v4
+        with:
+          repository: dasmig/country-generator
+          path: country-generator
+
+      - name: Checkout city-generator
+        uses: actions/checkout@v4
+        with:
+          repository: dasmig/city-generator
+          path: city-generator
+
+      - name: Checkout birth-generator
+        uses: actions/checkout@v4
+        with:
+          repository: dasmig/birth-generator
+          path: birth-generator
+
+      - name: Checkout biodata-generator
+        uses: actions/checkout@v4
+        with:
+          repository: dasmig/biodata-generator
+          path: biodata-generator
+
       - name: Setup Emscripten
         uses: mymindstorm/setup-emsdk@v14
         with:
@@ -50,6 +74,10 @@ jobs:
           -DNAME_GEN_DIR=${{ github.workspace }}/name-generator
           -DNICK_GEN_DIR=${{ github.workspace }}/nickname-generator
           -DENTITY_GEN_DIR=${{ github.workspace }}/entity-generator
+          -DCOUNTRY_GEN_DIR=${{ github.workspace }}/country-generator
+          -DCITY_GEN_DIR=${{ github.workspace }}/city-generator
+          -DBIRTH_GEN_DIR=${{ github.workspace }}/birth-generator
+          -DBIODATA_GEN_DIR=${{ github.workspace }}/biodata-generator
 
       - name: Build
         run: cmake --build build
