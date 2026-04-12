@@ -347,6 +347,175 @@
     </div>
     <div class="status" id="eg-status">Loading WebAssembly…</div>
   </div>
+
+  <!-- ─── Birth Generator ─── -->
+  <div class="demo-card" id="birthgen-card">
+    <h2>birth-generator</h2>
+    <p class="desc">
+      Generate demographically plausible birthdays using UN population data.
+      <a class="repo-link" href="https://github.com/dasmig/birth-generator" target="_blank" rel="noopener">GitHub →</a>
+    </p>
+    <div class="controls">
+      <div class="field">
+        <label for="bg-country">Country</label>
+        <select id="bg-country">
+          <option value="">Any</option>
+          <option value="US">United States</option>
+          <option value="BR">Brazil</option>
+          <option value="GB">United Kingdom</option>
+          <option value="DE">Germany</option>
+          <option value="FR">France</option>
+          <option value="JP">Japan</option>
+          <option value="CN">China</option>
+          <option value="IN">India</option>
+          <option value="AU">Australia</option>
+          <option value="CA">Canada</option>
+          <option value="IT">Italy</option>
+          <option value="ES">Spain</option>
+          <option value="MX">Mexico</option>
+          <option value="KR">South Korea</option>
+          <option value="RU">Russia</option>
+          <option value="ZA">South Africa</option>
+          <option value="NG">Nigeria</option>
+          <option value="EG">Egypt</option>
+          <option value="AR">Argentina</option>
+          <option value="SE">Sweden</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="bg-sex">Sex</label>
+        <select id="bg-sex">
+          <option value="">Any</option>
+          <option value="male">Male</option>
+          <option value="female">Female</option>
+        </select>
+      </div>
+      <button class="btn" id="bg-generate" disabled>Generate</button>
+    </div>
+    <div id="bg-output">
+      <div class="output empty">Waiting for module to load…</div>
+    </div>
+    <div class="status" id="bg-status">Loading WebAssembly…</div>
+  </div>
+
+  <!-- ─── Biodata Generator ─── -->
+  <div class="demo-card" id="biodatagen-card">
+    <h2>biodata-generator</h2>
+    <p class="desc">
+      Generate physical characteristics — height, weight, eye/hair color, blood type — using population statistics.
+      <a class="repo-link" href="https://github.com/dasmig/biodata-generator" target="_blank" rel="noopener">GitHub →</a>
+    </p>
+    <div class="controls">
+      <div class="field">
+        <label for="bd-country">Country</label>
+        <select id="bd-country">
+          <option value="">Any</option>
+          <option value="US">United States</option>
+          <option value="BR">Brazil</option>
+          <option value="GB">United Kingdom</option>
+          <option value="DE">Germany</option>
+          <option value="FR">France</option>
+          <option value="JP">Japan</option>
+          <option value="CN">China</option>
+          <option value="IN">India</option>
+          <option value="AU">Australia</option>
+          <option value="CA">Canada</option>
+          <option value="IT">Italy</option>
+          <option value="ES">Spain</option>
+          <option value="MX">Mexico</option>
+          <option value="KR">South Korea</option>
+          <option value="RU">Russia</option>
+          <option value="ZA">South Africa</option>
+          <option value="NG">Nigeria</option>
+          <option value="EG">Egypt</option>
+          <option value="AR">Argentina</option>
+          <option value="SE">Sweden</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="bd-sex">Sex</label>
+        <select id="bd-sex">
+          <option value="">Any</option>
+          <option value="male">Male</option>
+          <option value="female">Female</option>
+        </select>
+      </div>
+      <button class="btn" id="bd-generate" disabled>Generate</button>
+    </div>
+    <div id="bd-output">
+      <div class="output empty">Waiting for module to load…</div>
+    </div>
+    <div class="status" id="bd-status">Loading WebAssembly…</div>
+  </div>
+
+  <!-- ─── City Generator ─── -->
+  <div class="demo-card" id="citygen-card">
+    <h2>city-generator</h2>
+    <p class="desc">
+      Generate random cities with population-weighted selection from GeoNames data.
+      <a class="repo-link" href="https://github.com/dasmig/city-generator" target="_blank" rel="noopener">GitHub →</a>
+    </p>
+    <div class="controls">
+      <div class="field">
+        <label for="cg-country">Country</label>
+        <select id="cg-country">
+          <option value="">Any</option>
+          <option value="US">United States</option>
+          <option value="BR">Brazil</option>
+          <option value="GB">United Kingdom</option>
+          <option value="DE">Germany</option>
+          <option value="FR">France</option>
+          <option value="JP">Japan</option>
+          <option value="CN">China</option>
+          <option value="IN">India</option>
+          <option value="AU">Australia</option>
+          <option value="CA">Canada</option>
+          <option value="IT">Italy</option>
+          <option value="ES">Spain</option>
+          <option value="MX">Mexico</option>
+          <option value="KR">South Korea</option>
+          <option value="RU">Russia</option>
+          <option value="ZA">South Africa</option>
+          <option value="NG">Nigeria</option>
+          <option value="EG">Egypt</option>
+          <option value="AR">Argentina</option>
+          <option value="SE">Sweden</option>
+        </select>
+      </div>
+      <button class="btn" id="cg-generate" disabled>Generate</button>
+    </div>
+    <div id="cg-output">
+      <div class="output empty">Waiting for module to load…</div>
+    </div>
+    <div class="status" id="cg-status">Loading WebAssembly…</div>
+  </div>
+
+  <!-- ─── Country Generator ─── -->
+  <div class="demo-card" id="countrygen-card">
+    <h2>country-generator</h2>
+    <p class="desc">
+      Generate random countries with comprehensive metadata — geography, politics, culture, telecom.
+      <a class="repo-link" href="https://github.com/dasmig/country-generator" target="_blank" rel="noopener">GitHub →</a>
+    </p>
+    <div class="controls">
+      <div class="field">
+        <label for="ctg-region">Region</label>
+        <select id="ctg-region">
+          <option value="">Any</option>
+          <option value="Africa">Africa</option>
+          <option value="Americas">Americas</option>
+          <option value="Asia">Asia</option>
+          <option value="Europe">Europe</option>
+          <option value="Oceania">Oceania</option>
+        </select>
+      </div>
+      <button class="btn" id="ctg-generate" disabled>Generate</button>
+    </div>
+    <div id="ctg-output">
+      <div class="output empty">Waiting for module to load…</div>
+    </div>
+    <div class="status" id="ctg-status">Loading WebAssembly…</div>
+  </div>
 </div>
 
 <footer>
@@ -357,6 +526,10 @@
 <script src="namegen_demo.js"></script>
 <script src="nickgen_demo.js"></script>
 <script src="entitygen_demo.js"></script>
+<script src="countrygen_demo.js"></script>
+<script src="citygen_demo.js"></script>
+<script src="birthgen_demo.js"></script>
+<script src="biodatagen_demo.js"></script>
 
 <script>
   // ─── Name Generator ───
@@ -454,6 +627,132 @@
     d.textContent = s;
     return d.innerHTML;
   }
+
+  function renderTable(containerId, data) {
+    let html = '<table class="entity-table"><thead><tr><th>Field</th><th>Value</th></tr></thead><tbody>';
+    for (const [key, val] of Object.entries(data)) {
+      const display = (typeof val === 'boolean') ? (val ? 'Yes' : 'No')
+        : (typeof val === 'number') ? val.toLocaleString()
+        : val;
+      html += '<tr><td>' + esc(key) + '</td><td>' + esc(String(display)) + '</td></tr>';
+    }
+    html += '</tbody></table>';
+    document.getElementById(containerId).innerHTML = html;
+  }
+
+  // ─── Birth Generator ───
+  let bgMod = null;
+  createBirthgenModule().then(mod => {
+    bgMod = mod;
+    const ok = mod.init();
+    document.getElementById('bg-generate').disabled = false;
+    const st = document.getElementById('bg-status');
+    if (ok) {
+      st.textContent = 'Ready — population data loaded.';
+      st.className = 'status ready';
+    } else {
+      st.textContent = 'Warning: resources not found.';
+      st.className = 'status error';
+    }
+    document.getElementById('bg-output').innerHTML =
+      '<div class="output">Click "Generate" to create a birthday.</div>';
+  }).catch(err => {
+    document.getElementById('bg-status').textContent = 'Failed to load: ' + err;
+    document.getElementById('bg-status').className = 'status error';
+  });
+
+  document.getElementById('bg-generate').addEventListener('click', () => {
+    if (!bgMod) return;
+    const country = document.getElementById('bg-country').value;
+    const sex = document.getElementById('bg-sex').value;
+    const json = bgMod.generateBirth(country, sex);
+    renderTable('bg-output', JSON.parse(json));
+  });
+
+  // ─── Biodata Generator ───
+  let bdMod = null;
+  createBiodatagenModule().then(mod => {
+    bdMod = mod;
+    const ok = mod.init();
+    document.getElementById('bd-generate').disabled = false;
+    const st = document.getElementById('bd-status');
+    if (ok) {
+      st.textContent = 'Ready — biodata loaded.';
+      st.className = 'status ready';
+    } else {
+      st.textContent = 'Warning: resources not found.';
+      st.className = 'status error';
+    }
+    document.getElementById('bd-output').innerHTML =
+      '<div class="output">Click "Generate" to create biodata.</div>';
+  }).catch(err => {
+    document.getElementById('bd-status').textContent = 'Failed to load: ' + err;
+    document.getElementById('bd-status').className = 'status error';
+  });
+
+  document.getElementById('bd-generate').addEventListener('click', () => {
+    if (!bdMod) return;
+    const country = document.getElementById('bd-country').value;
+    const sex = document.getElementById('bd-sex').value;
+    const json = bdMod.generateBiodata(country, sex);
+    renderTable('bd-output', JSON.parse(json));
+  });
+
+  // ─── City Generator ───
+  let cgMod = null;
+  createCitygenModule().then(mod => {
+    cgMod = mod;
+    const ok = mod.init();
+    document.getElementById('cg-generate').disabled = false;
+    const st = document.getElementById('cg-status');
+    if (ok) {
+      st.textContent = 'Ready — city data loaded.';
+      st.className = 'status ready';
+    } else {
+      st.textContent = 'Warning: resources not found.';
+      st.className = 'status error';
+    }
+    document.getElementById('cg-output').innerHTML =
+      '<div class="output">Click "Generate" to pick a city.</div>';
+  }).catch(err => {
+    document.getElementById('cg-status').textContent = 'Failed to load: ' + err;
+    document.getElementById('cg-status').className = 'status error';
+  });
+
+  document.getElementById('cg-generate').addEventListener('click', () => {
+    if (!cgMod) return;
+    const country = document.getElementById('cg-country').value;
+    const json = cgMod.generateCity(country);
+    renderTable('cg-output', JSON.parse(json));
+  });
+
+  // ─── Country Generator ───
+  let ctgMod = null;
+  createCountrygenModule().then(mod => {
+    ctgMod = mod;
+    const ok = mod.init();
+    document.getElementById('ctg-generate').disabled = false;
+    const st = document.getElementById('ctg-status');
+    if (ok) {
+      st.textContent = 'Ready — country data loaded.';
+      st.className = 'status ready';
+    } else {
+      st.textContent = 'Warning: resources not found.';
+      st.className = 'status error';
+    }
+    document.getElementById('ctg-output').innerHTML =
+      '<div class="output">Click "Generate" to pick a country.</div>';
+  }).catch(err => {
+    document.getElementById('ctg-status').textContent = 'Failed to load: ' + err;
+    document.getElementById('ctg-status').className = 'status error';
+  });
+
+  document.getElementById('ctg-generate').addEventListener('click', () => {
+    if (!ctgMod) return;
+    const region = document.getElementById('ctg-region').value;
+    const json = ctgMod.generateCountry(region);
+    renderTable('ctg-output', JSON.parse(json));
+  });
 </script>
 
 </body>

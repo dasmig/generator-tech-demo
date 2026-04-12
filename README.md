@@ -1,6 +1,6 @@
 # generator-tech-demo
 
-Live WebAssembly demos for the [name-generator](https://github.com/dasmig/name-generator), [nickname-generator](https://github.com/dasmig/nickname-generator), and [entity-generator](https://github.com/dasmig/entity-generator) C++23 libraries.
+Live WebAssembly demos for the [name-generator](https://github.com/dasmig/name-generator), [nickname-generator](https://github.com/dasmig/nickname-generator), [entity-generator](https://github.com/dasmig/entity-generator), [birth-generator](https://github.com/dasmig/birth-generator), [biodata-generator](https://github.com/dasmig/biodata-generator), [city-generator](https://github.com/dasmig/city-generator), and [country-generator](https://github.com/dasmig/country-generator) C++23 libraries.
 
 Everything runs client-side in the browser — no server required.
 
@@ -30,6 +30,10 @@ Repo/
 ├── name-generator/
 ├── nickname-generator/
 ├── entity-generator/
+├── birth-generator/
+├── biodata-generator/
+├── city-generator/
+├── country-generator/
 └── generator-tech-demo/    ← this repo
 ```
 
@@ -43,6 +47,10 @@ This produces in `build/`:
 - `namegen_demo.js` + `namegen_demo.wasm` + `namegen_demo.data`
 - `nickgen_demo.js` + `nickgen_demo.wasm` + `nickgen_demo.data`
 - `entitygen_demo.js` + `entitygen_demo.wasm`
+- `birthgen_demo.js` + `birthgen_demo.wasm` + `birthgen_demo.data`
+- `biodatagen_demo.js` + `biodatagen_demo.wasm` + `biodatagen_demo.data`
+- `citygen_demo.js` + `citygen_demo.wasm` + `citygen_demo.data`
+- `countrygen_demo.js` + `countrygen_demo.wasm` + `countrygen_demo.data`
 
 ## Run locally
 

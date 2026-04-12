@@ -8,6 +8,10 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(NAME_GEN_DIR "${CMAKE_SOURCE_DIR}/../name-generator" CACHE PATH "Path to name-generator repo")
 set(NICK_GEN_DIR "${CMAKE_SOURCE_DIR}/../nickname-generator" CACHE PATH "Path to nickname-generator repo")
 set(ENTITY_GEN_DIR "${CMAKE_SOURCE_DIR}/../entity-generator" CACHE PATH "Path to entity-generator repo")
+set(COUNTRY_GEN_DIR "${CMAKE_SOURCE_DIR}/../country-generator" CACHE PATH "Path to country-generator repo")
+set(CITY_GEN_DIR "${CMAKE_SOURCE_DIR}/../city-generator" CACHE PATH "Path to city-generator repo")
+set(BIRTH_GEN_DIR "${CMAKE_SOURCE_DIR}/../birth-generator" CACHE PATH "Path to birth-generator repo")
+set(BIODATA_GEN_DIR "${CMAKE_SOURCE_DIR}/../biodata-generator" CACHE PATH "Path to biodata-generator repo")
 
 # ── Wasm modules ──
 
@@ -50,4 +54,60 @@ target_link_options(entitygen_demo PRIVATE
   -sMODULARIZE=1
   -sEXPORT_NAME=createEntitygenModule
   -sENVIRONMENT=web
+)
+
+# country-generator demo
+add_executable(countrygen_demo src/countrygen_demo.cpp)
+target_include_directories(countrygen_demo PRIVATE "${COUNTRY_GEN_DIR}")
+target_link_options(countrygen_demo PRIVATE
+  --bind
+  -sWASM=1
+  -sALLOW_MEMORY_GROWTH=1
+  -sEXPORTED_RUNTIME_METHODS=['UTF8ToString','stringToUTF8']
+  -sMODULARIZE=1
+  -sEXPORT_NAME=createCountrygenModule
+  -sENVIRONMENT=web
+  --preload-file "${COUNTRY_GEN_DIR}/resources/lite@/resources/lite"
+)
+
+# city-generator demo
+add_executable(citygen_demo src/citygen_demo.cpp)
+target_include_directories(citygen_demo PRIVATE "${CITY_GEN_DIR}")
+target_link_options(citygen_demo PRIVATE
+  --bind
+  -sWASM=1
+  -sALLOW_MEMORY_GROWTH=1
+  -sEXPORTED_RUNTIME_METHODS=['UTF8ToString','stringToUTF8']
+  -sMODULARIZE=1
+  -sEXPORT_NAME=createCitygenModule
+  -sENVIRONMENT=web
+  --preload-file "${CITY_GEN_DIR}/resources/lite@/resources/lite"
+)
+
+# birth-generator demo
+add_executable(birthgen_demo src/birthgen_demo.cpp)
+target_include_directories(birthgen_demo PRIVATE "${BIRTH_GEN_DIR}")
+target_link_options(birthgen_demo PRIVATE
+  --bind
+  -sWASM=1
+  -sALLOW_MEMORY_GROWTH=1
+  -sEXPORTED_RUNTIME_METHODS=['UTF8ToString','stringToUTF8']
+  -sMODULARIZE=1
+  -sEXPORT_NAME=createBirthgenModule
+  -sENVIRONMENT=web
+  --preload-file "${BIRTH_GEN_DIR}/resources/lite@/resources/lite"
+)
+
+# biodata-generator demo
+add_executable(biodatagen_demo src/biodatagen_demo.cpp)
+target_include_directories(biodatagen_demo PRIVATE "${BIODATA_GEN_DIR}")
+target_link_options(biodatagen_demo PRIVATE
+  --bind
+  -sWASM=1
+  -sALLOW_MEMORY_GROWTH=1
+  -sEXPORTED_RUNTIME_METHODS=['UTF8ToString','stringToUTF8']
+  -sMODULARIZE=1
+  -sEXPORT_NAME=createBiodatagenModule
+  -sENVIRONMENT=web
+  --preload-file "${BIODATA_GEN_DIR}/resources/lite@/resources/lite"
 )
