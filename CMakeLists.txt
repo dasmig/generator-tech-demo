@@ -14,10 +14,14 @@ set(BIRTH_GEN_DIR "${CMAKE_SOURCE_DIR}/../birth-generator" CACHE PATH "Path to b
 set(BIODATA_GEN_DIR "${CMAKE_SOURCE_DIR}/../biodata-generator" CACHE PATH "Path to biodata-generator repo")
 
 # ── Wasm modules ──
+#
+# The libraries' lite data is compiled in (DASMIG_*_EMBED), so the modules
+# need no preloaded files; only city's admin1 names are still a file.
 
 # name-generator demo
 add_executable(namegen_demo src/namegen_demo.cpp)
 target_include_directories(namegen_demo PRIVATE "${NAME_GEN_DIR}")
+target_compile_definitions(namegen_demo PRIVATE DASMIG_NAME_EMBED)
 target_link_options(namegen_demo PRIVATE
   --bind
   -sWASM=1
@@ -26,12 +30,12 @@ target_link_options(namegen_demo PRIVATE
   -sMODULARIZE=1
   -sEXPORT_NAME=createNamegenModule
   -sENVIRONMENT=web
-  --preload-file "${NAME_GEN_DIR}/resources/lite@/resources/lite"
 )
 
 # nickname-generator demo
 add_executable(nickgen_demo src/nickgen_demo.cpp)
 target_include_directories(nickgen_demo PRIVATE "${NICK_GEN_DIR}")
+target_compile_definitions(nickgen_demo PRIVATE DASMIG_NICKNAME_EMBED)
 target_link_options(nickgen_demo PRIVATE
   --bind
   -sWASM=1
@@ -40,7 +44,6 @@ target_link_options(nickgen_demo PRIVATE
   -sMODULARIZE=1
   -sEXPORT_NAME=createNickgenModule
   -sENVIRONMENT=web
-  --preload-file "${NICK_GEN_DIR}/resources@/resources"
 )
 
 # entity-generator demo (no resource files needed)
@@ -59,6 +62,7 @@ target_link_options(entitygen_demo PRIVATE
 # country-generator demo
 add_executable(countrygen_demo src/countrygen_demo.cpp)
 target_include_directories(countrygen_demo PRIVATE "${COUNTRY_GEN_DIR}")
+target_compile_definitions(countrygen_demo PRIVATE DASMIG_COUNTRY_EMBED)
 target_link_options(countrygen_demo PRIVATE
   --bind
   -sWASM=1
@@ -67,12 +71,12 @@ target_link_options(countrygen_demo PRIVATE
   -sMODULARIZE=1
   -sEXPORT_NAME=createCountrygenModule
   -sENVIRONMENT=web
-  --preload-file "${COUNTRY_GEN_DIR}/resources/lite@/resources/lite"
 )
 
 # city-generator demo
 add_executable(citygen_demo src/citygen_demo.cpp)
 target_include_directories(citygen_demo PRIVATE "${CITY_GEN_DIR}")
+target_compile_definitions(citygen_demo PRIVATE DASMIG_CITY_EMBED)
 target_link_options(citygen_demo PRIVATE
   --bind
   -sWASM=1
@@ -81,12 +85,12 @@ target_link_options(citygen_demo PRIVATE
   -sMODULARIZE=1
   -sEXPORT_NAME=createCitygenModule
   -sENVIRONMENT=web
-  --preload-file "${CITY_GEN_DIR}/resources/lite@/resources/lite"
 )
 
 # birth-generator demo
 add_executable(birthgen_demo src/birthgen_demo.cpp)
 target_include_directories(birthgen_demo PRIVATE "${BIRTH_GEN_DIR}")
+target_compile_definitions(birthgen_demo PRIVATE DASMIG_BIRTH_EMBED)
 target_link_options(birthgen_demo PRIVATE
   --bind
   -sWASM=1
@@ -95,12 +99,12 @@ target_link_options(birthgen_demo PRIVATE
   -sMODULARIZE=1
   -sEXPORT_NAME=createBirthgenModule
   -sENVIRONMENT=web
-  --preload-file "${BIRTH_GEN_DIR}/resources/lite@/resources/lite"
 )
 
 # biodata-generator demo
 add_executable(biodatagen_demo src/biodatagen_demo.cpp)
 target_include_directories(biodatagen_demo PRIVATE "${BIODATA_GEN_DIR}")
+target_compile_definitions(biodatagen_demo PRIVATE DASMIG_BIODATA_EMBED)
 target_link_options(biodatagen_demo PRIVATE
   --bind
   -sWASM=1
@@ -109,7 +113,6 @@ target_link_options(biodatagen_demo PRIVATE
   -sMODULARIZE=1
   -sEXPORT_NAME=createBiodatagenModule
   -sENVIRONMENT=web
-  --preload-file "${BIODATA_GEN_DIR}/resources/lite@/resources/lite"
 )
 
 # persona-generator demo (composes all 7 libraries)
@@ -122,6 +125,7 @@ target_include_directories(personagen_demo PRIVATE
   "${BIODATA_GEN_DIR}"
   "${NAME_GEN_DIR}"
 )
+target_compile_definitions(personagen_demo PRIVATE DASMIG_COUNTRY_EMBED DASMIG_CITY_EMBED DASMIG_BIRTH_EMBED DASMIG_BIODATA_EMBED DASMIG_NAME_EMBED)
 target_link_options(personagen_demo PRIVATE
   --bind
   -sWASM=1
@@ -130,10 +134,5 @@ target_link_options(personagen_demo PRIVATE
   -sMODULARIZE=1
   -sEXPORT_NAME=createPersonagenModule
   -sENVIRONMENT=web
-  "SHELL:--preload-file ${COUNTRY_GEN_DIR}/resources/lite@/resources/country/lite"
-  "SHELL:--preload-file ${CITY_GEN_DIR}/resources/lite@/resources/city/lite"
   "SHELL:--preload-file ${CITY_GEN_DIR}/resources/admin1CodesASCII.txt@/resources/city/admin1CodesASCII.txt"
-  "SHELL:--preload-file ${BIRTH_GEN_DIR}/resources/lite@/resources/birth/lite"
-  "SHELL:--preload-file ${BIODATA_GEN_DIR}/resources/lite@/resources/biodata/lite"
-  "SHELL:--preload-file ${NAME_GEN_DIR}/resources/lite@/resources/name/lite"
 )

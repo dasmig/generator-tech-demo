@@ -15,8 +15,10 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # The libraries are checked out at their release tags, so the site only
+  # changes when a release does.
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout generator-tech-demo
         uses: actions/checkout@v4
@@ -25,48 +27,55 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: dasmig/name-generator
+          ref: v3.0.0
           path: name-generator
 
       - name: Checkout nickname-generator
         uses: actions/checkout@v4
         with:
           repository: dasmig/nickname-generator
+          ref: v2.0.0
           path: nickname-generator
 
       - name: Checkout entity-generator
         uses: actions/checkout@v4
         with:
           repository: dasmig/entity-generator
+          ref: v2.0.0
           path: entity-generator
 
       - name: Checkout country-generator
         uses: actions/checkout@v4
         with:
           repository: dasmig/country-generator
+          ref: v2.0.0
           path: country-generator
 
       - name: Checkout city-generator
         uses: actions/checkout@v4
         with:
           repository: dasmig/city-generator
+          ref: v2.0.0
           path: city-generator
 
       - name: Checkout birth-generator
         uses: actions/checkout@v4
         with:
           repository: dasmig/birth-generator
+          ref: v2.0.0
           path: birth-generator
 
       - name: Checkout biodata-generator
         uses: actions/checkout@v4
         with:
           repository: dasmig/biodata-generator
+          ref: v2.0.0
           path: biodata-generator
 
       - name: Setup Emscripten
         uses: mymindstorm/setup-emsdk@v14
         with:
-          version: latest
+          version: 3.1.74 # the version the libraries' CI tests with
 
       - name: Configure
         run: >

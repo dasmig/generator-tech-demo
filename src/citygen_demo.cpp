@@ -8,12 +8,8 @@ namespace
 
 bool init()
 {
-    auto& gen = dasmig::cg::instance();
-    if (!gen.has_data())
-    {
-        gen.load("/resources/lite/cities.tsv");
-    }
-    return gen.has_data();
+    // The singleton loads the compiled-in lite tier (DASMIG_*_EMBED).
+    return dasmig::cg::instance().has_data();
 }
 
 std::string generate_city(const std::string& country)
@@ -47,7 +43,9 @@ std::string generate_city(const std::string& country)
     json += ",\"Latitude\":" + std::to_string(c.latitude);
     json += ",\"Longitude\":" + std::to_string(c.longitude);
     json += ",\"Timezone\":" + q(c.timezone);
-    json += ",\"Elevation\":" + std::to_string(c.elevation);
+    json += ",\"Elevation\":" + (c.elevation == dasmig::city::unknown_elevation
+                                     ? q("N/A")
+                                     : q(std::to_string(c.elevation) + " m"));
     json += ",\"Feature Code\":" + q(c.feature_code);
     json += "}";
     return json;

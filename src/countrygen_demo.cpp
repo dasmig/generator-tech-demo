@@ -8,12 +8,8 @@ namespace
 
 bool init()
 {
-    auto& gen = dasmig::cntg::instance();
-    if (!gen.has_data())
-    {
-        gen.load("/resources/lite/countries.tsv");
-    }
-    return gen.has_data();
+    // The singleton loads the compiled-in lite tier (DASMIG_*_EMBED).
+    return dasmig::cntg::instance().has_data();
 }
 
 std::string generate_country(const std::string& region)

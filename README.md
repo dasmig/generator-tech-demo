@@ -4,9 +4,11 @@ Live WebAssembly demos for the [name-generator](https://github.com/dasmig/name-g
 
 Everything runs client-side in the browser — no server required.
 
+The demos use the libraries' releases on [dasmig-core 1.0](https://github.com/dasmig/dasmig-core): name-generator v3.0.0 and v2.0.0 of the others. Their `lite` data is compiled into the modules (`DASMIG_*_EMBED`), so a seed gives the same result here as in a native build. Birth dates and ages are computed as of the day the page is opened: the libraries never read the clock, so the demos pass today's date to birth-generator (`src/today.hpp`).
+
 ## Prerequisites
 
-- [Emscripten SDK](https://emscripten.org/docs/getting_started/downloads.html) 3.1.50+
+- [Emscripten SDK](https://emscripten.org/docs/getting_started/downloads.html) 3.1.74+ (the deployed site is built with 3.1.74)
 - CMake 3.20+
 
 ## Setup
@@ -23,7 +25,7 @@ cd ..
 
 ## Build
 
-The CMake file expects the generator libraries as sibling directories:
+The CMake file expects the generator libraries as sibling directories, checked out at the releases above (the deploy workflow checks out those tags):
 
 ```
 Repo/
@@ -43,18 +45,10 @@ emcmake cmake -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build
 ```
 
-This produces in `build/`:
-- `namegen_demo.js` + `namegen_demo.wasm` + `namegen_demo.data`
-- `nickgen_demo.js` + `nickgen_demo.wasm` + `nickgen_demo.data`
-- `entitygen_demo.js` + `entitygen_demo.wasm`
-- `birthgen_demo.js` + `birthgen_demo.wasm` + `birthgen_demo.data`
-- `biodatagen_demo.js` + `biodatagen_demo.wasm` + `biodatagen_demo.data`
-- `citygen_demo.js` + `citygen_demo.wasm` + `citygen_demo.data`
-- `countrygen_demo.js` + `countrygen_demo.wasm` + `countrygen_demo.data`
-- `personagen_demo.js` + `personagen_demo.wasm` + `personagen_demo.data`
+This produces in `build/` a `.js` and a `.wasm` file per demo (`namegen_demo`, `nickgen_demo`, `entitygen_demo`, `birthgen_demo`, `biodatagen_demo`, `citygen_demo`, `countrygen_demo`, `personagen_demo`), plus `personagen_demo.data`, which holds city-generator's admin1 names (the only file not compiled in).
 
-The **persona** demo bundles resources from all six data-driven libraries into a
-single Wasm module (~80 countries supported across all libraries).
+The **persona** demo compiles in the data of all six data-driven libraries
+(~80 countries supported across all libraries).
 
 ## Run locally
 

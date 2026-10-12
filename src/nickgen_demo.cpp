@@ -85,12 +85,8 @@ std::wstring from_utf8(const std::string& s)
 
 bool init()
 {
-    auto& gen = dasmig::nng::instance();
-    if (!gen.has_wordlists())
-    {
-        gen.load("/resources");
-    }
-    return gen.has_wordlists();
+    // The singleton loads the compiled-in lite tier (DASMIG_*_EMBED).
+    return dasmig::nng::instance().has_wordlists();
 }
 
 std::string generate_nickname(const std::string& input_name)

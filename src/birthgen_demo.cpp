@@ -1,4 +1,5 @@
 #include <dasmig/birthgen.hpp>
+#include "today.hpp"
 #include <emscripten/bind.h>
 #include <string>
 
@@ -16,17 +17,14 @@ const char* weekday_name(std::uint8_t wd)
 
 bool init()
 {
-    auto& gen = dasmig::bthg::instance();
-    if (!gen.has_data())
-    {
-        gen.load("/resources/lite");
-    }
-    return gen.has_data();
+    // The singleton loads the compiled-in lite tier (DASMIG_*_EMBED).
+    return dasmig::bthg::instance().has_data();
 }
 
 std::string generate_birth(const std::string& country, const std::string& sex_str)
 {
     auto& gen = dasmig::bthg::instance();
+    gen.reference_date(today()); // ages as of today
 
     dasmig::birth b;
     bool has_country = !country.empty();

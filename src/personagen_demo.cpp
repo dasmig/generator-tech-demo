@@ -10,6 +10,7 @@
 #include <dasmig/biodatagen.hpp>
 #include <dasmig/namegen.hpp>
 #include <emscripten/bind.h>
+#include "today.hpp"
 
 #include <algorithm>
 #include <string>
@@ -575,29 +576,18 @@ class name_component : public dasmig::component
 
 bool init()
 {
-    // Load all data-driven libraries
+    // The singletons load the compiled-in lite tiers (DASMIG_*_EMBED); only
+    // city's admin1 names are a preloaded file.
     bool ok = true;
-
-    auto& cntg = dasmig::cntg::instance();
-    if (!cntg.has_data()) cntg.load("/resources/country/lite/countries.tsv");
-    ok &= cntg.has_data();
+    ok &= dasmig::cntg::instance().has_data();
 
     auto& cg = dasmig::cg::instance();
-    if (!cg.has_data()) cg.load("/resources/city/lite/cities.tsv");
     if (!cg.has_admin1()) cg.load_admin1("/resources/city/admin1CodesASCII.txt");
     ok &= cg.has_data();
 
-    auto& bthg = dasmig::bthg::instance();
-    if (!bthg.has_data()) bthg.load("/resources/birth/lite");
-    ok &= bthg.has_data();
-
-    auto& bdg = dasmig::bdg::instance();
-    if (!bdg.has_data()) bdg.load("/resources/biodata/lite");
-    ok &= bdg.has_data();
-
-    auto& ng = dasmig::ng::instance();
-    if (!ng.has_resources()) ng.load("/resources/name/lite");
-    ok &= ng.has_resources();
+    ok &= dasmig::bthg::instance().has_data();
+    ok &= dasmig::bdg::instance().has_data();
+    ok &= dasmig::ng::instance().has_resources();
 
     // Register adapter components in dependency order
     auto& gen = dasmig::eg::instance();
@@ -642,6 +632,7 @@ bool init()
 std::string generate_persona(const std::string& country_cca2)
 {
     g_selected_country = country_cca2;
+    dasmig::bthg::instance().reference_date(today()); // ages as of today
 
     auto& gen = dasmig::eg::instance();
     auto entity = gen.generate();

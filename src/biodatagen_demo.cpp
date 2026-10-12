@@ -7,12 +7,8 @@ namespace
 
 bool init()
 {
-    auto& gen = dasmig::bdg::instance();
-    if (!gen.has_data())
-    {
-        gen.load("/resources/lite");
-    }
-    return gen.has_data();
+    // The singleton loads the compiled-in lite tier (DASMIG_*_EMBED).
+    return dasmig::bdg::instance().has_data();
 }
 
 std::string generate_biodata(const std::string& country, const std::string& sex_str)

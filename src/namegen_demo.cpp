@@ -94,12 +94,8 @@ dasmig::gender parse_gender(const std::string& g)
 
 bool init()
 {
-    auto& gen = dasmig::ng::instance();
-    if (!gen.has_resources())
-    {
-        gen.load("/resources/lite");
-    }
-    return gen.has_resources();
+    // The singleton loads the compiled-in lite tier (DASMIG_*_EMBED).
+    return dasmig::ng::instance().has_resources();
 }
 
 std::string generate_name(const std::string& gender_str,
