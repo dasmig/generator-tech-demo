@@ -4,6 +4,10 @@ project(generator-tech-demo LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+# Surface library input errors to the browser instead of aborting the module.
+add_compile_options(-fexceptions)
+add_link_options(-fexceptions)
+
 # ── Library paths (sibling repos by default) ──
 set(NAME_GEN_DIR "${CMAKE_SOURCE_DIR}/../name-generator" CACHE PATH "Path to name-generator repo")
 set(NICK_GEN_DIR "${CMAKE_SOURCE_DIR}/../nickname-generator" CACHE PATH "Path to nickname-generator repo")

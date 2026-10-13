@@ -2,6 +2,7 @@
 #include <dasmig/citygen.hpp>
 #include <emscripten/bind.h>
 #include <string>
+#include "demo_support.hpp"
 
 namespace
 {
@@ -12,11 +13,8 @@ bool init()
     return dasmig::cg::instance().has_data();
 }
 
-std::string generate_city(const std::string& country)
+std::string city_json(const dasmig::city& c)
 {
-    auto& gen = dasmig::cg::instance();
-    auto c = country.empty() ? gen.get_city() : gen.get_city(country);
-
     auto escape = [](const std::string& s) {
         std::string out;
         out.reserve(s.size());
@@ -37,6 +35,7 @@ std::string generate_city(const std::string& country)
 
     std::string json = "{";
     json += "\"Name\":" + q(c.name);
+    json += ",\"GeoNames ID\":" + std::to_string(c.geonameid);
     json += ",\"ASCII Name\":" + q(c.asciiname);
     json += ",\"Country\":" + q(c.country_code);
     json += ",\"Population\":" + std::to_string(c.population);
@@ -51,10 +50,33 @@ std::string generate_city(const std::string& country)
     return json;
 }
 
+std::string generate_city(const std::string& country)
+{
+    auto& gen = dasmig::cg::instance();
+    gen.weighted(true);
+    return city_json(country.empty() ? gen.get_city() : gen.get_city(country));
+}
+
+std::string sample_city(const std::string& country, bool weighted, std::uint32_t seed)
+{
+    auto& gen = dasmig::cg::instance();
+    gen.weighted(weighted);
+    try
+    {
+        return city_json(country.empty() ? gen.get_city(seed) : gen.get_city(country, seed));
+    }
+    catch (const std::invalid_argument& error) { return demo_error(error.what()); }
+    catch (const std::runtime_error& error) { return demo_error(error.what()); }
+}
+
+unsigned catalogue_count() { return static_cast<unsigned>(dasmig::cg::instance().city_count()); }
+
 } // namespace
 
 EMSCRIPTEN_BINDINGS(citygen_demo)
 {
     emscripten::function("init", &init);
     emscripten::function("generateCity", &generate_city);
+    emscripten::function("sampleCity", &sample_city);
+    emscripten::function("catalogueCount", &catalogue_count);
 }

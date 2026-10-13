@@ -1,6 +1,7 @@
 #include <dasmig/biodatagen.hpp>
 #include <emscripten/bind.h>
 #include <string>
+#include "demo_support.hpp"
 
 namespace
 {
@@ -68,10 +69,28 @@ std::string generate_biodata(const std::string& country, const std::string& sex_
     return json;
 }
 
+std::string compare_biodata(const std::string& country)
+{
+    try
+    {
+        auto& gen = dasmig::bdg::instance();
+        const auto anchor = country.empty() ? gen.get_biodata() : gen.get_biodata(country);
+        dasmig::core::json_writer writer;
+        writer.begin_array();
+        gen.get_biodata(anchor.country_code, dasmig::sex::male, anchor.seed()).to_json(writer);
+        gen.get_biodata(anchor.country_code, dasmig::sex::female, anchor.seed()).to_json(writer);
+        writer.end_array();
+        return writer.str();
+    }
+    catch (const std::invalid_argument& error) { return demo_error(error.what()); }
+    catch (const std::runtime_error& error) { return demo_error(error.what()); }
+}
+
 } // namespace
 
 EMSCRIPTEN_BINDINGS(biodatagen_demo)
 {
     emscripten::function("init", &init);
     emscripten::function("generateBiodata", &generate_biodata);
+    emscripten::function("compareBiodata", &compare_biodata);
 }

@@ -1,6 +1,7 @@
 #include <dasmig/namegen.hpp>
 #include <emscripten/bind.h>
 #include <string>
+#include "demo_support.hpp"
 
 namespace
 {
@@ -113,10 +114,37 @@ std::string generate_name(const std::string& gender_str,
     return to_utf8(static_cast<std::wstring>(n));
 }
 
+std::string generate_options(const std::string& gender_str, const std::string& culture_str,
+                             const std::string& mode, int count)
+{
+    if (count < 1 || count > 10) return demo_error("Choose between 1 and 10 alternatives.");
+    if (mode != "full" && mode != "first" && mode != "surname")
+        return demo_error("Choose full name, first name or surname.");
+    try
+    {
+        auto& gen = dasmig::ng::instance();
+        const auto gender = gender_str.empty() ? dasmig::gender::any : parse_gender(gender_str);
+        const auto culture = culture_str.empty() ? dasmig::culture::any : parse_culture(culture_str);
+        dasmig::core::json_writer writer;
+        writer.begin_array();
+        for (int i = 0; i < count; ++i)
+        {
+            auto name = mode == "surname" ? gen.get_surname(culture) : gen.get_name(gender, culture);
+            if (mode == "full") name.append_surname();
+            name.to_json(writer);
+        }
+        writer.end_array();
+        return writer.str();
+    }
+    catch (const std::invalid_argument& error) { return demo_error(error.what()); }
+    catch (const std::runtime_error& error) { return demo_error(error.what()); }
+}
+
 } // namespace
 
 EMSCRIPTEN_BINDINGS(namegen_demo)
 {
     emscripten::function("init", &init);
     emscripten::function("generateName", &generate_name);
+    emscripten::function("generateNameOptions", &generate_options);
 }

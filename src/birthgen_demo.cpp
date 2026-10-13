@@ -2,6 +2,7 @@
 #include "today.hpp"
 #include <emscripten/bind.h>
 #include <string>
+#include "demo_support.hpp"
 
 namespace
 {
@@ -21,10 +22,11 @@ bool init()
     return dasmig::bthg::instance().has_data();
 }
 
-std::string generate_birth(const std::string& country, const std::string& sex_str)
+std::string birth_json(const std::string& country, const std::string& sex_str,
+                       std::chrono::year_month_day reference)
 {
     auto& gen = dasmig::bthg::instance();
-    gen.reference_date(today()); // ages as of today
+    gen.reference_date(reference);
 
     dasmig::birth b;
     bool has_country = !country.empty();
@@ -78,10 +80,29 @@ std::string generate_birth(const std::string& country, const std::string& sex_st
     return json;
 }
 
+std::string generate_birth(const std::string& country, const std::string& sex)
+{
+    return birth_json(country, sex, today());
+}
+
+std::string generate_birth_at(const std::string& country, const std::string& sex,
+                              const std::string& reference)
+{
+    try
+    {
+        auto json = birth_json(country, sex, parse_reference_date(reference));
+        json.pop_back();
+        return json + ",\"Reference Date\":\"" + reference + "\"}";
+    }
+    catch (const std::invalid_argument& error) { return demo_error(error.what()); }
+    catch (const std::runtime_error& error) { return demo_error(error.what()); }
+}
+
 } // namespace
 
 EMSCRIPTEN_BINDINGS(birthgen_demo)
 {
     emscripten::function("init", &init);
     emscripten::function("generateBirth", &generate_birth);
+    emscripten::function("generateBirthAt", &generate_birth_at);
 }
