@@ -12,6 +12,7 @@ set(COUNTRY_GEN_DIR "${CMAKE_SOURCE_DIR}/../country-generator" CACHE PATH "Path 
 set(CITY_GEN_DIR "${CMAKE_SOURCE_DIR}/../city-generator" CACHE PATH "Path to city-generator repo")
 set(BIRTH_GEN_DIR "${CMAKE_SOURCE_DIR}/../birth-generator" CACHE PATH "Path to birth-generator repo")
 set(BIODATA_GEN_DIR "${CMAKE_SOURCE_DIR}/../biodata-generator" CACHE PATH "Path to biodata-generator repo")
+set(INTEREST_GEN_DIR "${CMAKE_SOURCE_DIR}/../interest-generator" CACHE PATH "Path to interest-generator repo")
 
 # ── Wasm modules ──
 #
@@ -115,7 +116,21 @@ target_link_options(biodatagen_demo PRIVATE
   -sENVIRONMENT=web
 )
 
-# persona-generator demo (composes all 7 libraries)
+# interest-generator demo
+add_executable(interestgen_demo src/interestgen_demo.cpp)
+target_include_directories(interestgen_demo PRIVATE "${INTEREST_GEN_DIR}")
+target_compile_definitions(interestgen_demo PRIVATE DASMIG_INTEREST_EMBED)
+target_link_options(interestgen_demo PRIVATE
+  --bind
+  -sWASM=1
+  -sALLOW_MEMORY_GROWTH=1
+  -sEXPORTED_RUNTIME_METHODS=['UTF8ToString','stringToUTF8']
+  -sMODULARIZE=1
+  -sEXPORT_NAME=createInterestgenModule
+  -sENVIRONMENT=web
+)
+
+# persona-generator demo (composes seven libraries)
 add_executable(personagen_demo src/personagen_demo.cpp)
 target_include_directories(personagen_demo PRIVATE
   "${ENTITY_GEN_DIR}"
@@ -124,8 +139,9 @@ target_include_directories(personagen_demo PRIVATE
   "${BIRTH_GEN_DIR}"
   "${BIODATA_GEN_DIR}"
   "${NAME_GEN_DIR}"
+  "${INTEREST_GEN_DIR}"
 )
-target_compile_definitions(personagen_demo PRIVATE DASMIG_COUNTRY_EMBED DASMIG_CITY_EMBED DASMIG_BIRTH_EMBED DASMIG_BIODATA_EMBED DASMIG_NAME_EMBED)
+target_compile_definitions(personagen_demo PRIVATE DASMIG_COUNTRY_EMBED DASMIG_CITY_EMBED DASMIG_BIRTH_EMBED DASMIG_BIODATA_EMBED DASMIG_NAME_EMBED DASMIG_INTEREST_EMBED)
 target_link_options(personagen_demo PRIVATE
   --bind
   -sWASM=1

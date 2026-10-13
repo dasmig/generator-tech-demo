@@ -72,6 +72,13 @@ jobs:
           ref: v2.0.0
           path: biodata-generator
 
+      - name: Checkout interest-generator
+        uses: actions/checkout@v4
+        with:
+          repository: dasmig/interest-generator
+          ref: v1.0.0
+          path: interest-generator
+
       - name: Setup Emscripten
         uses: mymindstorm/setup-emsdk@v14
         with:
@@ -87,6 +94,7 @@ jobs:
           -DCITY_GEN_DIR=${{ github.workspace }}/city-generator
           -DBIRTH_GEN_DIR=${{ github.workspace }}/birth-generator
           -DBIODATA_GEN_DIR=${{ github.workspace }}/biodata-generator
+          -DINTEREST_GEN_DIR=${{ github.workspace }}/interest-generator
 
       - name: Build
         run: cmake --build build

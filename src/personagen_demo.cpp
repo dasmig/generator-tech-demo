@@ -1,4 +1,4 @@
-// Persona Generator — composes all 7 dasmig libraries through entity-generator
+// Persona Generator — composes seven dasmig libraries through entity-generator
 // adapter components. Each library result is a component; downstream components
 // read upstream values via the entity-generator's generation_context.
 
@@ -9,6 +9,7 @@
 #include <dasmig/birthgen.hpp>
 #include <dasmig/biodatagen.hpp>
 #include <dasmig/namegen.hpp>
+#include <dasmig/interestgen.hpp>
 #include <emscripten/bind.h>
 #include "today.hpp"
 
@@ -570,6 +571,66 @@ class name_component : public dasmig::component
     }
 };
 
+// ── 6. Interests (reads country, age + sex from context) ──
+//
+// One call draws the religion and the hobbies and favourite genres; the
+// components below show its parts, as the location components do for a city.
+
+std::string join_items(const std::vector<dasmig::interest_item>& items)
+{
+    std::string out;
+    for (const auto& i : items)
+    {
+        if (!out.empty()) out += ", ";
+        out += i.label;
+    }
+    return out.empty() ? "-" : out;
+}
+
+class interest_component : public dasmig::component
+{
+  public:
+    [[nodiscard]] std::wstring key() const override { return L"Religion"; }
+    [[nodiscard]] std::any generate(
+        const dasmig::generation_context& ctx) const override
+    {
+        dasmig::interest_request req;
+        const auto cca2 = ctx.get<dasmig::country>(L"Country").cca2;
+        req.country = cca2;
+        req.age = static_cast<std::uint8_t>(ctx.get<int>(L"Age"));
+        req.person_sex = ctx.get<dasmig::sex>(L"Sex");
+        return dasmig::intg::instance().get_interest(req);
+    }
+    [[nodiscard]] std::wstring to_string(const std::any& val) const override
+    {
+        return to_wstr(std::any_cast<dasmig::interest>(val).religion);
+    }
+};
+
+// Shows one of the interest's lists, under the component key it is given.
+class interest_list_component : public dasmig::component
+{
+  public:
+    using member = std::vector<dasmig::interest_item> dasmig::interest::*;
+    interest_list_component(std::wstring key, member list)
+        : _key(std::move(key)), _list(list) {}
+
+    [[nodiscard]] std::wstring key() const override { return _key; }
+    [[nodiscard]] std::any generate(
+        const dasmig::generation_context& ctx) const override
+    {
+        return join_items(ctx.get<dasmig::interest>(L"Religion").*_list);
+    }
+    [[nodiscard]] std::wstring to_string(const std::any& val) const override
+    {
+        return to_wstr(std::any_cast<std::string>(val));
+    }
+
+  private:
+    std::wstring _key;
+    member _list;
+};
+
 // ═══════════════════════════════════════════════════════════════════
 // Init & Generate
 // ═══════════════════════════════════════════════════════════════════
@@ -588,6 +649,7 @@ bool init()
     ok &= dasmig::bthg::instance().has_data();
     ok &= dasmig::bdg::instance().has_data();
     ok &= dasmig::ng::instance().has_resources();
+    ok &= dasmig::intg::instance().has_data();
 
     // Register adapter components in dependency order
     auto& gen = dasmig::eg::instance();
@@ -625,6 +687,14 @@ bool init()
 
     // Identity group (depends on country + sex)
     gen.add(std::make_unique<name_component>());
+
+    // Interests group (depends on country, age + sex)
+    gen.add(std::make_unique<interest_component>());
+    gen.add(std::make_unique<interest_list_component>(L"Hobbies", &dasmig::interest::hobbies));
+    gen.add(std::make_unique<interest_list_component>(L"Films", &dasmig::interest::films));
+    gen.add(std::make_unique<interest_list_component>(L"Games", &dasmig::interest::games));
+    gen.add(std::make_unique<interest_list_component>(L"Books", &dasmig::interest::books));
+    gen.add(std::make_unique<interest_list_component>(L"Music", &dasmig::interest::music));
 
     return ok;
 }
