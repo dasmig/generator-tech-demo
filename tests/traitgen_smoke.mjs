@@ -135,7 +135,10 @@ try {
   await evaluate(`document.getElementById('tg-count').value = '5';
     document.getElementById('tg-seed').value = 'ffffffffffffffff';
     document.getElementById('tg-seed').focus()`);
-  await send('Input.dispatchKeyEvent', { type: 'keyDown', key: 'Enter', code: 'Enter', windowsVirtualKeyCode: 13 });
+  await send('Input.dispatchKeyEvent', {
+    type: 'keyDown', key: 'Enter', code: 'Enter', windowsVirtualKeyCode: 13,
+    text: '\r', unmodifiedText: '\r'
+  });
   await send('Input.dispatchKeyEvent', { type: 'keyUp', key: 'Enter', code: 'Enter', windowsVirtualKeyCode: 13 });
   await waitFor(() => evaluate('document.querySelectorAll("#tg-output tbody tr").length === 7'), 'keyboard generation');
   const rows = await evaluate('Array.from(document.querySelectorAll("#tg-output tbody tr"), row => Array.from(row.cells, cell => cell.textContent))');

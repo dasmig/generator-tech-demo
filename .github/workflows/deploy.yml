@@ -114,6 +114,13 @@ jobs:
           cp build/*.js build/*.wasm _site/
           cp build/*.data _site/ 2>/dev/null || true
 
+      - name: Upload preview artifact
+        if: github.ref != 'refs/heads/master'
+        uses: actions/upload-artifact@v4
+        with:
+          name: demo-preview
+          path: _site
+
       - name: Setup Node.js for browser smoke test
         uses: actions/setup-node@v4
         with:
@@ -121,13 +128,6 @@ jobs:
 
       - name: Test trait demo in Chrome
         run: node tests/traitgen_smoke.mjs _site
-
-      - name: Upload preview artifact
-        if: github.ref != 'refs/heads/master'
-        uses: actions/upload-artifact@v4
-        with:
-          name: demo-preview
-          path: _site
 
       - name: Upload Pages artifact
         if: github.ref == 'refs/heads/master'
