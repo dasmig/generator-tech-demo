@@ -165,6 +165,16 @@
       font-family: var(--font-mono);
       color: var(--accent);
     }
+    #tg-output .entity-table {
+      table-layout: fixed;
+      overflow-wrap: anywhere;
+    }
+    #tg-output .entity-table th, #tg-output .entity-table td {
+      vertical-align: top;
+    }
+    @media (max-width: 600px) {
+      #traitgen-card { padding: 1.25rem; }
+    }
 
     /* ── Persona card ── */
     .persona {
@@ -309,6 +319,7 @@
   <p class="subtitle">
     C++23 header-only libraries compiled to WebAssembly with Emscripten.
     Everything runs in your browser — no server required.
+    <a href="#traitgen-card">Try personality traits and Big Five scores.</a>
   </p>
 
   <!-- ─── Persona Generator (composite) ─── -->
@@ -749,6 +760,39 @@
     <div class="status" id="ig-status">Loading WebAssembly…</div>
   </div>
 
+  <!-- Trait Generator -->
+  <div class="demo-card" id="traitgen-card">
+    <h2>trait-generator</h2>
+    <p class="desc">
+      Generate a coherent set of personality traits and resolved Big Five scores.
+      Scores are centered on zero before trait effects, not percentages or a personality assessment.
+      <a class="repo-link" href="https://github.com/dasmig/trait-generator" target="_blank" rel="noopener">GitHub →</a>
+    </p>
+    <form class="controls" id="tg-form">
+      <div class="field">
+        <label for="tg-count">Traits</label>
+        <select id="tg-count">
+          <option value="1">1</option>
+          <option value="3" selected>3</option>
+          <option value="5">5</option>
+          <option value="8">8</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="tg-seed">Seed (hex, optional)</label>
+        <input type="text" id="tg-seed" placeholder="Blank for random" maxlength="16"
+               pattern="[0-9a-fA-F]{1,16}" aria-describedby="tg-seed-help"
+               autocomplete="off" spellcheck="false" inputmode="text">
+      </div>
+      <button class="btn" id="tg-generate" type="submit" disabled>Generate</button>
+    </form>
+    <p class="desc" id="tg-seed-help">Use 1–16 digits (0–9, a–f), without 0x. Replay with the output seed and the same trait count.</p>
+    <div id="tg-output" aria-live="polite" aria-atomic="true">
+      <div class="output empty">Waiting for module to load…</div>
+    </div>
+    <div class="status" id="tg-status" role="status">Loading WebAssembly…</div>
+  </div>
+
   <!-- ─── City Generator ─── -->
   <div class="demo-card" id="citygen-card">
     <h2>city-generator</h2>
@@ -832,9 +876,55 @@
 <script src="birthgen_demo.js"></script>
 <script src="biodatagen_demo.js"></script>
 <script src="interestgen_demo.js"></script>
+<script src="traitgen_demo.js"></script>
 <script src="personagen_demo.js"></script>
 
 <script>
+  // Trait Generator
+  let tgMod = null;
+  const tgStatus = document.getElementById('tg-status');
+  Promise.resolve().then(() => createTraitgenModule()).then(mod => {
+    if (!mod.init()) throw new Error('Trait catalogue was not loaded.');
+    tgMod = mod;
+    document.getElementById('tg-generate').disabled = false;
+    tgStatus.textContent = 'Ready — trait catalogue loaded.';
+    tgStatus.className = 'status ready';
+    document.getElementById('tg-output').innerHTML =
+      '<div class="output empty">Click "Generate" to create personality traits.</div>';
+  }).catch(err => {
+    tgStatus.textContent = 'Failed to load: ' + err.message + ' Reload the page to try again.';
+    tgStatus.className = 'status error';
+    document.getElementById('tg-output').innerHTML =
+      '<div class="output empty">Trait generator unavailable.</div>';
+  });
+
+  document.getElementById('tg-form').addEventListener('submit', event => {
+    event.preventDefault();
+    if (!tgMod) return;
+    const count = Number(document.getElementById('tg-count').value);
+    const seed = document.getElementById('tg-seed').value;
+    try {
+      const data = JSON.parse(tgMod.generateTraits(count, seed));
+      if (data.error) throw new Error(data.error);
+      renderTable('tg-output', {
+        'Traits': data.traits.map(trait => trait.label).join(', '),
+        'Openness': data.axes.openness.toFixed(3),
+        'Conscientiousness': data.axes.conscientiousness.toFixed(3),
+        'Extraversion': data.axes.extraversion.toFixed(3),
+        'Agreeableness': data.axes.agreeableness.toFixed(3),
+        'Neuroticism': data.axes.neuroticism.toFixed(3),
+        'Replay seed (hex)': data.signature.seed
+      });
+      tgStatus.textContent = 'Generated ' + data.traits.length + ' of ' + count + ' requested traits.';
+      tgStatus.className = 'status ready';
+    } catch (err) {
+      document.getElementById('tg-output').innerHTML =
+        '<div class="output empty">No personality generated.</div>';
+      tgStatus.textContent = 'Generation failed: ' + err.message;
+      tgStatus.className = 'status error';
+    }
+  });
+
   // ─── Name Generator ───
   let ngMod = null;
   createNamegenModule().then(mod => {

@@ -3,15 +3,15 @@ name: Build & Deploy to GitHub Pages
 on:
   push:
     branches: [master]
+  pull_request:
+    branches: [master]
   workflow_dispatch:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
 concurrency:
-  group: pages
+  group: pages-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -79,6 +79,13 @@ jobs:
           ref: v1.0.0
           path: interest-generator
 
+      - name: Checkout trait-generator
+        uses: actions/checkout@v4
+        with:
+          repository: dasmig/trait-generator
+          ref: v1.0.0
+          path: trait-generator
+
       - name: Setup Emscripten
         uses: mymindstorm/setup-emsdk@v14
         with:
@@ -95,6 +102,7 @@ jobs:
           -DBIRTH_GEN_DIR=${{ github.workspace }}/birth-generator
           -DBIODATA_GEN_DIR=${{ github.workspace }}/biodata-generator
           -DINTEREST_GEN_DIR=${{ github.workspace }}/interest-generator
+          -DTRAIT_GEN_DIR=${{ github.workspace }}/trait-generator
 
       - name: Build
         run: cmake --build build
@@ -106,14 +114,34 @@ jobs:
           cp build/*.js build/*.wasm _site/
           cp build/*.data _site/ 2>/dev/null || true
 
+      - name: Upload preview artifact
+        if: github.ref != 'refs/heads/master'
+        uses: actions/upload-artifact@v4
+        with:
+          name: demo-preview
+          path: _site
+
+      - name: Setup Node.js for browser smoke test
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Test trait demo in Chrome
+        run: node tests/traitgen_smoke.mjs _site
+
       - name: Upload Pages artifact
+        if: github.ref == 'refs/heads/master'
         uses: actions/upload-pages-artifact@v3
         with:
           path: _site
 
   deploy:
+    if: github.ref == 'refs/heads/master'
     needs: build
     runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
