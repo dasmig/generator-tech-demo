@@ -13,6 +13,7 @@ set(CITY_GEN_DIR "${CMAKE_SOURCE_DIR}/../city-generator" CACHE PATH "Path to cit
 set(BIRTH_GEN_DIR "${CMAKE_SOURCE_DIR}/../birth-generator" CACHE PATH "Path to birth-generator repo")
 set(BIODATA_GEN_DIR "${CMAKE_SOURCE_DIR}/../biodata-generator" CACHE PATH "Path to biodata-generator repo")
 set(INTEREST_GEN_DIR "${CMAKE_SOURCE_DIR}/../interest-generator" CACHE PATH "Path to interest-generator repo")
+set(TRAIT_GEN_DIR "${CMAKE_SOURCE_DIR}/../trait-generator" CACHE PATH "Path to trait-generator repo")
 
 # ── Wasm modules ──
 #
@@ -127,6 +128,20 @@ target_link_options(interestgen_demo PRIVATE
   -sEXPORTED_RUNTIME_METHODS=['UTF8ToString','stringToUTF8']
   -sMODULARIZE=1
   -sEXPORT_NAME=createInterestgenModule
+  -sENVIRONMENT=web
+)
+
+# trait-generator demo
+add_executable(traitgen_demo src/traitgen_demo.cpp)
+target_include_directories(traitgen_demo PRIVATE "${TRAIT_GEN_DIR}")
+target_compile_definitions(traitgen_demo PRIVATE DASMIG_TRAIT_EMBED)
+target_link_options(traitgen_demo PRIVATE
+  --bind
+  -sWASM=1
+  -sALLOW_MEMORY_GROWTH=1
+  -sEXPORTED_RUNTIME_METHODS=['UTF8ToString','stringToUTF8']
+  -sMODULARIZE=1
+  -sEXPORT_NAME=createTraitgenModule
   -sENVIRONMENT=web
 )
 
