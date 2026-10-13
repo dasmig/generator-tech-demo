@@ -87,7 +87,7 @@
       color: var(--text-muted);
       letter-spacing: .04em;
     }
-    select, input[type="text"] {
+    select, input[type="text"], input[type="date"] {
       font-family: var(--font-sans);
       font-size: .85rem;
       background: var(--bg);
@@ -97,7 +97,7 @@
       padding: .45rem .75rem;
       outline: none;
     }
-    select:focus, input[type="text"]:focus {
+    select:focus, input[type="text"]:focus, input[type="date"]:focus {
       border-color: var(--accent);
     }
     select option { background: var(--bg); color: var(--text); }
@@ -121,6 +121,54 @@
     }
     .btn:hover { background: var(--accent-hover); }
     .btn:disabled { opacity: .4; cursor: not-allowed; }
+    .btn.secondary { background: transparent; color: var(--accent); }
+    .btn.secondary:hover { background: rgba(66,220,163,.08); }
+    :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+    .field, select, input { max-width: 100%; min-width: 0; }
+    input[type="date"] { color-scheme: dark; }
+    .note { color: var(--text-muted); font-size: .85rem; margin: .75rem 0; }
+    details { margin-top: 1rem; }
+    summary { color: var(--accent); cursor: pointer; padding: .5rem 0; }
+    .table-scroll { overflow-x: auto; }
+    .entity-table { overflow-wrap: anywhere; }
+    .entity-table caption {
+      text-align: left;
+      color: var(--text);
+      font-weight: 600;
+      padding: .75rem 0;
+    }
+    .entity-table .numeric { text-align: right; font-variant-numeric: tabular-nums; }
+    .entity-table td.numeric { white-space: nowrap; }
+    .entity-table tbody th {
+      font-family: var(--font-mono);
+      color: var(--accent);
+      font-size: .75rem;
+      font-weight: 400;
+      text-transform: none;
+      letter-spacing: 0;
+    }
+    .comparison-table { min-width: 500px; }
+    .comparison-table thead th { overflow-wrap: normal; }
+    .sampling-table { min-width: 760px; }
+    .sampling-table th:first-child { width: 27%; }
+    .alternatives { padding-left: 1.5rem; }
+    .alternatives li { padding: .35rem 0; }
+    .alternative-source { display: block; color: var(--text-muted); font-size: .75rem; }
+    .score-explanation td, .score-explanation th { white-space: nowrap; }
+    @media (max-width: 600px) {
+      body { padding: 1.5rem .75rem; }
+      .demo-card { padding: 1.25rem; }
+      .controls { align-items: stretch; }
+      .controls .field { flex: 1 1 130px; }
+      .controls .btn { justify-content: center; }
+      .persona-name h3 { overflow-wrap: anywhere; min-width: 0; }
+      .persona-stat { min-width: 0; overflow-wrap: anywhere; }
+      #tg-output > table th:first-child { width: 58%; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      .btn, .country-chevron { transition: none; }
+    }
 
     .output {
       background: var(--bg);
@@ -256,6 +304,12 @@
     .country-toggle {
       cursor: pointer;
       user-select: none;
+      background: transparent;
+      color: inherit;
+      font: inherit;
+      text-align: left;
+      border-top: none;
+      border-left: none;
     }
     .country-toggle:hover .persona-stat-value { color: var(--accent); }
     .country-chevron {
@@ -328,9 +382,10 @@
     <p class="desc">
       Generates a complete fictional persona by composing seven libraries
       through entity-generator adapter components. Country, city, birthday,
-      physical traits, name, religion, hobbies and favourite films, games,
-      books and music — all coherent in a single entity: a teenager and a
-      retiree from the same country get different tastes.
+      physical traits, name, religion, hobbies and favourite genres in a
+      single synthetic entity. Adapters pass country, age and sex to the
+      libraries that support those inputs. This is fictional sample data,
+      not a description or prediction of a real person.
     </p>
     <div class="controls">
       <div class="field">
@@ -554,9 +609,22 @@
           <option value="ye">Yemeni</option>
         </select>
       </div>
+      <div class="field">
+        <label for="ng-mode">Name parts</label>
+        <select id="ng-mode">
+          <option value="full">First name + surname</option>
+          <option value="first">First name only</option>
+          <option value="surname">Surname only</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="ng-count">Alternatives</label>
+        <select id="ng-count"><option>1</option><option selected>5</option><option>10</option></select>
+      </div>
       <button class="btn" id="ng-generate" disabled>Generate</button>
     </div>
-    <div class="output empty" id="ng-output">Waiting for module to load…</div>
+    <p class="note">Culture filters all name parts. Gender filters first names, not surnames. Repeated alternatives are possible.</p>
+    <div id="ng-output"><div class="output empty">Waiting for module to load…</div></div>
     <div class="status" id="ng-status">Loading WebAssembly…</div>
   </div>
 
@@ -564,7 +632,7 @@
   <div class="demo-card" id="nickgen-card">
     <h2>nickname-generator</h2>
     <p class="desc">
-      Generate gamer-style nicknames — from a real name or fully random.
+      Generate gamer-style nickname alternatives — with an optional name input or from wordlists.
       <a class="repo-link" href="https://github.com/dasmig/nickname-generator" target="_blank" rel="noopener">GitHub →</a>
     </p>
     <div class="controls">
@@ -572,9 +640,14 @@
         <label for="nng-name">Name (optional)</label>
         <input type="text" id="nng-name" placeholder="e.g. John Smith" style="width:200px">
       </div>
+      <div class="field">
+        <label for="nng-count">Alternatives</label>
+        <select id="nng-count"><option>1</option><option selected>5</option><option>10</option></select>
+      </div>
       <button class="btn" id="nng-generate" disabled>Generate</button>
     </div>
-    <div class="output empty" id="nng-output">Waiting for module to load…</div>
+    <p class="note">Blank name uses wordlists. With a name, the library uses it in one in four draws on average; other draws still use wordlists. No forced style or guaranteed name derivation. Repeats are possible.</p>
+    <div id="nng-output"><div class="output empty">Waiting for module to load…</div></div>
     <div class="status" id="nng-status">Loading WebAssembly…</div>
   </div>
 
@@ -598,7 +671,7 @@
   <div class="demo-card" id="birthgen-card">
     <h2>birth-generator</h2>
     <p class="desc">
-      Generate demographically plausible birthdays using UN population data.
+      Generate synthetic birthdays using the library's population data and a reference date.
       <a class="repo-link" href="https://github.com/dasmig/birth-generator" target="_blank" rel="noopener">GitHub →</a>
     </p>
     <div class="controls">
@@ -636,8 +709,13 @@
           <option value="female">Female</option>
         </select>
       </div>
+      <div class="field">
+        <label for="bg-reference">Age as of</label>
+        <input type="date" id="bg-reference" min="1900-01-01" max="2100-12-31" required aria-describedby="bg-reference-help">
+      </div>
       <button class="btn" id="bg-generate" disabled>Generate</button>
     </div>
+    <p class="note" id="bg-reference-help">Defaults to today's local date. Each draw generates a birthday and its completed-year age as of this date; changing the date does not age an existing profile. Population-model life expectancy is not an individual forecast.</p>
     <div id="bg-output">
       <div class="output empty">Waiting for module to load…</div>
     </div>
@@ -648,7 +726,7 @@
   <div class="demo-card" id="biodatagen-card">
     <h2>biodata-generator</h2>
     <p class="desc">
-      Generate physical characteristics — height, weight, eye/hair color, blood type — using population statistics.
+      Generate synthetic physical characteristics — height, weight, eye/hair color and blood type — from the library's population model, not measurements of real people.
       <a class="repo-link" href="https://github.com/dasmig/biodata-generator" target="_blank" rel="noopener">GitHub →</a>
     </p>
     <div class="controls">
@@ -679,7 +757,7 @@
         </select>
       </div>
       <div class="field">
-        <label for="bd-sex">Sex</label>
+        <label for="bd-sex">Sex (single draw)</label>
         <select id="bd-sex">
           <option value="">Any</option>
           <option value="male">Male</option>
@@ -687,7 +765,9 @@
         </select>
       </div>
       <button class="btn" id="bd-generate" disabled>Generate</button>
+      <button class="btn secondary" id="bd-compare" disabled>Compare sexes</button>
     </div>
+    <p class="note">Compare male and female inputs with the same country and seed. “Any” country is resolved once for both. This release accepts country and sex, not age; differences are synthetic draws, not medical evidence.</p>
     <div id="bd-output">
       <div class="output empty">Waiting for module to load…</div>
     </div>
@@ -698,8 +778,8 @@
   <div class="demo-card" id="interestgen-card">
     <h2>interest-generator</h2>
     <p class="desc">
-      Generate a religion, hobbies and favourite film, game, book and music genres for a person of a given country, age and sex.
-      Try the same country as a child, an adult and a retiree.
+      Generate fictional religion, hobbies and favourite genres using country, age and sex inputs.
+      Compare age inputs while holding the country, sex input and seed fixed. Outputs are synthetic, not predictions about individuals or groups.
       <a class="repo-link" href="https://github.com/dasmig/interest-generator" target="_blank" rel="noopener">GitHub →</a>
     </p>
     <div class="controls">
@@ -732,17 +812,17 @@
         </select>
       </div>
       <div class="field">
-        <label for="ig-sex">Sex</label>
+        <label for="ig-sex">Sex input</label>
         <select id="ig-sex">
-          <option value="">Any</option>
+          <option value="">Unknown (no factor)</option>
           <option value="male">Male</option>
           <option value="female">Female</option>
         </select>
       </div>
       <div class="field">
-        <label for="ig-age">Age</label>
+        <label for="ig-age">Age (single draw)</label>
         <select id="ig-age">
-          <option value="-1">Any</option>
+          <option value="-1">Unknown (no factor)</option>
           <option value="8">Child (8)</option>
           <option value="15">Teenager (15)</option>
           <option value="22">Young adult (22)</option>
@@ -753,7 +833,9 @@
         </select>
       </div>
       <button class="btn" id="ig-generate" disabled>Generate</button>
+      <button class="btn secondary" id="ig-compare" disabled>Compare ages</button>
     </div>
+    <p class="note">Comparison uses ages 8, 30 and 72, regardless of the single-draw age. Unknown sex applies no sex factor. “Any” country is resolved once; religion is country-weighted, and age factors/limits apply to hobbies and genres. Results can coincide.</p>
     <div id="ig-output">
       <div class="output empty">Waiting for module to load…</div>
     </div>
@@ -764,7 +846,7 @@
   <div class="demo-card" id="traitgen-card">
     <h2>trait-generator</h2>
     <p class="desc">
-      Generate a coherent set of personality traits and resolved Big Five scores.
+      Generate fictional personality traits and resolved Big Five scores.
       Scores are centered on zero before trait effects, not percentages or a personality assessment.
       <a class="repo-link" href="https://github.com/dasmig/trait-generator" target="_blank" rel="noopener">GitHub →</a>
     </p>
@@ -787,6 +869,7 @@
       <button class="btn" id="tg-generate" type="submit" disabled>Generate</button>
     </form>
     <p class="desc" id="tg-seed-help">Use 1–16 digits (0–9, a–f), without 0x. Replay with the output seed and the same trait count.</p>
+    <p class="note">Each score starts with a normal draw (mean 0, standard deviation 1) and adds the selected traits' catalogue loadings. Base values also influence trait selection; exclusive groups, conflicts and synergies constrain the draw. These are unbounded model values, not measured traits or percentiles.</p>
     <div id="tg-output" aria-live="polite" aria-atomic="true">
       <div class="output empty">Waiting for module to load…</div>
     </div>
@@ -797,7 +880,7 @@
   <div class="demo-card" id="citygen-card">
     <h2>city-generator</h2>
     <p class="desc">
-      Generate random cities with population-weighted selection from GeoNames data.
+      Sample cities from the embedded GeoNames lite catalogue. Compare population-weighted and uniform selection within the same country filter.
       <a class="repo-link" href="https://github.com/dasmig/city-generator" target="_blank" rel="noopener">GitHub →</a>
     </p>
     <div class="controls">
@@ -828,7 +911,13 @@
         </select>
       </div>
       <button class="btn" id="cg-generate" disabled>Generate</button>
+      <div class="field">
+        <label for="cg-count">Draws per mode</label>
+        <select id="cg-count"><option>100</option><option selected>500</option><option>2000</option></select>
+      </div>
+      <button class="btn secondary" id="cg-compare" disabled>Compare batches</button>
     </div>
+    <p class="note">Single draw is population-weighted. Batches draw with replacement: repeated cities count again. Each pair uses the same random seed. Uniform gives every eligible catalogue row equal probability; weighted uses max(population, 1). Observed shares fluctuate and cover the lite catalogue, not every city or resident.</p>
     <div id="cg-output">
       <div class="output empty">Waiting for module to load…</div>
     </div>
@@ -839,7 +928,7 @@
   <div class="demo-card" id="countrygen-card">
     <h2>country-generator</h2>
     <p class="desc">
-      Generate random countries with comprehensive metadata — geography, politics, culture, telecom.
+      Sample countries with geography, politics, culture and telecom metadata. Compare population-weighted and uniform selection within the same region filter.
       <a class="repo-link" href="https://github.com/dasmig/country-generator" target="_blank" rel="noopener">GitHub →</a>
     </p>
     <div class="controls">
@@ -855,7 +944,13 @@
         </select>
       </div>
       <button class="btn" id="ctg-generate" disabled>Generate</button>
+      <div class="field">
+        <label for="ctg-count">Draws per mode</label>
+        <select id="ctg-count"><option>100</option><option selected>500</option><option>2000</option></select>
+      </div>
+      <button class="btn secondary" id="ctg-compare" disabled>Compare batches</button>
     </div>
+    <p class="note">Single draw is population-weighted. Batches draw with replacement: repeated countries count again. Each pair uses the same random seed. Uniform gives every eligible catalogue row equal probability; weighted uses max(population, 1). Observed shares are samples, not exact population proportions.</p>
     <div id="ctg-output">
       <div class="output empty">Waiting for module to load…</div>
     </div>
@@ -880,6 +975,81 @@
 <script src="personagen_demo.js"></script>
 
 <script>
+  const byId = id => document.getElementById(id);
+  for (const prefix of ['pg', 'ng', 'nng', 'eg', 'bg', 'bd', 'ig', 'tg', 'cg', 'ctg']) {
+    byId(prefix + '-status').setAttribute('role', 'status');
+    byId(prefix + '-output').setAttribute('aria-live', 'polite');
+    byId(prefix + '-output').setAttribute('aria-atomic', 'true');
+  }
+
+  function loadDemo(prefix, factory, initialize, onReady, message) {
+    Promise.resolve().then(factory).then(mod => {
+      if (initialize(mod) === false) throw new Error('Required embedded data was not loaded.');
+      onReady(mod);
+      document.querySelectorAll('[id="' + prefix + '-generate"], [id="' + prefix + '-compare"]')
+        .forEach(button => { button.disabled = false; });
+      byId(prefix + '-status').textContent = 'Ready — ' + message;
+      byId(prefix + '-status').className = 'status ready';
+      byId(prefix + '-output').innerHTML = '<div class="output empty">Choose inputs, then generate or compare.</div>';
+    }).catch(error => {
+      byId(prefix + '-status').textContent = 'Failed to load: ' + error.message + ' Reload the page to try again.';
+      byId(prefix + '-status').className = 'status error';
+      byId(prefix + '-output').innerHTML = '<div class="output empty">Generator unavailable.</div>';
+    });
+  }
+
+  function parseResult(json) {
+    const data = JSON.parse(json);
+    if (data.error) throw new Error(data.error);
+    return data;
+  }
+
+  function runDemo(prefix, generate) {
+    try {
+      const message = generate();
+      byId(prefix + '-status').textContent = message || 'Generated synthetic sample data.';
+      byId(prefix + '-status').className = 'status ready';
+    } catch (error) {
+      byId(prefix + '-output').innerHTML = '<div class="output empty">No result generated.</div>';
+      byId(prefix + '-status').textContent = 'Generation failed: ' + error.message + ' Check the inputs and try again.';
+      byId(prefix + '-status').className = 'status error';
+    }
+  }
+
+  function renderAlternatives(prefix, data, value, source) {
+    byId(prefix + '-output').innerHTML = '<ol class="output alternatives">'
+      + data.map(item => '<li>' + esc(value(item)) + '<span class="alternative-source">'
+        + esc(source(item)) + '</span></li>').join('') + '</ol>';
+  }
+
+  function comparisonTable(caption, headers, rows, className = '') {
+    return '<div class="table-scroll" tabindex="0" role="region" aria-label="' + esc(caption) + '">'
+      + '<table class="entity-table comparison-table ' + className + '"><caption>' + esc(caption)
+      + '</caption><thead><tr>' + headers.map(header => '<th scope="col">' + esc(header) + '</th>').join('')
+      + '</tr></thead><tbody>' + rows.map(row => '<tr>' + row.map((value, index) =>
+        '<' + (index === 0 ? 'th scope="row"' : 'td' + (/^-?[\d.,]+%?$/.test(String(value)) ? ' class="numeric"' : ''))
+        + '>' + esc(String(value))
+        + '</' + (index === 0 ? 'th' : 'td') + '>').join('') + '</tr>').join('')
+      + '</tbody></table></div>';
+  }
+
+  const currentDate = new Date();
+  byId('bg-reference').value = currentDate.getFullYear() + '-'
+    + String(currentDate.getMonth() + 1).padStart(2, '0') + '-'
+    + String(currentDate.getDate()).padStart(2, '0');
+
+  byId('ng-mode').addEventListener('change', () => {
+    byId('ng-gender').disabled = byId('ng-mode').value === 'surname';
+  });
+  for (const input of document.querySelectorAll('.controls input:not(#tg-seed)')) {
+    input.addEventListener('keydown', event => {
+      if (event.key === 'Enter') {
+        event.preventDefault();
+        input.closest('.controls').querySelector('.btn').click();
+      }
+    });
+  }
+
   // Trait Generator
   let tgMod = null;
   const tgStatus = document.getElementById('tg-status');
@@ -915,6 +1085,16 @@
         'Neuroticism': data.axes.neuroticism.toFixed(3),
         'Replay seed (hex)': data.signature.seed
       });
+      byId('tg-output').innerHTML += '<details><summary>How traits change the five scores</summary>'
+        + comparisonTable('Base + summed trait loadings = resolved score',
+          ['Axis', 'Random base', 'Trait total', 'Resolved'],
+          data.explanation.axes.map(axis => [axis.label, axis.base.toFixed(3),
+            axis.effect.toFixed(3), axis.value.toFixed(3)]), 'score-explanation')
+        + comparisonTable('Selected traits’ individual catalogue loadings',
+          ['Trait', ...data.explanation.axes.map(axis => axis.label)],
+          data.explanation.traits.map(trait => [trait.label, ...trait.effects.map(value => value.toFixed(3))]),
+          'score-explanation')
+        + '<p class="note">Totals use full precision; displayed values are rounded. Positive and negative values are model directions, not good/bad ratings. No questionnaire, diagnosis or real-person assessment is involved.</p></details>';
       tgStatus.textContent = 'Generated ' + data.traits.length + ' of ' + count + ' requested traits.';
       tgStatus.className = 'status ready';
     } catch (err) {
@@ -927,92 +1107,50 @@
 
   // ─── Name Generator ───
   let ngMod = null;
-  createNamegenModule().then(mod => {
-    ngMod = mod;
-    const ok = mod.init();
-    document.getElementById('ng-generate').disabled = false;
-    const st = document.getElementById('ng-status');
-    if (ok) {
-      st.textContent = 'Ready — resources loaded.';
-      st.className = 'status ready';
-    } else {
-      st.textContent = 'Warning: resources not found.';
-      st.className = 'status error';
-    }
-    document.getElementById('ng-output').textContent = 'Click "Generate" to create a name.';
-  }).catch(err => {
-    document.getElementById('ng-status').textContent = 'Failed to load: ' + err;
-    document.getElementById('ng-status').className = 'status error';
-  });
+  loadDemo('ng', () => createNamegenModule(), mod => mod.init(), mod => { ngMod = mod; }, 'name lists loaded.');
 
   document.getElementById('ng-generate').addEventListener('click', () => {
     if (!ngMod) return;
     const gender = document.getElementById('ng-gender').value;
     const culture = document.getElementById('ng-culture').value;
-    const result = ngMod.generateName(gender, culture, true);
-    const el = document.getElementById('ng-output');
-    el.textContent = result;
-    el.className = 'output';
+    runDemo('ng', () => {
+      const mode = byId('ng-mode').value;
+      const data = parseResult(ngMod.generateNameOptions(gender, culture, mode, Number(byId('ng-count').value)));
+      renderAlternatives('ng', data, item => item.name,
+        item => 'Culture: ' + item.culture + (mode === 'surname' ? '' : ' · Gender: ' + item.gender));
+      return 'Generated ' + data.length + ' alternatives; repeats are possible.';
+    });
   });
 
   // ─── Nickname Generator ───
   let nngMod = null;
-  createNickgenModule().then(mod => {
-    nngMod = mod;
-    const ok = mod.init();
-    document.getElementById('nng-generate').disabled = false;
-    const st = document.getElementById('nng-status');
-    if (ok) {
-      st.textContent = 'Ready — wordlists loaded.';
-      st.className = 'status ready';
-    } else {
-      st.textContent = 'Warning: wordlists not found.';
-      st.className = 'status error';
-    }
-    document.getElementById('nng-output').textContent = 'Click "Generate" to create a nickname.';
-  }).catch(err => {
-    document.getElementById('nng-status').textContent = 'Failed to load: ' + err;
-    document.getElementById('nng-status').className = 'status error';
-  });
+  loadDemo('nng', () => createNickgenModule(), mod => mod.init(), mod => { nngMod = mod; }, 'wordlists loaded.');
 
   document.getElementById('nng-generate').addEventListener('click', () => {
     if (!nngMod) return;
     const name = document.getElementById('nng-name').value.trim();
-    const result = name
-      ? nngMod.generateNickname(name)
-      : nngMod.generateRandomNickname();
-    const el = document.getElementById('nng-output');
-    el.textContent = result;
-    el.className = 'output';
+    runDemo('nng', () => {
+      const data = parseResult(nngMod.generateNicknameOptions(name, Number(byId('nng-count').value)));
+      renderAlternatives('nng', data, item => item.nickname, item => 'Before transforms: ' + item.source);
+      return 'Generated ' + data.length + ' alternatives' + (name ? ' with an optional name input.' : ' from wordlists.');
+    });
   });
 
   // ─── Entity Generator ───
   let egMod = null;
-  createEntitygenModule().then(mod => {
-    egMod = mod;
-    mod.setup();
-    document.getElementById('eg-generate').disabled = false;
-    const st = document.getElementById('eg-status');
-    st.textContent = 'Ready — RPG components loaded.';
-    st.className = 'status ready';
-    document.getElementById('eg-output').innerHTML =
-      '<div class="output">Click "Generate Character" to create an entity.</div>';
-  }).catch(err => {
-    document.getElementById('eg-status').textContent = 'Failed to load: ' + err;
-    document.getElementById('eg-status').className = 'status error';
-  });
+  loadDemo('eg', () => createEntitygenModule(), mod => mod.setup(), mod => { egMod = mod; }, 'RPG components loaded.');
 
   document.getElementById('eg-generate').addEventListener('click', () => {
     if (!egMod) return;
-    const json = egMod.generateEntityJson();
-    const data = JSON.parse(json);
-
-    let html = '<table class="entity-table"><thead><tr><th>Component</th><th>Value</th></tr></thead><tbody>';
-    for (const [key, val] of Object.entries(data)) {
-      html += `<tr><td>${esc(key)}</td><td>${esc(val)}</td></tr>`;
-    }
-    html += '</tbody></table>';
-    document.getElementById('eg-output').innerHTML = html;
+    runDemo('eg', () => {
+      const data = parseResult(egMod.generateEntityJson());
+      const supplier = key => key === 'race' || key === 'class' ? 'choice_component<wstring> · uniform'
+        : key === 'alignment' ? 'weighted_choice_component<wstring> · configured weights'
+        : 'range_component<int> · ' + (key === 'level' ? '1–20' : '3–18') + ' inclusive';
+      byId('eg-output').innerHTML = comparisonTable('Each registered component supplies its keyed field',
+        ['Field', 'Value', 'Supplier'], Object.entries(data).map(([key, value]) => [key, value, supplier(key)]))
+        + '<p class="note">entity-generator orchestrates these demo-defined components in registration order. The RPG ranges and choices are demo configuration, not a game rules engine.</p>';
+    });
   });
 
   function esc(s) {
@@ -1022,12 +1160,12 @@
   }
 
   function renderTable(containerId, data) {
-    let html = '<table class="entity-table"><thead><tr><th>Field</th><th>Value</th></tr></thead><tbody>';
+    let html = '<table class="entity-table"><thead><tr><th scope="col">Field</th><th scope="col">Value</th></tr></thead><tbody>';
     for (const [key, val] of Object.entries(data)) {
       const display = (typeof val === 'boolean') ? (val ? 'Yes' : 'No')
         : (typeof val === 'number') ? val.toLocaleString()
         : val;
-      html += '<tr><td>' + esc(key) + '</td><td>' + esc(String(display)) + '</td></tr>';
+      html += '<tr><th scope="row">' + esc(key) + '</th><td>' + esc(String(display)) + '</td></tr>';
     }
     html += '</tbody></table>';
     document.getElementById(containerId).innerHTML = html;
@@ -1035,174 +1173,175 @@
 
   // ─── Birth Generator ───
   let bgMod = null;
-  createBirthgenModule().then(mod => {
-    bgMod = mod;
-    const ok = mod.init();
-    document.getElementById('bg-generate').disabled = false;
-    const st = document.getElementById('bg-status');
-    if (ok) {
-      st.textContent = 'Ready — population data loaded.';
-      st.className = 'status ready';
-    } else {
-      st.textContent = 'Warning: resources not found.';
-      st.className = 'status error';
-    }
-    document.getElementById('bg-output').innerHTML =
-      '<div class="output">Click "Generate" to create a birthday.</div>';
-  }).catch(err => {
-    document.getElementById('bg-status').textContent = 'Failed to load: ' + err;
-    document.getElementById('bg-status').className = 'status error';
-  });
+  loadDemo('bg', () => createBirthgenModule(), mod => mod.init(), mod => { bgMod = mod; }, 'population data loaded.');
 
   document.getElementById('bg-generate').addEventListener('click', () => {
     if (!bgMod) return;
     const country = document.getElementById('bg-country').value;
     const sex = document.getElementById('bg-sex').value;
-    const json = bgMod.generateBirth(country, sex);
-    renderTable('bg-output', JSON.parse(json));
+    runDemo('bg', () => {
+      const reference = byId('bg-reference');
+      if (!reference.checkValidity()) throw new Error('Choose a valid reference date between 1900 and 2100.');
+      renderTable('bg-output', parseResult(bgMod.generateBirthAt(country, sex, reference.value)));
+    });
   });
 
   // ─── Biodata Generator ───
   let bdMod = null;
-  createBiodatagenModule().then(mod => {
-    bdMod = mod;
-    const ok = mod.init();
-    document.getElementById('bd-generate').disabled = false;
-    const st = document.getElementById('bd-status');
-    if (ok) {
-      st.textContent = 'Ready — biodata loaded.';
-      st.className = 'status ready';
-    } else {
-      st.textContent = 'Warning: resources not found.';
-      st.className = 'status error';
-    }
-    document.getElementById('bd-output').innerHTML =
-      '<div class="output">Click "Generate" to create biodata.</div>';
-  }).catch(err => {
-    document.getElementById('bd-status').textContent = 'Failed to load: ' + err;
-    document.getElementById('bd-status').className = 'status error';
-  });
+  loadDemo('bd', () => createBiodatagenModule(), mod => mod.init(), mod => { bdMod = mod; }, 'biodata loaded.');
 
   document.getElementById('bd-generate').addEventListener('click', () => {
     if (!bdMod) return;
     const country = document.getElementById('bd-country').value;
     const sex = document.getElementById('bd-sex').value;
-    const json = bdMod.generateBiodata(country, sex);
-    renderTable('bd-output', JSON.parse(json));
+    runDemo('bd', () => renderTable('bd-output', parseResult(bdMod.generateBiodata(country, sex))));
   });
+
+  byId('bd-compare').addEventListener('click', () => runDemo('bd', () => {
+    const data = parseResult(bdMod.compareBiodata(byId('bd-country').value));
+    const fields = [['Country', 'country'], ['Height (cm)', 'height_cm'], ['Weight (kg)', 'weight_kg'],
+      ['BMI', 'bmi'], ['Eye color', 'eyes'], ['Hair color', 'hair'], ['Skin category', 'skin'],
+      ['Blood type', 'blood'], ['Handedness', 'hand']];
+    byId('bd-output').innerHTML = comparisonTable('Synthetic biodata · only sex input varies',
+      ['Field', ...data.map(item => item.sex)], fields.map(([label, key]) =>
+        [label, ...data.map(item => typeof item[key] === 'number' ? item[key].toFixed(1) : item[key])]))
+      + '<p class="note">Shared draw seed (hex): ' + esc(data[0].signature.seed) + '. No age input or health assessment.</p>';
+    return 'Compared two sex inputs with country ' + data[0].country + ' and the same draw seed.';
+  }));
 
   // ─── Interest Generator ───
   let igMod = null;
-  createInterestgenModule().then(mod => {
-    igMod = mod;
-    const ok = mod.init();
-    document.getElementById('ig-generate').disabled = false;
-    const st = document.getElementById('ig-status');
-    if (ok) {
-      st.textContent = 'Ready — interest data loaded.';
-      st.className = 'status ready';
-    } else {
-      st.textContent = 'Warning: resources not found.';
-      st.className = 'status error';
-    }
-    document.getElementById('ig-output').innerHTML =
-      '<div class="output">Click "Generate" to create interests.</div>';
-  }).catch(err => {
-    document.getElementById('ig-status').textContent = 'Failed to load: ' + err;
-    document.getElementById('ig-status').className = 'status error';
-  });
+  loadDemo('ig', () => createInterestgenModule(), mod => mod.init(), mod => { igMod = mod; }, 'interest data loaded.');
 
   document.getElementById('ig-generate').addEventListener('click', () => {
     if (!igMod) return;
     const country = document.getElementById('ig-country').value;
     const sex = document.getElementById('ig-sex').value;
     const age = parseInt(document.getElementById('ig-age').value, 10);
-    const json = igMod.generateInterest(country, sex, age);
-    renderTable('ig-output', JSON.parse(json));
+    runDemo('ig', () => renderTable('ig-output', parseResult(igMod.generateInterest(country, sex, age))));
   });
+
+  byId('ig-compare').addEventListener('click', () => runDemo('ig', () => {
+    const sex = byId('ig-sex').value;
+    const data = parseResult(igMod.compareAges(byId('ig-country').value, sex));
+    const fields = [['Country', 'country'], ['Religion', 'religion'], ['Hobbies', 'hobbies'],
+      ['Films', 'films'], ['Games', 'games'], ['Books', 'books'], ['Music', 'music']];
+    byId('ig-output').innerHTML = comparisonTable('Fictional interests · only age input varies',
+      ['Field', ...data.map(item => 'Age ' + item.age)], fields.map(([label, key]) =>
+        [label, ...data.map(item => Array.isArray(item.interest[key])
+          ? item.interest[key].map(interest => interest.label).join(', ') || 'None drawn'
+          : item.interest[key])]))
+      + '<p class="note">Fixed sex input: ' + esc(sex || 'unknown (no factor)')
+      + ' · Shared draw seed (hex): ' + esc(data[0].interest.signature.seed) + '.</p>';
+    return 'Compared ages 8, 30 and 72 with country ' + data[0].interest.country + ', fixed sex input and seed.';
+  }));
 
   // ─── City Generator ───
   let cgMod = null;
-  createCitygenModule().then(mod => {
-    cgMod = mod;
-    const ok = mod.init();
-    document.getElementById('cg-generate').disabled = false;
-    const st = document.getElementById('cg-status');
-    if (ok) {
-      st.textContent = 'Ready — city data loaded.';
-      st.className = 'status ready';
-    } else {
-      st.textContent = 'Warning: resources not found.';
-      st.className = 'status error';
-    }
-    document.getElementById('cg-output').innerHTML =
-      '<div class="output">Click "Generate" to pick a city.</div>';
-  }).catch(err => {
-    document.getElementById('cg-status').textContent = 'Failed to load: ' + err;
-    document.getElementById('cg-status').className = 'status error';
-  });
+  loadDemo('cg', () => createCitygenModule(), mod => mod.init(), mod => { cgMod = mod; }, 'city data loaded.');
 
   document.getElementById('cg-generate').addEventListener('click', () => {
     if (!cgMod) return;
     const country = document.getElementById('cg-country').value;
-    const json = cgMod.generateCity(country);
-    renderTable('cg-output', JSON.parse(json));
+    runDemo('cg', () => renderTable('cg-output', parseResult(cgMod.generateCity(country))));
   });
 
   // ─── Country Generator ───
   let ctgMod = null;
-  createCountrygenModule().then(mod => {
-    ctgMod = mod;
-    const ok = mod.init();
-    document.getElementById('ctg-generate').disabled = false;
-    const st = document.getElementById('ctg-status');
-    if (ok) {
-      st.textContent = 'Ready — country data loaded.';
-      st.className = 'status ready';
-    } else {
-      st.textContent = 'Warning: resources not found.';
-      st.className = 'status error';
-    }
-    document.getElementById('ctg-output').innerHTML =
-      '<div class="output">Click "Generate" to pick a country.</div>';
-  }).catch(err => {
-    document.getElementById('ctg-status').textContent = 'Failed to load: ' + err;
-    document.getElementById('ctg-status').className = 'status error';
-  });
+  loadDemo('ctg', () => createCountrygenModule(), mod => mod.init(), mod => { ctgMod = mod; }, 'country data loaded.');
 
   document.getElementById('ctg-generate').addEventListener('click', () => {
     if (!ctgMod) return;
     const region = document.getElementById('ctg-region').value;
-    const json = ctgMod.generateCountry(region);
-    renderTable('ctg-output', JSON.parse(json));
+    runDemo('ctg', () => renderTable('ctg-output', parseResult(ctgMod.generateCountry(region))));
   });
+
+  function compareSampling(prefix, mod, filter, sample, key) {
+    return runDemo(prefix, () => {
+      const count = Number(byId(prefix + '-count').value);
+      if (![100, 500, 2000].includes(count)) throw new Error('Choose 100, 500 or 2000 draws per mode.');
+      const seeds = crypto.getRandomValues(new Uint32Array(count));
+      const rows = new Map();
+      const unique = [new Set(), new Set()];
+      for (const seed of seeds) {
+        for (let mode = 0; mode < 2; ++mode) {
+          const item = parseResult(sample(filter, mode === 0, seed));
+          const id = item[key];
+          if (!rows.has(id)) rows.set(id, { item, counts: [0, 0] });
+          ++rows.get(id).counts[mode];
+          unique[mode].add(id);
+        }
+      }
+      const sorted = [...rows.values()].sort((a, b) =>
+        b.counts[0] + b.counts[1] - a.counts[0] - a.counts[1]
+        || String(a.item[key]).localeCompare(String(b.item[key])));
+      const share = n => (100 * n / count).toFixed(1) + '%';
+      const headers = [prefix === 'cg' ? 'City · country · ID' : 'Country · code',
+        'Population', 'Weighted count', 'Weighted share', 'Uniform count', 'Uniform share'];
+      const values = sorted.map(({ item, counts }) => [
+        item.Name + ' · ' + (prefix === 'cg' ? item.Country + ' · ' + item[key] : item.CCA2),
+        item.Population.toLocaleString(), counts[0], share(counts[0]), counts[1], share(counts[1])]);
+      values.push(['Total draws', '—', count, '100%', count, '100%']);
+      byId(prefix + '-output').innerHTML = '<p class="note">Filter: ' + esc(filter || 'none')
+        + ' · ' + count.toLocaleString() + ' draws per mode · Unique observed: weighted '
+        + unique[0].size + ', uniform ' + unique[1].size + '.<br>'
+        + mod.catalogueCount().toLocaleString() + ' rows loaded in the full lite catalogue before filtering. '
+        + 'All observed rows are shown; unobserved eligible rows are omitted.</p>'
+        + '<details open><summary>Observed distribution (' + sorted.length + ' rows)</summary>'
+        + comparisonTable('Sampling comparison · counts include repeats', headers, values, 'sampling-table') + '</details>';
+      return 'Compared ' + count.toLocaleString() + ' draws per mode. Shares use that mode’s total; rounded shares may not sum to 100%.';
+    });
+  }
+
+  byId('cg-compare').addEventListener('click', () =>
+    compareSampling('cg', cgMod, byId('cg-country').value, (...args) => cgMod.sampleCity(...args), 'GeoNames ID'));
+  byId('ctg-compare').addEventListener('click', () =>
+    compareSampling('ctg', ctgMod, byId('ctg-region').value, (...args) => ctgMod.sampleCountry(...args), 'CCA2'));
 
   // ─── Persona Generator ───
   let pgMod = null;
-  createPersonagenModule().then(mod => {
-    pgMod = mod;
-    const ok = mod.init();
-    document.getElementById('pg-generate').disabled = false;
-    const st = document.getElementById('pg-status');
-    if (ok) {
-      st.textContent = 'Ready — all seven libraries loaded.';
-      st.className = 'status ready';
-    } else {
-      st.textContent = 'Warning: some resources failed to load.';
-      st.className = 'status error';
-    }
-    document.getElementById('pg-output').innerHTML =
-      '<div class="output">Click "Generate Persona" to create a complete profile.</div>';
-  }).catch(err => {
-    document.getElementById('pg-status').textContent = 'Failed to load: ' + err;
-    document.getElementById('pg-status').className = 'status error';
-  });
+  let personaMap = null;
+  const personaSources = {
+    'Country': ['country-generator', 'country_component', 'Selected country or supported-country draw'],
+    'CCA2': ['country-generator', 'cca2_component', 'Country'],
+    'Flag': ['country-generator', 'flag_component', 'Country'],
+    'Capital': ['country-generator', 'capital_component', 'Country'],
+    'Region': ['country-generator', 'region_component', 'Country'],
+    'Languages': ['country-generator', 'languages_component', 'Country'],
+    'Currency': ['country-generator', 'currency_component', 'Country'],
+    'City': ['city-generator', 'city_component', 'Country'],
+    'Timezone': ['city-generator', 'timezone_component', 'City'],
+    'City Population': ['city-generator', 'city_population_component', 'City'],
+    'State/Province': ['city-generator', 'city_admin1_component', 'City + admin1 name data'],
+    'Coordinates': ['city-generator', 'city_coords_component', 'City'],
+    'Latitude': ['city-generator', 'city_lat_component', 'City'],
+    'Longitude': ['city-generator', 'city_lon_component', 'City'],
+    'Elevation': ['city-generator', 'city_elevation_component', 'City'],
+    'Birthday': ['birth-generator', 'birth_component', 'Country; reference = today'],
+    'Age': ['birth-generator', 'age_component', 'Birthday'],
+    'Sex': ['birth-generator', 'sex_component', 'Birthday'],
+    'Height': ['biodata-generator', 'biodata_component', 'Country + Sex'],
+    'Weight': ['biodata-generator', 'weight_component', 'Height (stores the full biodata result)'],
+    'BMI': ['biodata-generator', 'bmi_component', 'Height'],
+    'Eye Color': ['biodata-generator', 'eye_color_component', 'Height'],
+    'Hair Color': ['biodata-generator', 'hair_color_component', 'Height'],
+    'Skin Type': ['biodata-generator', 'skin_type_component', 'Height'],
+    'Blood Type': ['biodata-generator', 'blood_type_component', 'Height'],
+    'Name': ['name-generator', 'name_component', 'Country → culture; Sex → gender'],
+    'Religion': ['interest-generator', 'interest_component', 'Country + Age + Sex'],
+    'Hobbies': ['interest-generator', 'interest_list_component', 'Religion (stores the full interest result)'],
+    'Films': ['interest-generator', 'interest_list_component', 'Religion'],
+    'Games': ['interest-generator', 'interest_list_component', 'Religion'],
+    'Books': ['interest-generator', 'interest_list_component', 'Religion'],
+    'Music': ['interest-generator', 'interest_list_component', 'Religion']
+  };
+  loadDemo('pg', () => createPersonagenModule(), mod => mod.init(), mod => { pgMod = mod; }, 'all seven libraries loaded.');
 
-  document.getElementById('pg-generate').addEventListener('click', () => {
-    if (!pgMod) return;
+  function renderPersona() {
     const country = document.getElementById('pg-country').value;
     const json = pgMod.generatePersona(country);
-    const d = JSON.parse(json);
+    const d = parseResult(json);
+    if (personaMap) { personaMap.remove(); personaMap = null; }
 
     // ── Formatting helpers ──
     const cap = s => s ? s.charAt(0).toUpperCase() + s.slice(1) : '';
@@ -1211,27 +1350,7 @@
       const n = parseInt(s, 10);
       return isNaN(n) ? s : n.toLocaleString();
     };
-    const skinMap = {
-      'I':   'Very fair, always burns',
-      'II':  'Fair, burns easily',
-      'III': 'Medium, sometimes burns',
-      'IV':  'Olive, rarely burns',
-      'V':   'Brown, very rarely burns',
-      'VI':  'Dark, never burns'
-    };
-    const fmtSkin = s => skinMap[s] || s;
-    const fmtBmi = s => {
-      const v = parseFloat(s);
-      if (isNaN(v)) return s;
-      let cat = '';
-      if (v < 18.5) cat = 'Underweight';
-      else if (v < 25) cat = 'Normal';
-      else if (v < 30) cat = 'Overweight';
-      else if (v < 35) cat = 'Obese I';
-      else if (v < 40) cat = 'Obese II';
-      else cat = 'Obese III';
-      return s + ' — ' + cat;
-    };
+    const fmtSkin = s => 'Fitzpatrick ' + s + ' (generated category)';
 
     const stat = (label, value) =>
       '<div class="persona-stat"><div class="persona-stat-label">'
@@ -1254,9 +1373,9 @@
       '<div class="persona-section-title">' + esc(title) + '</div>';
 
     const toggle = (id, label, display) =>
-      '<div class="persona-stat country-toggle" onclick="document.getElementById(\'' + id + '\').classList.toggle(\'open\');this.querySelector(\'.country-chevron\').classList.toggle(\'open\')">'
+      '<button type="button" class="persona-stat country-toggle" aria-expanded="false" aria-controls="' + id + '">'
       + '<div class="persona-stat-label">' + esc(label) + '</div>'
-      + '<div class="persona-stat-value">' + esc(display) + ' <span class="country-chevron">▸</span></div></div>';
+      + '<div class="persona-stat-value">' + esc(display) + ' <span class="country-chevron" aria-hidden="true">▸</span></div></button>';
 
     // ── Flag image URL from CCA2 ──
     const cca2 = (d['CCA2'] || '').toLowerCase();
@@ -1266,11 +1385,10 @@
 
     // ── Header: flag image + name + tagline ──
     html += '<div class="persona-header"><div class="persona-name">';
-    if (flagUrl) html += '<img class="persona-flag-img" src="' + flagUrl + '" alt="flag">';
+    if (flagUrl) html += '<img class="persona-flag-img" src="' + flagUrl + '" alt="' + esc(d['Country']) + ' flag">';
     html += '<h3>' + esc(d['Name'] || '—') + '</h3></div>';
-    const sexIcon = (d['Sex'] || '').toLowerCase() === 'female' ? '♀' : '♂';
     html += '<div class="persona-tagline">'
-      + esc(d['Age'] || '') + ' · ' + sexIcon
+      + 'Fictional persona · ' + esc(d['Age'] || '') + (d['Age'] === '1' ? ' year · ' : ' years · ') + esc(d['Sex'])
       + (d['Blood Type'] ? ' · ' + esc(d['Blood Type']) : '')
       + '</div></div>';
 
@@ -1278,7 +1396,7 @@
     html += '<div class="persona-grid">';
 
     // Location
-    html += section('Location');
+    html += section('Location · country-generator + city-generator');
     html += '<div class="persona-row">';
     html += toggle('pg-country-details', 'Country', d['Country'] || '');
     html += toggle('pg-city-details', 'City', d['City'] || '');
@@ -1301,7 +1419,7 @@
     html += '</div>';
 
     // Demographics
-    html += section('Demographics');
+    html += section('Demographics · birth-generator');
     html += '<div class="persona-row">';
     if (d['Birthday']) html += stat('Birthday', d['Birthday']);
     if (d['Age']) html += stat('Age', d['Age']);
@@ -1309,11 +1427,11 @@
     html += '</div>';
 
     // Physical
-    html += section('Physical');
+    html += section('Physical · biodata-generator · not age-adjusted');
     html += '<div class="persona-row">';
     if (d['Height']) html += stat('Height', d['Height']);
     if (d['Weight']) html += stat('Weight', d['Weight']);
-    if (d['BMI']) html += stat('BMI', fmtBmi(d['BMI']));
+    if (d['BMI']) html += stat('BMI (synthetic)', d['BMI']);
     if (d['Eye Color']) html += statHtml('Eye Color', colorDot(d['Eye Color'], eyeColors) + esc(cap(d['Eye Color'])));
     if (d['Hair Color']) html += statHtml('Hair Color', colorDot(d['Hair Color'], hairColors) + esc(cap(d['Hair Color'])));
     if (d['Skin Type']) html += stat('Skin Type', fmtSkin(d['Skin Type']));
@@ -1321,7 +1439,7 @@
 
     // Interests: drawn for this persona's country, age and sex
     if (d['Religion']) {
-      html += section('Interests');
+      html += section('Interests · interest-generator');
       html += '<div class="persona-row wide">';
       html += stat('Religion', d['Religion']);
       html += stat('Hobbies', d['Hobbies'] || '-');
@@ -1333,22 +1451,31 @@
     }
 
     html += '</div></div>';
+    html += '<p class="note">Physical values use country and sex only: this biodata release has no age input, even for a child persona. This is fictional composition, not an age-appropriate or medical profile.</p>';
+    html += '<details id="pg-provenance"><summary>Which component supplies each field?</summary>'
+      + '<p class="note">entity-generator orchestrates six library adapters and their extractors in dependency order. Name comes from name_component (name-generator). Height and Religion are storage keys for full biodata and interest results; their extractors do not generate new profiles.</p>'
+      + comparisonTable('Persona field provenance', ['Field', 'Library', 'Adapter component', 'Reads'],
+        Object.keys(d).map(key => {
+          if (!personaSources[key]) throw new Error('Missing component provenance for ' + key + '.');
+          return [key, ...personaSources[key]];
+        })) + '</details>';
     document.getElementById('pg-output').innerHTML = html;
 
     // ── Initialize Leaflet map when city panel toggles open ──
     const lat = parseFloat(d['Latitude']);
     const lon = parseFloat(d['Longitude']);
-    let pgMap = null;
-    const cityToggle = document.querySelector('#pg-output .country-toggle:nth-child(2)');
-    if (cityToggle && !isNaN(lat) && !isNaN(lon)) {
-      const origClick = cityToggle.getAttribute('onclick');
-      cityToggle.removeAttribute('onclick');
-      cityToggle.addEventListener('click', function() {
-        const panel = document.getElementById('pg-city-details');
-        panel.classList.toggle('open');
-        this.querySelector('.country-chevron').classList.toggle('open');
-        if (panel.classList.contains('open') && !pgMap) {
-          pgMap = L.map('pg-map', {
+    document.querySelectorAll('#pg-output .country-toggle').forEach(button => {
+      button.addEventListener('click', () => {
+        const panel = byId(button.getAttribute('aria-controls'));
+        const open = panel.classList.toggle('open');
+        button.setAttribute('aria-expanded', String(open));
+        button.querySelector('.country-chevron').classList.toggle('open', open);
+        if (panel.id === 'pg-city-details' && open && !personaMap && !isNaN(lat) && !isNaN(lon)) {
+          if (typeof L === 'undefined') {
+            byId('pg-map').textContent = 'Map unavailable. City coordinates are shown above.';
+            return;
+          }
+          personaMap = L.map('pg-map', {
             zoomControl: false,
             dragging: false,
             scrollWheelZoom: false,
@@ -1359,14 +1486,21 @@
           }).setView([lat, lon], 8);
           L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '&copy; OSM'
-          }).addTo(pgMap);
+          }).addTo(personaMap);
           L.circleMarker([lat, lon], {
             radius: 6, color: '#42dca3', fillColor: '#42dca3',
             fillOpacity: .8, weight: 2
-          }).addTo(pgMap);
+          }).addTo(personaMap);
+        } else if (panel.id === 'pg-city-details' && open && personaMap) {
+          personaMap.invalidateSize();
         }
       });
-    }
+    });
+    return 'Generated a fictional persona. Expand component provenance to inspect its field suppliers.';
+  }
+
+  byId('pg-generate').addEventListener('click', () => {
+    if (pgMod) runDemo('pg', renderPersona);
   });
 </script>
 

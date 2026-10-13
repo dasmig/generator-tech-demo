@@ -2,6 +2,7 @@
 #include <dasmig/countrygen.hpp>
 #include <emscripten/bind.h>
 #include <string>
+#include "demo_support.hpp"
 
 namespace
 {
@@ -12,11 +13,8 @@ bool init()
     return dasmig::cntg::instance().has_data();
 }
 
-std::string generate_country(const std::string& region)
+std::string country_json(const dasmig::country& c)
 {
-    auto& gen = dasmig::cntg::instance();
-    auto c = region.empty() ? gen.get_country() : gen.get_country(region);
-
     auto escape = [](const std::string& s) {
         std::string out;
         out.reserve(s.size());
@@ -60,10 +58,33 @@ std::string generate_country(const std::string& region)
     return json;
 }
 
+std::string generate_country(const std::string& region)
+{
+    auto& gen = dasmig::cntg::instance();
+    gen.weighted(true);
+    return country_json(region.empty() ? gen.get_country() : gen.get_country(region));
+}
+
+std::string sample_country(const std::string& region, bool weighted, std::uint32_t seed)
+{
+    auto& gen = dasmig::cntg::instance();
+    gen.weighted(weighted);
+    try
+    {
+        return country_json(region.empty() ? gen.get_country(seed) : gen.get_country(region, seed));
+    }
+    catch (const std::invalid_argument& error) { return demo_error(error.what()); }
+    catch (const std::runtime_error& error) { return demo_error(error.what()); }
+}
+
+unsigned catalogue_count() { return static_cast<unsigned>(dasmig::cntg::instance().country_count()); }
+
 } // namespace
 
 EMSCRIPTEN_BINDINGS(countrygen_demo)
 {
     emscripten::function("init", &init);
     emscripten::function("generateCountry", &generate_country);
+    emscripten::function("sampleCountry", &sample_country);
+    emscripten::function("catalogueCount", &catalogue_count);
 }

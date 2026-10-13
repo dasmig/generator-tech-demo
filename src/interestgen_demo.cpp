@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <string>
 #include <vector>
+#include "demo_support.hpp"
 
 namespace
 {
@@ -68,10 +69,39 @@ std::string generate_interest(const std::string& country, const std::string& sex
     return json;
 }
 
+std::string compare_ages(const std::string& country, const std::string& sex_str)
+{
+    try
+    {
+        auto& gen = dasmig::intg::instance();
+        dasmig::interest_request request;
+        request.country = country;
+        request.age = 8;
+        if (sex_str == "male") request.person_sex = dasmig::sex::male;
+        if (sex_str == "female") request.person_sex = dasmig::sex::female;
+        const auto anchor = gen.get_interest(request);
+        request.country = anchor.country_code;
+        dasmig::core::json_writer writer;
+        writer.begin_array();
+        for (const auto age : {8, 30, 72})
+        {
+            request.age = static_cast<std::uint8_t>(age);
+            writer.begin_object().field("age", age).key("interest");
+            gen.get_interest(request, anchor.seed()).to_json(writer);
+            writer.end_object();
+        }
+        writer.end_array();
+        return writer.str();
+    }
+    catch (const std::invalid_argument& error) { return demo_error(error.what()); }
+    catch (const std::runtime_error& error) { return demo_error(error.what()); }
+}
+
 } // namespace
 
 EMSCRIPTEN_BINDINGS(interestgen_demo)
 {
     emscripten::function("init", &init);
     emscripten::function("generateInterest", &generate_interest);
+    emscripten::function("compareAges", &compare_ages);
 }

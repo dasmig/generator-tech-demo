@@ -1,12 +1,14 @@
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
-import { mkdtemp, readFile, rm } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import http from 'node:http';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { setTimeout as delay } from 'node:timers/promises';
 
 const site = path.resolve(process.argv[2] || '.');
+const libraries = path.resolve(process.argv[3] || path.join(site, '..'));
+const screenshots = process.env.DEMO_SCREENSHOT_DIR;
 const chrome = process.env.CHROME_PATH || (process.platform === 'win32'
   ? 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe'
   : 'google-chrome');
@@ -30,6 +32,7 @@ const server = http.createServer(async (request, response) => {
 });
 let browser;
 let socket;
+let mockBiodata = false;
 const pending = new Map();
 let sequence = 0;
 
@@ -62,6 +65,21 @@ async function evaluate(expression) {
   });
   if (result.exceptionDetails) throw new Error(JSON.stringify(result.exceptionDetails));
   return result.result.value;
+}
+
+async function catalogue(library, filename) {
+  const text = await readFile(path.join(libraries, library, 'resources', 'lite', filename), 'utf8');
+  const lines = text.trim().split(/\r?\n/).filter(line => line && !line.startsWith('#'));
+  const headers = lines.shift().split('\t');
+  return lines.map(line => Object.fromEntries(line.split('\t').map((value, index) => [headers[index], value])));
+}
+
+async function capture(name, target) {
+  if (!screenshots) return;
+  await mkdir(screenshots, { recursive: true });
+  await evaluate(`document.querySelector(${JSON.stringify(target)}).scrollIntoView({behavior:'instant', block:'start'})`);
+  const image = await send('Page.captureScreenshot', { format: 'png', captureBeyondViewport: false });
+  await writeFile(path.join(screenshots, name + '.png'), Buffer.from(image.data, 'base64'));
 }
 
 try {
@@ -98,7 +116,13 @@ try {
       else request.resolve(message.result);
     }
     if (message.method === 'Fetch.requestPaused') {
-      send('Fetch.failRequest', { requestId: message.params.requestId, errorReason: 'Failed' })
+      const requestId = message.params.requestId;
+      const response = mockBiodata
+        ? send('Fetch.fulfillRequest', { requestId, responseCode: 200,
+          responseHeaders: [{ name: 'Content-Type', value: 'text/javascript' }],
+          body: Buffer.from('var createBiodatagenModule = () => Promise.resolve({ init: () => false });').toString('base64') })
+        : send('Fetch.failRequest', { requestId, errorReason: 'Failed' });
+      response
         .catch(error => console.error(error));
     }
   });
@@ -111,6 +135,7 @@ try {
   assert.equal(await evaluate('tgMod.init()'), true);
   const generate = (count, seed) => evaluate(`JSON.parse(tgMod.generateTraits(${count}, ${JSON.stringify(seed)}))`);
   const axes = ['openness', 'conscientiousness', 'extraversion', 'agreeableness', 'neuroticism'];
+  const loadings = await catalogue('trait-generator', 'loadings.tsv');
   for (const count of [1, 3, 5, 8]) {
     for (const seed of ['0', '1', 'ffffffffffffffff']) {
       const result = await generate(count, seed);
@@ -120,6 +145,20 @@ try {
       assert.equal(new Set(groups).size, groups.length);
       assert.deepEqual(Object.keys(result.axes), axes);
       assert.ok(Object.values(result.axes).every(Number.isFinite));
+      assert.equal(result.explanation.axes.length, 5);
+      assert.equal(result.explanation.traits.length, count);
+      for (let axis = 0; axis < axes.length; ++axis) {
+        const explanation = result.explanation.axes[axis];
+        const effects = result.explanation.traits.map((trait, index) => {
+          const expected = Number(loadings.find(row =>
+            row.trait === result.traits[index].key && row.axis === axes[axis])?.loading || 0);
+          assert.ok(Math.abs(trait.effects[axis] - expected) < 1e-12, 'Trait effect differs from pinned catalogue');
+          return trait.effects[axis];
+        });
+        assert.ok(Math.abs(explanation.effect - effects.reduce((sum, value) => sum + value, 0)) < 1e-12);
+        assert.ok(Math.abs(explanation.base + explanation.effect - result.axes[axes[axis]]) < 1e-12);
+        assert.equal(explanation.value, result.axes[axes[axis]]);
+      }
       assert.match(result.signature.seed, /^[0-9a-f]{16}$/);
       assert.deepEqual(await generate(count, result.signature.seed), result);
     }
@@ -140,8 +179,8 @@ try {
     text: '\r', unmodifiedText: '\r'
   });
   await send('Input.dispatchKeyEvent', { type: 'keyUp', key: 'Enter', code: 'Enter', windowsVirtualKeyCode: 13 });
-  await waitFor(() => evaluate('document.querySelectorAll("#tg-output tbody tr").length === 7'), 'keyboard generation');
-  const rows = await evaluate('Array.from(document.querySelectorAll("#tg-output tbody tr"), row => Array.from(row.cells, cell => cell.textContent))');
+  await waitFor(() => evaluate('document.querySelectorAll("#tg-output > table tbody tr").length === 7'), 'keyboard generation');
+  const rows = await evaluate('Array.from(document.querySelectorAll("#tg-output > table tbody tr"), row => Array.from(row.cells, cell => cell.textContent))');
   assert.equal(rows[0][1], (await generate(5, 'ffffffffffffffff')).traits.map(trait => trait.label).join(', '));
   assert.equal(rows[6][1], 'ffffffffffffffff');
   assert.ok(rows.slice(1, 6).every(row => /^-?\d+\.\d{3}$/.test(row[1])));
@@ -151,22 +190,188 @@ try {
   await evaluate(`document.getElementById('tg-seed').value = '1';
     document.getElementById('tg-generate').click()`);
   assert.match(await evaluate('document.getElementById("tg-status").className'), /ready/);
-  for (const width of [375, 320]) {
+  await waitFor(() => evaluate('Array.from(document.querySelectorAll(".status")).every(status => status.classList.contains("ready"))'), 'all modules');
+
+  for (const mode of ['full', 'first', 'surname']) {
+    const names = await evaluate(`JSON.parse(ngMod.generateNameOptions('female', 'br', '${mode}', 10))`);
+    assert.equal(names.length, 10);
+    assert.ok(names.every(name => name.name.length > 0 && name.parts.length === (mode === 'full' ? 2 : 1)));
+    assert.ok(names.every(name => name.culture === 'brazilian'));
+    await evaluate(`byId('ng-mode').value = '${mode}'; byId('ng-mode').dispatchEvent(new Event('change'));
+      byId('ng-generate').click()`);
+    assert.equal(await evaluate('byId("ng-gender").disabled'), mode === 'surname');
+    assert.equal(await evaluate('document.querySelectorAll("#ng-output li").length'), 5);
+  }
+  for (const count of [0, 11]) {
+    assert.match(await evaluate(`JSON.parse(ngMod.generateNameOptions('', '', 'full', ${count})).error`), /alternatives/);
+    assert.match(await evaluate(`JSON.parse(nngMod.generateNicknameOptions('', ${count})).error`), /alternatives/);
+  }
+  assert.match(await evaluate(`JSON.parse(ngMod.generateNameOptions('', '', 'fake-mode', 1)).error`), /name/);
+  for (const name of ['', 'José García', '<img src=x onerror=alert(1)>']) {
+    const values = await evaluate(`JSON.parse(nngMod.generateNicknameOptions(${JSON.stringify(name)}, 10))`);
+    assert.equal(values.length, 10);
+    assert.ok(values.every(value => value.nickname && value.source));
+    await evaluate(`byId('nng-name').value = ${JSON.stringify(name)}; byId('nng-generate').click()`);
+    assert.equal(await evaluate('document.querySelectorAll("#nng-output li").length'), 5);
+    assert.equal(await evaluate('document.querySelector("#nng-output img")'), null);
+  }
+
+  for (const reference of ['1900-01-01', '2024-02-29', '2023-12-31', '2024-01-01', '2100-12-31']) {
+    const births = await evaluate(`Array.from({length: 30}, () => JSON.parse(bgMod.generateBirthAt('US', 'female', '${reference}')))`);
+    for (const birth of births) {
+      assert.equal(birth['Reference Date'], reference);
+      assert.equal(birth.Country, 'US');
+      assert.equal(birth.Sex, 'Female');
+      const [year, month, day] = birth.Date.split('-').map(Number);
+      const [ry, rm, rd] = reference.split('-').map(Number);
+      assert.equal(birth.Age, ry - year - Number(month > rm || (month === rm && day > rd)));
+      const date = new Date(Date.UTC(year, month - 1, day));
+      assert.equal(date.toISOString().slice(0, 10), birth.Date);
+    }
+  }
+  for (const date of ['', '2023-02-29', '2024-02-30', '1899-12-31', '2101-01-01', '2024-13-01', '2024-0x-01']) {
+    assert.match(await evaluate(`JSON.parse(bgMod.generateBirthAt('US', '', ${JSON.stringify(date)})).error`), /date/);
+  }
+  await evaluate(`byId('bg-reference').value = '2024-02-29'; byId('bg-generate').click()`);
+  assert.match(await evaluate('byId("bg-output").textContent'), /2024-02-29/);
+  await evaluate(`byId('bg-reference').value = ''; byId('bg-generate').click()`);
+  assert.match(await evaluate('byId("bg-status").textContent'), /Generation failed/);
+  await evaluate(`byId('bg-reference').value = '2024-02-29'; byId('bg-generate').click()`);
+
+  for (const country of ['', 'US', 'BR']) {
+    const biodata = await evaluate(`JSON.parse(bdMod.compareBiodata('${country}'))`);
+    assert.deepEqual(biodata.map(value => value.sex), ['male', 'female']);
+    assert.equal(biodata[0].country, biodata[1].country);
+    if (country) assert.equal(biodata[0].country, country);
+    assert.equal(biodata[0].signature.seed, biodata[1].signature.seed);
+    assert.ok(biodata.every(value => Number.isFinite(value.height_cm) && Number.isFinite(value.weight_kg)));
+    for (const sex of ['', 'male', 'female']) {
+      const interests = await evaluate(`JSON.parse(igMod.compareAges('${country}', '${sex}'))`);
+      assert.deepEqual(interests.map(value => value.age), [8, 30, 72]);
+      assert.equal(new Set(interests.map(value => value.interest.country)).size, 1);
+      if (country) assert.equal(interests[0].interest.country, country);
+      assert.equal(new Set(interests.map(value => value.interest.signature.seed)).size, 1);
+      assert.equal(new Set(interests.map(value => value.interest.religion)).size, 1);
+      for (const value of interests) {
+        for (const list of ['hobbies', 'films', 'games', 'books', 'music']) {
+          assert.equal(new Set(value.interest[list].map(item => item.key)).size, value.interest[list].length);
+        }
+      }
+    }
+  }
+  for (const expression of ["bdMod.compareBiodata('XX')", "igMod.compareAges('XX', '')",
+    "ctgMod.sampleCountry('invalid-region', true, 1)", "cgMod.sampleCity('XX', false, 1)"]) {
+    assert.ok(await evaluate(`JSON.parse(${expression}).error`), 'Invalid filter must report an error');
+  }
+  await evaluate(`byId('bd-compare').click(); byId('ig-compare').click(); byId('eg-generate').click();
+    byId('pg-country').value = 'BR'; byId('pg-generate').click()`);
+  assert.match(await evaluate('byId("bd-output").textContent'), /only sex input varies/);
+  assert.match(await evaluate('byId("ig-output").textContent'), /only age input varies/);
+  assert.equal(await evaluate('document.querySelectorAll("#eg-output tbody tr").length'), 10);
+  assert.match(await evaluate('byId("eg-output").textContent'), /weighted_choice_component/);
+  const personaKeys = await evaluate(`Object.keys(JSON.parse(pgMod.generatePersona('BR')))`);
+  assert.deepEqual(await evaluate('Object.keys(personaSources).sort()'), personaKeys.sort());
+  assert.equal(await evaluate('document.querySelectorAll("#pg-provenance tbody tr").length'), personaKeys.length);
+  assert.match(await evaluate('byId("pg-output").textContent'), /Fictional persona/);
+  const countryButton = '#pg-output button[aria-controls="pg-country-details"]';
+  await evaluate(`document.querySelector('${countryButton}').focus()`);
+  await send('Input.dispatchKeyEvent', { type: 'keyDown', key: 'Enter', code: 'Enter', windowsVirtualKeyCode: 13, text: '\r' });
+  await send('Input.dispatchKeyEvent', { type: 'keyUp', key: 'Enter', code: 'Enter', windowsVirtualKeyCode: 13 });
+  assert.equal(await evaluate(`document.querySelector('${countryButton}').getAttribute('aria-expanded')`), 'true');
+  await evaluate(`byId('pg-provenance').open = true; document.querySelector('#tg-output details').open = true`);
+
+  for (const [mod, method, filter, library, filename, id, filterKey] of [
+    ['ctgMod', 'sampleCountry', 'Europe', 'country-generator', 'countries.tsv', 'CCA2', 'region'],
+    ['cgMod', 'sampleCity', 'BR', 'city-generator', 'cities.tsv', 'GeoNames ID', 'country_code']
+  ]) {
+    const eligible = (await catalogue(library, filename)).filter(row => row[filterKey] === filter);
+    const n = 6000;
+    const counts = await evaluate(`(() => {
+      const counts = [Object.create(null), Object.create(null)];
+      for (let seed = 0; seed < ${n}; ++seed) {
+        for (let mode = 0; mode < 2; ++mode) {
+          const value = JSON.parse(${mod}.${method}('${filter}', mode === 0, seed));
+          counts[mode][value[${JSON.stringify(id)}]] = (counts[mode][value[${JSON.stringify(id)}]] || 0) + 1;
+        }
+      }
+      return counts;
+    })()`);
+    const totalWeight = eligible.reduce((sum, row) => sum + Math.max(Number(row.population), 1), 0);
+    const keys = new Set(eligible.map(row => id === 'CCA2' ? row.cca2 : row.geonameid));
+    for (let mode = 0; mode < 2; ++mode) {
+      assert.equal(Object.values(counts[mode]).reduce((sum, value) => sum + value, 0), n);
+      assert.ok(Object.keys(counts[mode]).every(key => keys.has(key)));
+      for (const row of eligible) {
+        const probability = mode === 0 ? Math.max(Number(row.population), 1) / totalWeight : 1 / eligible.length;
+        const observed = (counts[mode][id === 'CCA2' ? row.cca2 : row.geonameid] || 0) / n;
+        const tolerance = 6 * Math.sqrt(probability * (1 - probability) / n) + .004;
+        assert.ok(Math.abs(observed - probability) < tolerance, `${library} distribution differs from pinned model`);
+      }
+    }
+    assert.notDeepEqual(counts[0], counts[1]);
+  }
+  for (const [prefix, filterId, filter] of [['cg', 'cg-country', 'BR'], ['ctg', 'ctg-region', 'Europe']]) {
+    for (const count of [100, 500, 2000]) {
+      await evaluate(`byId('${filterId}').value = '${filter}'; byId('${prefix}-count').value = '${count}';
+        byId('${prefix}-compare').click()`);
+      const distribution = await evaluate(`Array.from(document.querySelectorAll('#${prefix}-output tbody tr'),
+        row => Array.from(row.cells, cell => cell.textContent))`);
+      assert.deepEqual(distribution.at(-1).slice(2), [String(count), '100%', String(count), '100%']);
+      assert.equal(distribution.slice(0, -1).reduce((sum, row) => sum + Number(row[2]), 0), count);
+      assert.equal(distribution.slice(0, -1).reduce((sum, row) => sum + Number(row[4]), 0), count);
+      assert.ok(distribution.slice(0, -1).every(row => Math.abs(parseFloat(row[3]) - 100 * Number(row[2]) / count) <= .051));
+    }
+  }
+  assert.equal(await evaluate(`Array.from(document.querySelectorAll('select,input')).every(control =>
+    document.querySelector('label[for="' + control.id + '"]'))`), true);
+  assert.equal(await evaluate(`Array.from(document.querySelectorAll('.status')).every(status =>
+    status.getAttribute('role') === 'status')`), true);
+  await capture('desktop-persona', '#personagen-card');
+  await capture('desktop-trait', '#traitgen-card');
+  await capture('desktop-sampling', '#countrygen-card');
+  for (const width of [375, 320, 640]) {
     await send('Emulation.setDeviceMetricsOverride', {
       width, height: 812, deviceScaleFactor: 1, mobile: true
     });
-    assert.ok(await evaluate(`Array.from(document.querySelectorAll('#traitgen-card, #traitgen-card .controls, #tg-output table'),
+    assert.ok(await evaluate(`Array.from(document.querySelectorAll('.demo-card, .controls, .table-scroll, #tg-output > table'),
       element => element.getBoundingClientRect()).every(rect => rect.left >= 0 && rect.right <= innerWidth)`),
-    `Trait card overflows at ${width}px`);
+    `Demo content overflows at ${width}px`);
+    assert.ok(await evaluate('document.documentElement.scrollWidth <= innerWidth'), `Page overflows at ${width}px`);
+    if (width === 375) {
+      await capture('mobile-persona', '#personagen-card');
+      await capture('mobile-trait', '#traitgen-card');
+      await capture('mobile-sampling', '#countrygen-card');
+    }
   }
-  await waitFor(() => evaluate('Array.from(document.querySelectorAll(".status")).every(status => status.classList.contains("ready"))'), 'all existing modules');
+  // 640 CSS pixels also covers a 1280px viewport at 200% zoom.
+  await evaluate(`byId('cg-generate').click(); byId('ctg-generate').click();
+    byId('bd-generate').click(); byId('ig-generate').click()`);
+  for (const prefix of ['cg', 'ctg', 'bd', 'ig']) {
+    assert.match(await evaluate(`byId('${prefix}-status').className`), /ready/);
+    assert.ok(await evaluate(`document.querySelectorAll('#${prefix}-output tbody tr').length > 0`));
+  }
   await send('Fetch.enable', { patterns: [{ urlPattern: '*traitgen_demo.wasm*' }] });
   await send('Page.reload', { ignoreCache: true });
   await waitFor(() => evaluate('document.getElementById("tg-status")?.classList.contains("error")'), 'module failure status');
   assert.equal(await evaluate('document.getElementById("tg-generate").disabled'), true);
   assert.match(await evaluate('document.getElementById("tg-status").textContent'), /Reload the page/);
   assert.equal(await evaluate('document.getElementById("tg-output").textContent.trim()'), 'Trait generator unavailable.');
-  console.log('PASS: real Wasm data, counts, Big Five, seed replay, errors, keyboard, mobile layout and existing modules.');
+  await send('Fetch.disable');
+  await send('Fetch.enable', { patterns: [{ urlPattern: '*namegen_demo.js*' }] });
+  await send('Page.reload', { ignoreCache: true });
+  await waitFor(() => evaluate('document.getElementById("ng-status")?.classList.contains("error")'), 'missing name script');
+  assert.equal(await evaluate('byId("ng-generate").disabled'), true);
+  assert.match(await evaluate('byId("ng-status").textContent'), /Reload the page/);
+  await waitFor(() => evaluate('igMod !== null && pgMod !== null && cgMod !== null'), 'independent modules after script failure');
+  await send('Fetch.disable');
+  mockBiodata = true;
+  await send('Fetch.enable', { patterns: [{ urlPattern: '*biodatagen_demo.js*' }] });
+  await send('Page.reload', { ignoreCache: true });
+  await waitFor(() => evaluate('document.getElementById("bd-status")?.classList.contains("error")'), 'embedded data initialization failure');
+  assert.equal(await evaluate('byId("bd-generate").disabled && byId("bd-compare").disabled'), true);
+  assert.match(await evaluate('byId("bd-status").textContent'), /embedded data.*Reload the page/);
+  assert.equal(await evaluate('bdMod'), null);
+  console.log('PASS: all real Wasm demos, pinned distributions/loadings, comparisons, provenance, names/nicknames, reference dates, replay, input/load errors, keyboard, labels and responsive layouts.');
 } finally {
   if (browser?.pid && browser.exitCode === null) {
     const exited = new Promise(resolve => browser.once('exit', resolve));

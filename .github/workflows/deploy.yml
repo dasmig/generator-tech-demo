@@ -126,8 +126,8 @@ jobs:
         with:
           node-version: '22'
 
-      - name: Test trait demo in Chrome
-        run: node tests/traitgen_smoke.mjs _site
+      - name: Test all demos in Chrome
+        run: node tests/traitgen_smoke.mjs _site .
 
       - name: Upload Pages artifact
         if: github.ref == 'refs/heads/master'
