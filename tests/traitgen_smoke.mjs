@@ -375,9 +375,13 @@ try {
 } finally {
   if (browser?.pid && browser.exitCode === null) {
     const exited = new Promise(resolve => browser.once('exit', resolve));
-    if (socket?.readyState === WebSocket.OPEN) await send('Browser.close');
+    // Chrome may exit before replying to Browser.close, so don't wait for the
+    // reply; fall back to killing it if it hasn't exited shortly after.
+    if (socket?.readyState === WebSocket.OPEN) send('Browser.close').catch(() => {});
     else browser.kill();
+    const killTimer = setTimeout(() => browser.kill(), 5000);
     await exited;
+    clearTimeout(killTimer);
   }
   socket?.close();
   server.closeAllConnections();
