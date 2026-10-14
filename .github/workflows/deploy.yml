@@ -55,7 +55,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: dasmig/city-generator
-          ref: v3.0.0
+          ref: v4.0.0
           path: city-generator
 
       - name: Checkout birth-generator
