@@ -259,14 +259,34 @@ try {
       }
     }
   }
-  for (const expression of ["bdMod.compareBiodata('XX')", "igMod.compareAges('XX', '')",
+  for (const country of ['', 'US', 'ET']) {
+    for (const sex of ['', 'male', 'female']) {
+      const jobs = await evaluate(`JSON.parse(ogMod.compareEducation('${country}', '${sex}'))`);
+      assert.deepEqual(jobs.map(value => value.education), ['less_than_basic', 'basic', 'intermediate', 'advanced']);
+      for (const field of ['country', 'sex']) {
+        assert.equal(new Set(jobs.map(value => value.occupation[field])).size, 1);
+      }
+      if (country) assert.equal(jobs[0].occupation.country, country);
+      assert.equal(new Set(jobs.map(value => value.occupation.signature.seed)).size, 1);
+      assert.ok(jobs.every(value => value.occupation.status === 'employed' && value.occupation.age === 35 && value.occupation.job));
+      assert.deepEqual(jobs.map(value => value.occupation.education), ['less_than_basic', 'basic', 'intermediate', 'advanced']);
+    }
+  }
+  const child = await evaluate(`JSON.parse(ogMod.generateOccupation('BR', 'female', 8, ''))`);
+  assert.equal(child.Status, 'student');
+  assert.equal(child.Job, '-');
+  const worker = await evaluate(`JSON.parse(ogMod.generateOccupation('DE', 'male', 42, 'advanced'))`);
+  assert.equal(worker.Education, 'advanced');
+  assert.equal(worker.Country, 'DE');
+  for (const expression of ["bdMod.compareBiodata('XX')", "igMod.compareAges('XX', '')", "ogMod.compareEducation('XX', '')",
     "ctgMod.sampleCountry('invalid-region', true, 1)", "cgMod.sampleCity('XX', false, 1)"]) {
     assert.ok(await evaluate(`JSON.parse(${expression}).error`), 'Invalid filter must report an error');
   }
-  await evaluate(`byId('bd-compare').click(); byId('ig-compare').click(); byId('eg-generate').click();
+  await evaluate(`byId('bd-compare').click(); byId('ig-compare').click(); byId('og-compare').click(); byId('eg-generate').click();
     byId('pg-country').value = 'BR'; byId('pg-generate').click()`);
   assert.match(await evaluate('byId("bd-output").textContent'), /only sex input varies/);
   assert.match(await evaluate('byId("ig-output").textContent'), /only age input varies/);
+  assert.match(await evaluate('byId("og-output").textContent'), /only education input varies/);
   assert.equal(await evaluate('document.querySelectorAll("#eg-output tbody tr").length'), 10);
   assert.match(await evaluate('byId("eg-output").textContent'), /weighted_choice_component/);
   const personaKeys = await evaluate(`Object.keys(JSON.parse(pgMod.generatePersona('BR')))`);
@@ -329,6 +349,8 @@ try {
   await capture('desktop-persona', '#personagen-card');
   await capture('desktop-trait', '#traitgen-card');
   await capture('desktop-sampling', '#countrygen-card');
+  await capture('desktop-occupation', '#occupationgen-card');
+  await capture('desktop-persona-occupation', '#pg-provenance');
   for (const width of [375, 320, 640]) {
     await send('Emulation.setDeviceMetricsOverride', {
       width, height: 812, deviceScaleFactor: 1, mobile: true
@@ -341,12 +363,13 @@ try {
       await capture('mobile-persona', '#personagen-card');
       await capture('mobile-trait', '#traitgen-card');
       await capture('mobile-sampling', '#countrygen-card');
+      await capture('mobile-occupation', '#occupationgen-card');
     }
   }
   // 640 CSS pixels also covers a 1280px viewport at 200% zoom.
   await evaluate(`byId('cg-generate').click(); byId('ctg-generate').click();
-    byId('bd-generate').click(); byId('ig-generate').click()`);
-  for (const prefix of ['cg', 'ctg', 'bd', 'ig']) {
+    byId('bd-generate').click(); byId('ig-generate').click(); byId('og-generate').click()`);
+  for (const prefix of ['cg', 'ctg', 'bd', 'ig', 'og']) {
     assert.match(await evaluate(`byId('${prefix}-status').className`), /ready/);
     assert.ok(await evaluate(`document.querySelectorAll('#${prefix}-output tbody tr').length > 0`));
   }

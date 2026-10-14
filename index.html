@@ -380,9 +380,9 @@
   <div class="demo-card" id="personagen-card" style="border-color: var(--accent);">
     <h2>⭐ Persona Generator</h2>
     <p class="desc">
-      Generates a complete fictional persona by composing seven libraries
+      Generates a complete fictional persona by composing eight libraries
       through entity-generator adapter components. Country, city, birthday,
-      physical traits, name, religion, hobbies and favourite genres in a
+      physical traits, name, religion, hobbies, favourite genres and occupation in a
       single synthetic entity. Adapters pass country, age and sex to the
       libraries that support those inputs. This is fictional sample data,
       not a description or prediction of a real person.
@@ -842,6 +842,84 @@
     <div class="status" id="ig-status">Loading WebAssembly…</div>
   </div>
 
+  <!-- ─── Occupation Generator ─── -->
+  <div class="demo-card" id="occupationgen-card">
+    <h2>occupation-generator</h2>
+    <p class="desc">
+      Generate a fictional employment status, education level and job from country, sex and age inputs, using ILO labour force statistics.
+      Compare the four education levels while holding the country, sex and seed fixed. Outputs are synthetic, not predictions about individuals or groups.
+      <a class="repo-link" href="https://github.com/dasmig/occupation-generator" target="_blank" rel="noopener">GitHub →</a>
+    </p>
+    <div class="controls">
+      <div class="field">
+        <label for="og-country">Country</label>
+        <select id="og-country">
+          <option value="">Any</option>
+          <option value="US">United States</option>
+          <option value="BR">Brazil</option>
+          <option value="GB">United Kingdom</option>
+          <option value="DE">Germany</option>
+          <option value="FR">France</option>
+          <option value="JP">Japan</option>
+          <option value="CN">China</option>
+          <option value="IN">India</option>
+          <option value="AU">Australia</option>
+          <option value="CA">Canada</option>
+          <option value="IT">Italy</option>
+          <option value="ES">Spain</option>
+          <option value="MX">Mexico</option>
+          <option value="KR">South Korea</option>
+          <option value="RU">Russia</option>
+          <option value="ZA">South Africa</option>
+          <option value="NG">Nigeria</option>
+          <option value="EG">Egypt</option>
+          <option value="ET">Ethiopia</option>
+          <option value="AR">Argentina</option>
+          <option value="SE">Sweden</option>
+          <option value="SA">Saudi Arabia</option>
+          <option value="ID">Indonesia</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="og-sex">Sex</label>
+        <select id="og-sex">
+          <option value="">Any</option>
+          <option value="male">Male</option>
+          <option value="female">Female</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="og-age">Age (single draw)</label>
+        <select id="og-age">
+          <option value="8">Child (8)</option>
+          <option value="17">Teenager (17)</option>
+          <option value="22">Young adult (22)</option>
+          <option value="30">Adult (30)</option>
+          <option value="42" selected>Adult (42)</option>
+          <option value="57">Older adult (57)</option>
+          <option value="72">Retiree (72)</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="og-education">Education (single draw)</label>
+        <select id="og-education">
+          <option value="">Drawn from country, sex and age</option>
+          <option value="less_than_basic">Less than basic</option>
+          <option value="basic">Basic</option>
+          <option value="intermediate">Intermediate</option>
+          <option value="advanced">Advanced</option>
+        </select>
+      </div>
+      <button class="btn" id="og-generate" disabled>Generate</button>
+      <button class="btn secondary" id="og-compare" disabled>Compare education</button>
+    </div>
+    <p class="note">Comparison fixes age 35 and an employed status, and varies only the education input. “Any” country and sex are resolved once. Under 15 a person is always a student with no job. Status and education come from measured rates (139 and 185 surveyed countries; others use a regional mean); the job catalogue is curated. Results can coincide.</p>
+    <div id="og-output">
+      <div class="output empty">Waiting for module to load…</div>
+    </div>
+    <div class="status" id="og-status">Loading WebAssembly…</div>
+  </div>
+
   <!-- Trait Generator -->
   <div class="demo-card" id="traitgen-card">
     <h2>trait-generator</h2>
@@ -971,12 +1049,13 @@
 <script src="birthgen_demo.js"></script>
 <script src="biodatagen_demo.js"></script>
 <script src="interestgen_demo.js"></script>
+<script src="occupationgen_demo.js"></script>
 <script src="traitgen_demo.js"></script>
 <script src="personagen_demo.js"></script>
 
 <script>
   const byId = id => document.getElementById(id);
-  for (const prefix of ['pg', 'ng', 'nng', 'eg', 'bg', 'bd', 'ig', 'tg', 'cg', 'ctg']) {
+  for (const prefix of ['pg', 'ng', 'nng', 'eg', 'bg', 'bd', 'ig', 'og', 'tg', 'cg', 'ctg']) {
     byId(prefix + '-status').setAttribute('role', 'status');
     byId(prefix + '-output').setAttribute('aria-live', 'polite');
     byId(prefix + '-output').setAttribute('aria-atomic', 'true');
@@ -1236,6 +1315,32 @@
     return 'Compared ages 8, 30 and 72 with country ' + data[0].interest.country + ', fixed sex input and seed.';
   }));
 
+  // ─── Occupation Generator ───
+  let ogMod = null;
+  loadDemo('og', () => createOccupationgenModule(), mod => mod.init(), mod => { ogMod = mod; }, 'occupation data loaded.');
+
+  document.getElementById('og-generate').addEventListener('click', () => {
+    if (!ogMod) return;
+    const country = byId('og-country').value;
+    const sex = byId('og-sex').value;
+    const age = parseInt(byId('og-age').value, 10);
+    const education = byId('og-education').value;
+    runDemo('og', () => renderTable('og-output', parseResult(ogMod.generateOccupation(country, sex, age, education))));
+  });
+
+  byId('og-compare').addEventListener('click', () => runDemo('og', () => {
+    const data = parseResult(ogMod.compareEducation(byId('og-country').value, byId('og-sex').value));
+    const label = key => key.replace(/_/g, ' ').replace(/^./, c => c.toUpperCase());
+    const rows = [['Job', item => item.occupation.job ? item.occupation.job.label : '-'],
+      ['ISCO-08 group', item => item.occupation.job ? item.occupation.job.isco + ' ' + item.occupation.job.isco_label : '-'],
+      ['Skills', item => item.occupation.job ? item.occupation.job.skills.join(', ') : '-']];
+    byId('og-output').innerHTML = comparisonTable('Fictional occupations · only education input varies',
+      ['Field', ...data.map(item => label(item.education))], rows.map(([name, value]) => [name, ...data.map(value)]))
+      + '<p class="note">Fixed: ' + esc(data[0].occupation.country) + ', ' + esc(data[0].occupation.sex) + ', age 35, employed · Shared draw seed (hex): '
+      + esc(data[0].occupation.signature.seed) + '.</p>';
+    return 'Compared four education levels with country ' + data[0].occupation.country + ', fixed sex and seed.';
+  }));
+
   // ─── City Generator ───
   let cgMod = null;
   loadDemo('cg', () => createCitygenModule(), mod => mod.init(), mod => { cgMod = mod; }, 'city data loaded.');
@@ -1333,9 +1438,15 @@
     'Films': ['interest-generator', 'interest_list_component', 'Religion'],
     'Games': ['interest-generator', 'interest_list_component', 'Religion'],
     'Books': ['interest-generator', 'interest_list_component', 'Religion'],
-    'Music': ['interest-generator', 'interest_list_component', 'Religion']
+    'Music': ['interest-generator', 'interest_list_component', 'Religion'],
+    'Occupation': ['occupation-generator', 'occupation_component', 'Country + Age + Sex (stores the full occupation result)'],
+    'Employment': ['occupation-generator', 'occupation_part_component', 'Occupation'],
+    'Education': ['occupation-generator', 'occupation_part_component', 'Occupation'],
+    'Job Group': ['occupation-generator', 'occupation_part_component', 'Occupation'],
+    'Skills': ['occupation-generator', 'occupation_part_component', 'Occupation'],
+    'Gear': ['occupation-generator', 'occupation_part_component', 'Occupation']
   };
-  loadDemo('pg', () => createPersonagenModule(), mod => mod.init(), mod => { pgMod = mod; }, 'all seven libraries loaded.');
+  loadDemo('pg', () => createPersonagenModule(), mod => mod.init(), mod => { pgMod = mod; }, 'all eight libraries loaded.');
 
   function renderPersona() {
     const country = document.getElementById('pg-country').value;
@@ -1450,10 +1561,23 @@
       html += '</div>';
     }
 
+    // Occupation: drawn for this persona's country, age and sex
+    if (d['Occupation']) {
+      html += section('Occupation · occupation-generator');
+      html += '<div class="persona-row wide">';
+      html += stat('Employment', cap(d['Employment'] || '-'));
+      html += stat('Education', (d['Education'] || '-').replace(/_/g, ' '));
+      html += stat('Occupation', d['Occupation']);
+      html += stat('Job group', d['Job Group'] || '-');
+      html += stat('Skills', d['Skills'] || '-');
+      html += stat('Gear', d['Gear'] || '-');
+      html += '</div>';
+    }
+
     html += '</div></div>';
     html += '<p class="note">Physical values use country and sex only: this biodata release has no age input, even for a child persona. This is fictional composition, not an age-appropriate or medical profile.</p>';
     html += '<details id="pg-provenance"><summary>Which component supplies each field?</summary>'
-      + '<p class="note">entity-generator orchestrates six library adapters and their extractors in dependency order. Name comes from name_component (name-generator). Height and Religion are storage keys for full biodata and interest results; their extractors do not generate new profiles.</p>'
+      + '<p class="note">entity-generator orchestrates seven library adapters and their extractors in dependency order. Name comes from name_component (name-generator). Height, Religion and Occupation are storage keys for full biodata, interest and occupation results; their extractors do not generate new profiles.</p>'
       + comparisonTable('Persona field provenance', ['Field', 'Library', 'Adapter component', 'Reads'],
         Object.keys(d).map(key => {
           if (!personaSources[key]) throw new Error('Missing component provenance for ' + key + '.');

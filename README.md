@@ -1,10 +1,10 @@
 # generator-tech-demo
 
-Live WebAssembly demos for the [name-generator](https://github.com/dasmig/name-generator), [nickname-generator](https://github.com/dasmig/nickname-generator), [entity-generator](https://github.com/dasmig/entity-generator), [birth-generator](https://github.com/dasmig/birth-generator), [biodata-generator](https://github.com/dasmig/biodata-generator), [city-generator](https://github.com/dasmig/city-generator), [country-generator](https://github.com/dasmig/country-generator), [interest-generator](https://github.com/dasmig/interest-generator), and [trait-generator](https://github.com/dasmig/trait-generator) C++23 libraries.
+Live WebAssembly demos for the [name-generator](https://github.com/dasmig/name-generator), [nickname-generator](https://github.com/dasmig/nickname-generator), [entity-generator](https://github.com/dasmig/entity-generator), [birth-generator](https://github.com/dasmig/birth-generator), [biodata-generator](https://github.com/dasmig/biodata-generator), [city-generator](https://github.com/dasmig/city-generator), [country-generator](https://github.com/dasmig/country-generator), [interest-generator](https://github.com/dasmig/interest-generator), and [trait-generator](https://github.com/dasmig/trait-generator), and [occupation-generator](https://github.com/dasmig/occupation-generator) C++23 libraries.
 
 Everything runs client-side in the browser — no server required.
 
-The demos use the libraries' releases on [dasmig-core 1.0](https://github.com/dasmig/dasmig-core): name-generator v3.0.0, interest-generator and trait-generator v1.0.0 and v2.0.0 of the others. Their `lite` data is compiled into the modules (`DASMIG_*_EMBED`), so the same seed, inputs, date and data give the same result here as in a native build. The standalone birth demo accepts an **Age as of** reference date (1900–2100), defaulting to today's local date. Each draw generates a birthday and its completed-year age relative to that date; changing the reference does not age a previously generated birthday. The persona demo still passes today's date (`src/today.hpp`). The libraries never read the clock themselves.
+The demos use the libraries' releases on [dasmig-core 1.0](https://github.com/dasmig/dasmig-core): name-generator v3.0.0, interest-generator, trait-generator and occupation-generator v1.0.0 and v2.0.0 of the others. Their `lite` data is compiled into the modules (`DASMIG_*_EMBED`), so the same seed, inputs, date and data give the same result here as in a native build. The standalone birth demo accepts an **Age as of** reference date (1900–2100), defaulting to today's local date. Each draw generates a birthday and its completed-year age relative to that date; changing the reference does not age a previously generated birthday. The persona demo still passes today's date (`src/today.hpp`). The libraries never read the clock themselves.
 
 ## Prerequisites
 
@@ -38,6 +38,7 @@ Repo/
 ├── country-generator/
 ├── interest-generator/
 ├── trait-generator/
+├── occupation-generator/
 └── generator-tech-demo/    ← this repo
 ```
 
@@ -47,7 +48,7 @@ emcmake cmake -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build
 ```
 
-This produces in `build/` a `.js` and a `.wasm` file per demo (`namegen_demo`, `nickgen_demo`, `entitygen_demo`, `birthgen_demo`, `biodatagen_demo`, `citygen_demo`, `countrygen_demo`, `interestgen_demo`, `traitgen_demo`, `personagen_demo`), plus `personagen_demo.data`, which holds city-generator's admin1 names (the only file not compiled in).
+This produces in `build/` a `.js` and a `.wasm` file per demo (`namegen_demo`, `nickgen_demo`, `entitygen_demo`, `birthgen_demo`, `biodatagen_demo`, `citygen_demo`, `countrygen_demo`, `interestgen_demo`, `occupationgen_demo`, `traitgen_demo`, `personagen_demo`), plus `personagen_demo.data`, which holds city-generator's admin1 names (the only file not compiled in).
 
 ## What the demos show
 
@@ -56,6 +57,8 @@ The **country and city** demos retain population-weighted single draws and add s
 The **entity** demo identifies each field's `choice_component`, `range_component` or `weighted_choice_component` supplier. The **persona** demo preserves its profile and expandable location panels while adding a field-by-field provenance table: library, adapter component and upstream values. `entity-generator` orchestrates the components; it does not invent the country/name/biodata/interest fields itself.
 
 The **biodata** comparison varies only sex, keeping country and call seed fixed. This pinned release accepts country and sex, **not age**. The **interest** comparison varies only ages 8, 30 and 72, keeping country, sex input and call seed fixed. An unspecified interest age/sex applies no corresponding factor; it is not a randomly chosen demographic input. “Any” country is resolved once per comparison. Interest religion is country-weighted; age factors and limits apply to hobbies and genres. Matching outputs are possible. All profiles and comparisons are fictional model outputs, not measurements, medical advice or predictions about real people or groups.
+
+The **occupation** comparison varies only the education input (the four levels), keeping country, sex, call seed, age 35 and an employed status fixed. “Any” country and sex are resolved once. Under 15 a person is always a student with no job. Status, education and the occupation groups are measured (ILO labour force statistics; countries without a survey use a regional mean), while the job catalogue with its skills and gear is curated, so a job is a plausible example of its group, not a measured fact. The persona demo adds an Occupation section from the persona’s country, age and sex.
 
 The **name** demo offers 1, 5 or 10 alternatives with first-name, surname or first-name-plus-surname modes. Culture applies to all parts; gender filters first names only. The **nickname** demo offers the same alternative counts with an optional name input. Blank input uses wordlists; with a name, the library derives from it in one in four draws on average and otherwise still uses wordlists. There is no forced derivation/style control. The output shows each nickname's pre-transform source. Alternatives may repeat.
 

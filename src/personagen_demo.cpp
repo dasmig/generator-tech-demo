@@ -10,6 +10,7 @@
 #include <dasmig/biodatagen.hpp>
 #include <dasmig/namegen.hpp>
 #include <dasmig/interestgen.hpp>
+#include <dasmig/occupationgen.hpp>
 #include <emscripten/bind.h>
 #include "today.hpp"
 
@@ -631,6 +632,92 @@ class interest_list_component : public dasmig::component
     member _list;
 };
 
+// ── 7. Occupation (reads country, age + sex from context) ──
+//
+// One call draws the employment status, the education and the job; the
+// components below show its parts.
+
+std::string join_words(const std::vector<std::string>& items)
+{
+    std::string out;
+    for (const auto& i : items)
+    {
+        if (!out.empty()) out += ", ";
+        out += i;
+    }
+    return out.empty() ? "-" : out;
+}
+
+class occupation_component : public dasmig::component
+{
+  public:
+    [[nodiscard]] std::wstring key() const override { return L"Occupation"; }
+    [[nodiscard]] std::any generate(
+        const dasmig::generation_context& ctx) const override
+    {
+        dasmig::occupation_request req;
+        const auto cca2 = ctx.get<dasmig::country>(L"Country").cca2;
+        req.country = cca2;
+        const int age = ctx.get<int>(L"Age");
+        req.age = static_cast<std::uint8_t>(age < 0 ? 0 : (age > 120 ? 120 : age));
+        req.person_sex = ctx.get<dasmig::sex>(L"Sex");
+        return dasmig::ocg::instance().get_occupation(req);
+    }
+    [[nodiscard]] std::wstring to_string(const std::any& val) const override
+    {
+        return to_wstr(std::any_cast<dasmig::occupation>(val).to_string());
+    }
+};
+
+// Shows one part of the occupation as text, under the component key it is given.
+class occupation_part_component : public dasmig::component
+{
+  public:
+    using extractor = std::string (*)(const dasmig::occupation&);
+    occupation_part_component(std::wstring key, extractor part)
+        : _key(std::move(key)), _part(part) {}
+
+    [[nodiscard]] std::wstring key() const override { return _key; }
+    [[nodiscard]] std::any generate(
+        const dasmig::generation_context& ctx) const override
+    {
+        return _part(ctx.get<dasmig::occupation>(L"Occupation"));
+    }
+    [[nodiscard]] std::wstring to_string(const std::any& val) const override
+    {
+        return to_wstr(std::any_cast<std::string>(val));
+    }
+
+  private:
+    std::wstring _key;
+    extractor _part;
+};
+
+std::string occupation_status(const dasmig::occupation& o)
+{
+    return std::string{dasmig::to_string(o.status)};
+}
+
+std::string occupation_education(const dasmig::occupation& o)
+{
+    return o.education ? std::string{dasmig::to_string(*o.education)} : "-";
+}
+
+std::string occupation_group(const dasmig::occupation& o)
+{
+    return o.job ? o.job->isco + " " + o.job->isco_label : "-";
+}
+
+std::string occupation_skills(const dasmig::occupation& o)
+{
+    return o.job ? join_words(o.job->skills) : "-";
+}
+
+std::string occupation_gear(const dasmig::occupation& o)
+{
+    return o.job ? join_words(o.job->gear) : "-";
+}
+
 // ═══════════════════════════════════════════════════════════════════
 // Init & Generate
 // ═══════════════════════════════════════════════════════════════════
@@ -650,6 +737,7 @@ bool init()
     ok &= dasmig::bdg::instance().has_data();
     ok &= dasmig::ng::instance().has_resources();
     ok &= dasmig::intg::instance().has_data();
+    ok &= dasmig::ocg::instance().has_data();
 
     // Register adapter components in dependency order
     auto& gen = dasmig::eg::instance();
@@ -695,6 +783,14 @@ bool init()
     gen.add(std::make_unique<interest_list_component>(L"Games", &dasmig::interest::games));
     gen.add(std::make_unique<interest_list_component>(L"Books", &dasmig::interest::books));
     gen.add(std::make_unique<interest_list_component>(L"Music", &dasmig::interest::music));
+
+    // Occupation group (depends on country, age + sex)
+    gen.add(std::make_unique<occupation_component>());
+    gen.add(std::make_unique<occupation_part_component>(L"Employment", &occupation_status));
+    gen.add(std::make_unique<occupation_part_component>(L"Education", &occupation_education));
+    gen.add(std::make_unique<occupation_part_component>(L"Job Group", &occupation_group));
+    gen.add(std::make_unique<occupation_part_component>(L"Skills", &occupation_skills));
+    gen.add(std::make_unique<occupation_part_component>(L"Gear", &occupation_gear));
 
     return ok;
 }

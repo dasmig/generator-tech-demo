@@ -86,6 +86,13 @@ jobs:
           ref: v1.0.0
           path: trait-generator
 
+      - name: Checkout occupation-generator
+        uses: actions/checkout@v4
+        with:
+          repository: dasmig/occupation-generator
+          ref: v1.0.0
+          path: occupation-generator
+
       - name: Setup Emscripten
         uses: mymindstorm/setup-emsdk@v14
         with:
@@ -103,6 +110,7 @@ jobs:
           -DBIODATA_GEN_DIR=${{ github.workspace }}/biodata-generator
           -DINTEREST_GEN_DIR=${{ github.workspace }}/interest-generator
           -DTRAIT_GEN_DIR=${{ github.workspace }}/trait-generator
+          -DOCCUPATION_GEN_DIR=${{ github.workspace }}/occupation-generator
 
       - name: Build
         run: cmake --build build
