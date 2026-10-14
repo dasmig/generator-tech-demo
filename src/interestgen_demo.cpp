@@ -97,6 +97,24 @@ std::string compare_ages(const std::string& country, const std::string& sex_str)
     catch (const std::runtime_error& error) { return demo_error(error.what()); }
 }
 
+std::string generate_seeded(const std::string& country, const std::string& sex, int age,
+                            int hobbies, int media, const std::string& seed)
+{
+    try
+    {
+        if (age > 120 || hobbies < 0 || media < 0)
+            return demo_error("Choose an age up to 120 and nonnegative interest counts.");
+        dasmig::interest_request request{.country = country};
+        if (age >= 0) request.age = static_cast<std::uint8_t>(age);
+        if (!sex.empty()) request.person_sex = sex == "female" ? dasmig::sex::female : dasmig::sex::male;
+        request.hobbies = static_cast<std::size_t>(hobbies);
+        request.media = static_cast<std::size_t>(media);
+        return dasmig::intg::instance().get_interest(request, parse_demo_seed(seed)).to_json();
+    }
+    catch (const std::invalid_argument& error) { return demo_error(error.what()); }
+    catch (const std::runtime_error& error) { return demo_error(error.what()); }
+}
+
 } // namespace
 
 EMSCRIPTEN_BINDINGS(interestgen_demo)
@@ -104,4 +122,5 @@ EMSCRIPTEN_BINDINGS(interestgen_demo)
     emscripten::function("init", &init);
     emscripten::function("generateInterest", &generate_interest);
     emscripten::function("compareAges", &compare_ages);
+    emscripten::function("generateInterestSeeded", &generate_seeded);
 }

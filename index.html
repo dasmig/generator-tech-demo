@@ -767,7 +767,7 @@
       <button class="btn" id="bd-generate" disabled>Generate</button>
       <button class="btn secondary" id="bd-compare" disabled>Compare sexes</button>
     </div>
-    <p class="note">Compare male and female inputs with the same country and seed. “Any” country is resolved once for both. This release accepts country and sex, not age; differences are synthetic draws, not medical evidence.</p>
+    <p class="note">Compare male and female inputs with the same country and seed. “Any” country is resolved once for both. This demo leaves the optional age input unset, so no age effects apply; differences are synthetic draws, not medical evidence.</p>
     <div id="bd-output">
       <div class="output empty">Waiting for module to load…</div>
     </div>
@@ -1575,7 +1575,7 @@
     }
 
     html += '</div></div>';
-    html += '<p class="note">Physical values use country and sex only: this biodata release has no age input, even for a child persona. This is fictional composition, not an age-appropriate or medical profile.</p>';
+    html += '<p class="note">Physical values use country and sex only: this demo leaves biodata’s optional age input unset, even for a child persona. This is fictional composition, not an age-appropriate or medical profile.</p>';
     html += '<details id="pg-provenance"><summary>Which component supplies each field?</summary>'
       + '<p class="note">entity-generator orchestrates seven library adapters and their extractors in dependency order. Name comes from name_component (name-generator). Height, Religion and Occupation are storage keys for full biodata, interest and occupation results; their extractors do not generate new profiles.</p>'
       + comparisonTable('Persona field provenance', ['Field', 'Library', 'Adapter component', 'Reads'],

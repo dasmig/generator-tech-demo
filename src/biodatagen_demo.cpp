@@ -16,19 +16,10 @@ std::string generate_biodata(const std::string& country, const std::string& sex_
 {
     auto& gen = dasmig::bdg::instance();
 
-    dasmig::biodata b;
-    bool has_country = !country.empty();
-    bool has_sex     = !sex_str.empty();
-    auto bio_sex     = (sex_str == "female") ? dasmig::sex::female : dasmig::sex::male;
-
-    if (has_country && has_sex)
-        b = gen.get_biodata(country, bio_sex);
-    else if (has_country)
-        b = gen.get_biodata(country);
-    else if (has_sex)
-        b = gen.get_biodata(bio_sex);
-    else
-        b = gen.get_biodata();
+    dasmig::biodata_request request{.country = country};
+    if (!sex_str.empty())
+        request.bio_sex = sex_str == "female" ? dasmig::sex::female : dasmig::sex::male;
+    const auto b = gen.get_biodata(request);
 
     auto escape = [](const std::string& s) {
         std::string out;
@@ -74,13 +65,29 @@ std::string compare_biodata(const std::string& country)
     try
     {
         auto& gen = dasmig::bdg::instance();
-        const auto anchor = country.empty() ? gen.get_biodata() : gen.get_biodata(country);
+        const auto anchor = gen.get_biodata({.country = country});
         dasmig::core::json_writer writer;
         writer.begin_array();
-        gen.get_biodata(anchor.country_code, dasmig::sex::male, anchor.seed()).to_json(writer);
-        gen.get_biodata(anchor.country_code, dasmig::sex::female, anchor.seed()).to_json(writer);
+        gen.get_biodata({.country = anchor.country_code, .bio_sex = dasmig::sex::male},
+                       anchor.seed()).to_json(writer);
+        gen.get_biodata({.country = anchor.country_code, .bio_sex = dasmig::sex::female},
+                       anchor.seed()).to_json(writer);
         writer.end_array();
         return writer.str();
+    }
+    catch (const std::invalid_argument& error) { return demo_error(error.what()); }
+    catch (const std::runtime_error& error) { return demo_error(error.what()); }
+}
+
+std::string generate_seeded(const std::string& country, const std::string& sex, int age,
+                            const std::string& seed)
+{
+    try
+    {
+        dasmig::biodata_request request{.country = country};
+        if (!sex.empty()) request.bio_sex = sex == "female" ? dasmig::sex::female : dasmig::sex::male;
+        if (age >= 0) request.age = static_cast<unsigned>(age);
+        return dasmig::bdg::instance().get_biodata(request, parse_demo_seed(seed)).to_json();
     }
     catch (const std::invalid_argument& error) { return demo_error(error.what()); }
     catch (const std::runtime_error& error) { return demo_error(error.what()); }
@@ -93,4 +100,5 @@ EMSCRIPTEN_BINDINGS(biodatagen_demo)
     emscripten::function("init", &init);
     emscripten::function("generateBiodata", &generate_biodata);
     emscripten::function("compareBiodata", &compare_biodata);
+    emscripten::function("generateBiodataSeeded", &generate_seeded);
 }

@@ -53,17 +53,33 @@ std::string city_json(const dasmig::city& c)
 std::string generate_city(const std::string& country)
 {
     auto& gen = dasmig::cg::instance();
-    gen.weighted(true);
-    return city_json(country.empty() ? gen.get_city() : gen.get_city(country));
+    dasmig::city_request request;
+    if (!country.empty()) request.country = country;
+    return city_json(gen.get_city(request));
 }
 
 std::string sample_city(const std::string& country, bool weighted, std::uint32_t seed)
 {
     auto& gen = dasmig::cg::instance();
-    gen.weighted(weighted);
     try
     {
-        return city_json(country.empty() ? gen.get_city(seed) : gen.get_city(country, seed));
+        dasmig::city_request request;
+        if (!country.empty()) request.country = country;
+        request.weighted = weighted;
+        return city_json(gen.get_city(request, seed));
+    }
+    catch (const std::invalid_argument& error) { return demo_error(error.what()); }
+    catch (const std::runtime_error& error) { return demo_error(error.what()); }
+}
+
+std::string sample_seeded(const std::string& country, bool weighted, const std::string& seed)
+{
+    try
+    {
+        dasmig::city_request request;
+        if (!country.empty()) request.country = country;
+        request.weighted = weighted;
+        return dasmig::cg::instance().get_city(request, parse_demo_seed(seed)).to_json();
     }
     catch (const std::invalid_argument& error) { return demo_error(error.what()); }
     catch (const std::runtime_error& error) { return demo_error(error.what()); }
@@ -78,5 +94,6 @@ EMSCRIPTEN_BINDINGS(citygen_demo)
     emscripten::function("init", &init);
     emscripten::function("generateCity", &generate_city);
     emscripten::function("sampleCity", &sample_city);
+    emscripten::function("sampleCitySeeded", &sample_seeded);
     emscripten::function("catalogueCount", &catalogue_count);
 }

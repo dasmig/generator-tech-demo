@@ -2,6 +2,7 @@
 #include <dasmig/entitygen.hpp>
 #include <emscripten/bind.h>
 #include <string>
+#include "demo_support.hpp"
 
 namespace
 {
@@ -81,7 +82,7 @@ void setup_rpg_components()
 std::string generate_entity()
 {
     auto& gen = dasmig::eg::instance();
-    auto entity = gen.generate();
+    auto entity = gen.generate({});
     auto m = entity.to_map();
 
     std::string result;
@@ -98,7 +99,7 @@ std::string generate_entity()
 std::string generate_entity_json()
 {
     auto& gen = dasmig::eg::instance();
-    auto entity = gen.generate();
+    auto entity = gen.generate({});
     auto m = entity.to_map();
 
     auto escape = [](const std::string& s) {
@@ -127,6 +128,18 @@ std::string generate_entity_json()
     return json;
 }
 
+std::string generate_seeded(const std::string& seed, bool identity_only)
+{
+    try
+    {
+        dasmig::entity_request request;
+        if (identity_only) request.component_keys = {L"race", L"class", L"alignment"};
+        return dasmig::eg::instance().generate(request, parse_demo_seed(seed)).to_json();
+    }
+    catch (const std::invalid_argument& error) { return demo_error(error.what()); }
+    catch (const std::runtime_error& error) { return demo_error(error.what()); }
+}
+
 } // namespace
 
 EMSCRIPTEN_BINDINGS(entitygen_demo)
@@ -134,4 +147,5 @@ EMSCRIPTEN_BINDINGS(entitygen_demo)
     emscripten::function("setup", &setup_rpg_components);
     emscripten::function("generateEntity", &generate_entity);
     emscripten::function("generateEntityJson", &generate_entity_json);
+    emscripten::function("generateEntitySeeded", &generate_seeded);
 }

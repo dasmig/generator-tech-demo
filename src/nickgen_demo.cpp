@@ -93,14 +93,14 @@ bool init()
 std::string generate_nickname(const std::string& input_name)
 {
     auto& gen = dasmig::nng::instance();
-    auto nick = gen.get_nickname(from_utf8(input_name));
+    auto nick = gen.get_nickname({.name = from_utf8(input_name)});
     return to_utf8(static_cast<std::wstring>(nick));
 }
 
 std::string generate_random_nickname()
 {
     auto& gen = dasmig::nng::instance();
-    auto nick = gen.get_nickname();
+    auto nick = gen.get_nickname({});
     return to_utf8(static_cast<std::wstring>(nick));
 }
 
@@ -112,11 +112,22 @@ std::string generate_options(const std::string& input_name, int count)
         dasmig::core::json_writer writer;
         writer.begin_array();
         for (int i = 0; i < count; ++i)
-            dasmig::nng::instance().get_nickname(from_utf8(input_name)).to_json(writer);
+            dasmig::nng::instance().get_nickname({.name = from_utf8(input_name)}).to_json(writer);
         writer.end_array();
         return writer.str();
     }
     catch (const std::invalid_argument& error) { return demo_error(error.what()); }
+}
+
+std::string generate_seeded(const std::string& input_name, const std::string& seed)
+{
+    try
+    {
+        return dasmig::nng::instance().get_nickname({.name = from_utf8(input_name)},
+                                                   parse_demo_seed(seed)).to_json();
+    }
+    catch (const std::invalid_argument& error) { return demo_error(error.what()); }
+    catch (const std::runtime_error& error) { return demo_error(error.what()); }
 }
 
 } // namespace
@@ -127,4 +138,5 @@ EMSCRIPTEN_BINDINGS(nickgen_demo)
     emscripten::function("generateNickname", &generate_nickname);
     emscripten::function("generateRandomNickname", &generate_random_nickname);
     emscripten::function("generateNicknameOptions", &generate_options);
+    emscripten::function("generateNicknameSeeded", &generate_seeded);
 }

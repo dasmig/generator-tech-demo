@@ -3,6 +3,7 @@
 #include <dasmig/core.hpp>
 #include <charconv>
 #include <chrono>
+#include <cstdint>
 #include <stdexcept>
 #include <string>
 #include <string_view>
@@ -12,6 +13,16 @@ inline std::string demo_error(const std::string& message)
     dasmig::core::json_writer writer;
     writer.begin_object().field("error", message).end_object();
     return writer.str();
+}
+
+inline std::uint64_t parse_demo_seed(std::string_view text)
+{
+    std::uint64_t seed{};
+    const auto result = std::from_chars(text.data(), text.data() + text.size(), seed, 16);
+    if (text.empty() || text.size() > 16 || result.ec != std::errc{} ||
+        result.ptr != text.data() + text.size())
+        throw std::invalid_argument("Seed must contain 1 to 16 hexadecimal digits (0-9, a-f).");
+    return seed;
 }
 
 inline std::chrono::year_month_day parse_reference_date(std::string_view text)

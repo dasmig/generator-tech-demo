@@ -13,6 +13,7 @@
 #include <dasmig/occupationgen.hpp>
 #include <emscripten/bind.h>
 #include "today.hpp"
+#include "demo_support.hpp"
 
 #include <algorithm>
 #include <string>
@@ -116,6 +117,7 @@ std::wstring fmt1(double v)
 
 // Module-level state for country selection from the UI.
 std::string g_selected_country;
+std::chrono::year_month_day g_reference_date;
 
 // ═══════════════════════════════════════════════════════════════════
 // Adapter Components — each wraps a library call
@@ -129,7 +131,7 @@ class country_component : public dasmig::component
     [[nodiscard]] std::wstring key() const override { return L"Country"; }
 
     [[nodiscard]] std::any generate(
-        const dasmig::generation_context& /*ctx*/) const override
+        const dasmig::generation_context& ctx) const override
     {
         auto& gen = dasmig::cntg::instance();
 
@@ -140,7 +142,7 @@ class country_component : public dasmig::component
         // Otherwise pick a random supported country.
         for (;;)
         {
-            auto c = gen.get_country();
+            auto c = gen.get_country({}, ctx.random()());
             if (std::ranges::find(supported_countries, c.cca2)
                 != supported_countries.end())
                 return c;
@@ -258,7 +260,7 @@ class city_component : public dasmig::component
         const dasmig::generation_context& ctx) const override
     {
         auto cca2 = ctx.get<dasmig::country>(L"Country").cca2;
-        return dasmig::cg::instance().get_city(cca2);
+        return dasmig::cg::instance().get_city({.country = cca2}, ctx.random()());
     }
     [[nodiscard]] std::wstring to_string(const std::any& val) const override
     {
@@ -387,7 +389,8 @@ class birth_component : public dasmig::component
         const dasmig::generation_context& ctx) const override
     {
         auto cca2 = ctx.get<dasmig::country>(L"Country").cca2;
-        return dasmig::bthg::instance().get_birth(cca2);
+        return dasmig::bthg::instance().get_birth(
+            {.country_code = cca2, .reference_date = g_reference_date}, ctx.random()());
     }
     [[nodiscard]] std::wstring to_string(const std::any& val) const override
     {
@@ -440,7 +443,8 @@ class biodata_component : public dasmig::component
     {
         auto cca2 = ctx.get<dasmig::country>(L"Country").cca2;
         auto bio_sex = ctx.get<dasmig::sex>(L"Sex");
-        return dasmig::bdg::instance().get_biodata(cca2, bio_sex);
+        return dasmig::bdg::instance().get_biodata(
+            {.country = cca2, .bio_sex = bio_sex}, ctx.random()());
     }
     [[nodiscard]] std::wstring to_string(const std::any& val) const override
     {
@@ -562,7 +566,8 @@ class name_component : public dasmig::component
         auto gender = (bio_sex == dasmig::sex::female)
             ? dasmig::gender::f : dasmig::gender::m;
 
-        auto n = dasmig::ng::instance().get_name(gender, culture);
+        auto n = dasmig::ng::instance().get_name(
+            {.gender = gender, .culture = culture}, ctx.random()());
         n.append_surname();
         return static_cast<std::wstring>(n);
     }
@@ -600,7 +605,7 @@ class interest_component : public dasmig::component
         req.country = cca2;
         req.age = static_cast<std::uint8_t>(ctx.get<int>(L"Age"));
         req.person_sex = ctx.get<dasmig::sex>(L"Sex");
-        return dasmig::intg::instance().get_interest(req);
+        return dasmig::intg::instance().get_interest(req, ctx.random()());
     }
     [[nodiscard]] std::wstring to_string(const std::any& val) const override
     {
@@ -661,7 +666,7 @@ class occupation_component : public dasmig::component
         const int age = ctx.get<int>(L"Age");
         req.age = static_cast<std::uint8_t>(age < 0 ? 0 : (age > 120 ? 120 : age));
         req.person_sex = ctx.get<dasmig::sex>(L"Sex");
-        return dasmig::ocg::instance().get_occupation(req);
+        return dasmig::ocg::instance().get_occupation(req, ctx.random()());
     }
     [[nodiscard]] std::wstring to_string(const std::any& val) const override
     {
@@ -795,13 +800,8 @@ bool init()
     return ok;
 }
 
-std::string generate_persona(const std::string& country_cca2)
+std::string persona_json(const dasmig::entity& entity)
 {
-    g_selected_country = country_cca2;
-    dasmig::bthg::instance().reference_date(today()); // ages as of today
-
-    auto& gen = dasmig::eg::instance();
-    auto entity = gen.generate();
     auto m = entity.to_map();
 
     auto escape = [](const std::string& s) {
@@ -829,10 +829,31 @@ std::string generate_persona(const std::string& country_cca2)
     return json;
 }
 
+std::string generate_persona(const std::string& country_cca2)
+{
+    g_selected_country = country_cca2;
+    g_reference_date = today();
+    return persona_json(dasmig::eg::instance().generate({}));
+}
+
+std::string generate_seeded(const std::string& country_cca2, const std::string& reference,
+                            const std::string& seed)
+{
+    try
+    {
+        g_selected_country = country_cca2;
+        g_reference_date = parse_reference_date(reference);
+        return persona_json(dasmig::eg::instance().generate({}, parse_demo_seed(seed)));
+    }
+    catch (const std::invalid_argument& error) { return demo_error(error.what()); }
+    catch (const std::runtime_error& error) { return demo_error(error.what()); }
+}
+
 } // namespace
 
 EMSCRIPTEN_BINDINGS(personagen_demo)
 {
     emscripten::function("init", &init);
     emscripten::function("generatePersona", &generate_persona);
+    emscripten::function("generatePersonaSeeded", &generate_seeded);
 }

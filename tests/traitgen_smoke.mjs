@@ -5,6 +5,7 @@ import http from 'node:http';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { setTimeout as delay } from 'node:timers/promises';
+import { verifyRequestApis } from './request_api_checks.mjs';
 
 const site = path.resolve(process.argv[2] || '.');
 const libraries = path.resolve(process.argv[3] || path.join(site, '..'));
@@ -191,6 +192,8 @@ try {
     document.getElementById('tg-generate').click()`);
   assert.match(await evaluate('document.getElementById("tg-status").className'), /ready/);
   await waitFor(() => evaluate('Array.from(document.querySelectorAll(".status")).every(status => status.classList.contains("ready"))'), 'all modules');
+  await verifyRequestApis((module, method, args) =>
+    evaluate(`JSON.parse(${module}.${method}(...${JSON.stringify(args)}))`));
 
   for (const mode of ['full', 'first', 'surname']) {
     const names = await evaluate(`JSON.parse(ngMod.generateNameOptions('female', 'br', '${mode}', 10))`);
@@ -394,7 +397,7 @@ try {
   assert.equal(await evaluate('byId("bd-generate").disabled && byId("bd-compare").disabled'), true);
   assert.match(await evaluate('byId("bd-status").textContent'), /embedded data.*Reload the page/);
   assert.equal(await evaluate('bdMod'), null);
-  console.log('PASS: all real Wasm demos, pinned distributions/loadings, comparisons, provenance, names/nicknames, reference dates, replay, input/load errors, keyboard, labels and responsive layouts.');
+  console.log('PASS: all real Wasm demos, request-first filters/options and 64-bit replay across ten libraries and persona, pinned distributions/loadings, comparisons, provenance, names/nicknames, reference dates, input/load errors, keyboard, labels and responsive layouts.');
 } finally {
   if (browser?.pid && browser.exitCode === null) {
     const exited = new Promise(resolve => browser.once('exit', resolve));

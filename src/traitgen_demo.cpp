@@ -1,8 +1,8 @@
 #include <dasmig/traitgen.hpp>
 #include <emscripten/bind.h>
-#include <charconv>
 #include <cstdint>
 #include <string>
+#include "demo_support.hpp"
 
 namespace
 {
@@ -56,12 +56,8 @@ std::string generate_traits(int count, const std::string& seed)
     request.count = static_cast<std::size_t>(count);
     if (seed.empty()) return explained(gen.get_personality(request));
 
-    std::uint64_t call_seed{};
-    const auto result = std::from_chars(seed.data(), seed.data() + seed.size(), call_seed, 16);
-    if (seed.size() > 16 || result.ec != std::errc{} || result.ptr != seed.data() + seed.size())
-        return error("Seed must contain 1 to 16 hexadecimal digits (0-9, a-f).");
-
-    return explained(gen.get_personality(request, call_seed));
+    try { return explained(gen.get_personality(request, parse_demo_seed(seed))); }
+    catch (const std::invalid_argument& exception) { return error(exception.what()); }
 }
 
 } // namespace

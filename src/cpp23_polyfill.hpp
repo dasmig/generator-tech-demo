@@ -9,7 +9,7 @@
 #include <cstddef>
 
 // ── std::ranges::fold_left_first ────────────────────────────────
-#if !defined(__cpp_lib_fold)
+#if !defined(__cpp_lib_ranges_fold)
 namespace std { namespace ranges {
 template<typename R, typename F>
 auto fold_left_first(R&& r, F&& f)

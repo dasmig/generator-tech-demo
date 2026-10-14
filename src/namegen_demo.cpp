@@ -107,7 +107,7 @@ std::string generate_name(const std::string& gender_str,
     auto g = gender_str.empty() ? dasmig::gender::any : parse_gender(gender_str);
     auto c = culture_str.empty() ? dasmig::culture::any : parse_culture(culture_str);
 
-    auto n = gen.get_name(g, c);
+    auto n = gen.get_name({.gender = g, .culture = c});
     if (with_surname)
         n.append_surname();
 
@@ -125,16 +125,38 @@ std::string generate_options(const std::string& gender_str, const std::string& c
         auto& gen = dasmig::ng::instance();
         const auto gender = gender_str.empty() ? dasmig::gender::any : parse_gender(gender_str);
         const auto culture = culture_str.empty() ? dasmig::culture::any : parse_culture(culture_str);
+        const dasmig::name_request request{.gender = mode == "surname" ? dasmig::gender::any : gender,
+                                           .culture = culture};
         dasmig::core::json_writer writer;
         writer.begin_array();
         for (int i = 0; i < count; ++i)
         {
-            auto name = mode == "surname" ? gen.get_surname(culture) : gen.get_name(gender, culture);
+            auto name = mode == "surname" ? gen.get_surname(request) : gen.get_name(request);
             if (mode == "full") name.append_surname();
             name.to_json(writer);
         }
         writer.end_array();
         return writer.str();
+    }
+    catch (const std::invalid_argument& error) { return demo_error(error.what()); }
+    catch (const std::runtime_error& error) { return demo_error(error.what()); }
+}
+
+std::string generate_seeded(const std::string& gender_str, const std::string& culture_str,
+                            const std::string& mode, const std::string& seed)
+{
+    try
+    {
+        if (mode != "full" && mode != "first" && mode != "surname")
+            return demo_error("Choose full name, first name or surname.");
+        const dasmig::name_request request{
+            .gender = mode == "surname" || gender_str.empty() ? dasmig::gender::any : parse_gender(gender_str),
+            .culture = culture_str.empty() ? dasmig::culture::any : parse_culture(culture_str)};
+        auto& gen = dasmig::ng::instance();
+        const auto call_seed = parse_demo_seed(seed);
+        auto name = mode == "surname" ? gen.get_surname(request, call_seed) : gen.get_name(request, call_seed);
+        if (mode == "full") name.append_surname();
+        return name.to_json();
     }
     catch (const std::invalid_argument& error) { return demo_error(error.what()); }
     catch (const std::runtime_error& error) { return demo_error(error.what()); }
@@ -147,4 +169,5 @@ EMSCRIPTEN_BINDINGS(namegen_demo)
     emscripten::function("init", &init);
     emscripten::function("generateName", &generate_name);
     emscripten::function("generateNameOptions", &generate_options);
+    emscripten::function("generateNameSeeded", &generate_seeded);
 }

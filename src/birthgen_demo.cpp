@@ -26,21 +26,12 @@ std::string birth_json(const std::string& country, const std::string& sex_str,
                        std::chrono::year_month_day reference)
 {
     auto& gen = dasmig::bthg::instance();
-    gen.reference_date(reference);
-
-    dasmig::birth b;
-    bool has_country = !country.empty();
-    bool has_sex     = !sex_str.empty();
-    auto bio_sex     = (sex_str == "female") ? dasmig::sex::female : dasmig::sex::male;
-
-    if (has_country && has_sex)
-        b = gen.get_birth(country, bio_sex);
-    else if (has_country)
-        b = gen.get_birth(country);
-    else if (has_sex)
-        b = gen.get_birth(bio_sex);
-    else
-        b = gen.get_birth();
+    dasmig::birth_request request;
+    request.reference_date = reference;
+    if (!country.empty()) request.country_code = country;
+    if (!sex_str.empty())
+        request.bio_sex = sex_str == "female" ? dasmig::sex::female : dasmig::sex::male;
+    const auto b = gen.get_birth(request);
 
     auto escape = [](const std::string& s) {
         std::string out;
@@ -80,6 +71,34 @@ std::string birth_json(const std::string& country, const std::string& sex_str,
     return json;
 }
 
+std::string generate_seeded(const std::string& country, const std::string& sex,
+                            const std::string& reference, int year, int min_age, int max_age,
+                            const std::string& seed)
+{
+    try
+    {
+        dasmig::birth_request request;
+        request.reference_date = parse_reference_date(reference);
+        if (!country.empty()) request.country_code = country;
+        if (!sex.empty()) request.bio_sex = sex == "female" ? dasmig::sex::female : dasmig::sex::male;
+        if (year >= 0)
+        {
+            if (year > 65535) return demo_error("Birth year is out of range.");
+            request.year = dasmig::year_t{static_cast<std::uint16_t>(year)};
+        }
+        if (min_age >= 0 || max_age >= 0)
+        {
+            if (min_age < 0 || max_age < min_age || max_age > 100)
+                return demo_error("Choose an age range between 0 and 100.");
+            request.ages = dasmig::age_range{static_cast<std::uint8_t>(min_age),
+                                           static_cast<std::uint8_t>(max_age)};
+        }
+        return dasmig::bthg::instance().get_birth(request, parse_demo_seed(seed)).to_json();
+    }
+    catch (const std::invalid_argument& error) { return demo_error(error.what()); }
+    catch (const std::runtime_error& error) { return demo_error(error.what()); }
+}
+
 std::string generate_birth(const std::string& country, const std::string& sex)
 {
     return birth_json(country, sex, today());
@@ -105,4 +124,5 @@ EMSCRIPTEN_BINDINGS(birthgen_demo)
     emscripten::function("init", &init);
     emscripten::function("generateBirth", &generate_birth);
     emscripten::function("generateBirthAt", &generate_birth_at);
+    emscripten::function("generateBirthSeeded", &generate_seeded);
 }

@@ -124,6 +124,31 @@ std::string compare_education(const std::string& country, const std::string& sex
     catch (const std::runtime_error& error) { return demo_error(error.what()); }
 }
 
+std::string generate_seeded(const std::string& country, const std::string& sex, int age,
+                            const std::string& education, const std::string& status,
+                            const std::string& seed)
+{
+    try
+    {
+        if (age < 0 || age > 120) return demo_error("Choose an age between 0 and 120.");
+        dasmig::occupation_request request{.country = country, .age = static_cast<std::uint8_t>(age)};
+        if (!sex.empty()) request.person_sex = sex == "female" ? dasmig::sex::female : dasmig::sex::male;
+        request.education = parse_education(education);
+        if (!education.empty() && !request.education) return demo_error("Choose a valid education level.");
+        if (!status.empty())
+        {
+            for (const auto value : {dasmig::employment_status::employed, dasmig::employment_status::unemployed,
+                                    dasmig::employment_status::student, dasmig::employment_status::retired,
+                                    dasmig::employment_status::inactive})
+                if (dasmig::to_string(value) == status) request.status = value;
+            if (!request.status) return demo_error("Choose a valid employment status.");
+        }
+        return dasmig::ocg::instance().get_occupation(request, parse_demo_seed(seed)).to_json();
+    }
+    catch (const std::invalid_argument& error) { return demo_error(error.what()); }
+    catch (const std::runtime_error& error) { return demo_error(error.what()); }
+}
+
 } // namespace
 
 EMSCRIPTEN_BINDINGS(occupationgen_demo)
@@ -131,4 +156,5 @@ EMSCRIPTEN_BINDINGS(occupationgen_demo)
     emscripten::function("init", &init);
     emscripten::function("generateOccupation", &generate_occupation);
     emscripten::function("compareEducation", &compare_education);
+    emscripten::function("generateOccupationSeeded", &generate_seeded);
 }

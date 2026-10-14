@@ -4,7 +4,22 @@ Live WebAssembly demos for the [name-generator](https://github.com/dasmig/name-g
 
 Everything runs client-side in the browser — no server required.
 
-The demos use the libraries' releases on [dasmig-core 1.0](https://github.com/dasmig/dasmig-core): name-generator v3.0.0, interest-generator, trait-generator and occupation-generator v1.0.0 and v2.0.0 of the others. Their `lite` data is compiled into the modules (`DASMIG_*_EMBED`), so the same seed, inputs, date and data give the same result here as in a native build. The standalone birth demo accepts an **Age as of** reference date (1900–2100), defaulting to today's local date. Each draw generates a birthday and its completed-year age relative to that date; changing the reference does not age a previously generated birthday. The persona demo still passes today's date (`src/today.hpp`). The libraries never read the clock themselves.
+The demos integration-test the merged **request-first APIs** on [dasmig-core 1.0](https://github.com/dasmig/dasmig-core), not the older release tags. Every generation call supplies the library's request struct; deterministic calls supply the request followed by a call seed, without generator-wide seed or option controls. Their `lite` data is compiled into the modules (`DASMIG_*_EMBED`), so the same seed, inputs, date and data give the same result here as in a native build. The standalone birth demo accepts an **Age as of** reference date (1900–2100), defaulting to today's local date. Each draw generates a birthday and its completed-year age relative to that date; changing the reference does not age a previously generated birthday. The persona demo still passes today's date (`src/today.hpp`). The libraries never read the clock themselves.
+
+`.github/workflows/deploy.yml` pins these exact merged commits for deterministic consumer integration coverage. Advance the pins and smoke expectations together when adopting a newer API or dataset:
+
+| Library | Pinned merged commit |
+|---|---|
+| country-generator | `a01ce1fd91e082730a24cbfa4f49941e3930a7b6` |
+| city-generator | `2429b4394374743f1370c0b733048d7f526960d9` |
+| birth-generator | `a093ecb7916868ad9476b326119471768b0ed1a3` |
+| biodata-generator | `e7fa38368e4741a6974e2556fdf35564e14116fe` |
+| interest-generator | `b48a5e54bcad2d5ff4597effadc83dd33c9c73c7` |
+| occupation-generator | `48cd5824c5212efe896b0125bc0268e4107a0652` |
+| name-generator | `b7bc6a2f00361724cb28c43c3a8d78d5a2aecbee` |
+| nickname-generator | `298fafab391b83ea0d918e3031cc8d1855dd0bdf` |
+| entity-generator | `491eb7a839250e3da000bf71f77a0de323bfa71d` |
+| trait-generator | `204ca1b65d09c2955b7ac4d4e8845511199794fa` |
 
 ## Prerequisites
 
@@ -25,7 +40,7 @@ cd ..
 
 ## Build
 
-The CMake file expects the generator libraries as sibling directories, checked out at the releases above (the deploy workflow checks out those tags):
+The CMake file expects the generator libraries as sibling directories, checked out at the exact commits above (the deploy workflow checks out those SHAs):
 
 ```
 Repo/
@@ -56,7 +71,7 @@ The **country and city** demos retain population-weighted single draws and add s
 
 The **entity** demo identifies each field's `choice_component`, `range_component` or `weighted_choice_component` supplier. The **persona** demo preserves its profile and expandable location panels while adding a field-by-field provenance table: library, adapter component and upstream values. `entity-generator` orchestrates the components; it does not invent the country/name/biodata/interest fields itself.
 
-The **biodata** comparison varies only sex, keeping country and call seed fixed. This pinned release accepts country and sex, **not age**. The **interest** comparison varies only ages 8, 30 and 72, keeping country, sex input and call seed fixed. An unspecified interest age/sex applies no corresponding factor; it is not a randomly chosen demographic input. “Any” country is resolved once per comparison. Interest religion is country-weighted; age factors and limits apply to hobbies and genres. Matching outputs are possible. All profiles and comparisons are fictional model outputs, not measurements, medical advice or predictions about real people or groups.
+The **biodata** comparison varies only sex, keeping country and call seed fixed. The pinned API accepts optional age, but this demo leaves it unset to preserve the unadjusted comparison. The **interest** comparison varies only ages 8, 30 and 72, keeping country, sex input and call seed fixed. An unspecified interest age/sex applies no corresponding factor; it is not a randomly chosen demographic input. “Any” country is resolved once per comparison. Interest religion is country-weighted; age factors and limits apply to hobbies and genres. Matching outputs are possible. All profiles and comparisons are fictional model outputs, not measurements, medical advice or predictions about real people or groups.
 
 The **occupation** comparison varies only the education input (the four levels), keeping country, sex, call seed, age 35 and an employed status fixed. “Any” country and sex are resolved once. Under 15 a person is always a student with no job. Status, education and the occupation groups are measured (ILO labour force statistics; countries without a survey use a regional mean), while the job catalogue with its skills and gear is curated, so a job is a plausible example of its group, not a measured fact. The persona demo adds an Occupation section from the persona’s country, age and sex.
 
@@ -65,7 +80,7 @@ The **name** demo offers 1, 5 or 10 alternatives with first-name, surname or fir
 The standalone **trait** demo generates fictional traits and all five resolved Big Five scores. Choose a trait count and optionally enter a 64-bit seed as 1–16 hexadecimal digits (without `0x`). The output includes the replay seed; use it with the same count to reproduce a result. The explanation shows the actual random base, summed trait effects and resolved score, plus each selected trait's catalogue loadings. Each base is drawn from a normal distribution with mean 0 and standard deviation 1; base values also influence trait selection, alongside weights, exclusive groups, conflicts and synergies. Resolved scores add trait loadings and are unbounded model values, not percentages, percentiles or a personality assessment. Individual effects are obtained through the library's include-only requests with the same seed, not a duplicated score formula. The catalogue is embedded (`DASMIG_TRAIT_EMBED`), with no additional data file.
 
 The **persona** demo composes seven libraries and compiles in the data of all six data-driven ones
-(~80 countries supported across all libraries). Its physical values are explicitly **not age-adjusted**, including for child personas, because the biodata adapter can pass only country and sex.
+(~80 countries supported across all libraries), orchestrated by entity-generator. Its physical values remain explicitly **not age-adjusted**, including for child personas: the biodata adapter intentionally leaves optional age unset. All seven adapters use the entity context's per-component random stream as the upstream call seed, so the entire composition replays with the same entity seed, country, reference date and pinned data.
 
 ## Run locally
 
@@ -87,7 +102,7 @@ node tests/traitgen_smoke.mjs .
 ```
 
 Set `CHROME_PATH` if Chrome is not in its usual Windows location or on `PATH`. The test checks embedded data, trait counts, Big Five scores, 64-bit seed replay, input errors, module-load errors, keyboard generation and mobile layout. Pull requests run the Emscripten build and this test without deploying; only `master` deploys to Pages.
-The same test also covers all other demos: distributions against the pinned country/city TSV data, exact trait loadings against the catalogue, comparison invariants, complete component provenance, name/nickname modes and counts, leap/reference-date boundaries, accessible labels, keyboard expansion and 320/375/640px layouts. It reads pinned library fixtures from sibling directories by default; pass their parent directory as the third argument for another layout:
+The same test also covers all other demos: distributions against the pinned country/city TSV data, exact trait loadings against the catalogue, comparison invariants, complete component provenance, name/nickname modes and counts, leap/reference-date boundaries, accessible labels, keyboard expansion and 320/375/640px layouts. Additional `*Seeded` bindings return library JSON (persona returns its existing field map) and accept 1–16 hexadecimal seed digits as strings, preserving all 64 bits across JavaScript/Wasm. They exercise deterministic replay in all ten libraries and the full persona, interleaved request filters and weighting, birth year/age ranges, optional biodata age effects, interest list counts, occupation status/education, and entity component selection. These bindings do not change the UI defaults. It reads pinned library fixtures from sibling directories by default; pass their parent directory as the third argument for another layout:
 
 ```bash
 node tests/traitgen_smoke.mjs . path/to/library-parent
