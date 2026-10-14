@@ -15,8 +15,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # Integration-test the merged request-first APIs at exact revisions.
-  # Advance these pins deliberately, alongside the consumer smoke tests.
+  # The libraries are checked out at their release tags, so the site only
+  # changes when a release does.
   build:
     runs-on: ubuntu-24.04
     steps:
@@ -27,70 +27,70 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: dasmig/name-generator
-          ref: b7bc6a2f00361724cb28c43c3a8d78d5a2aecbee
+          ref: v4.0.0
           path: name-generator
 
       - name: Checkout nickname-generator
         uses: actions/checkout@v4
         with:
           repository: dasmig/nickname-generator
-          ref: 298fafab391b83ea0d918e3031cc8d1855dd0bdf
+          ref: v3.0.0
           path: nickname-generator
 
       - name: Checkout entity-generator
         uses: actions/checkout@v4
         with:
           repository: dasmig/entity-generator
-          ref: 491eb7a839250e3da000bf71f77a0de323bfa71d
+          ref: v3.0.0
           path: entity-generator
 
       - name: Checkout country-generator
         uses: actions/checkout@v4
         with:
           repository: dasmig/country-generator
-          ref: a01ce1fd91e082730a24cbfa4f49941e3930a7b6
+          ref: v3.0.0
           path: country-generator
 
       - name: Checkout city-generator
         uses: actions/checkout@v4
         with:
           repository: dasmig/city-generator
-          ref: 2429b4394374743f1370c0b733048d7f526960d9
+          ref: v3.0.0
           path: city-generator
 
       - name: Checkout birth-generator
         uses: actions/checkout@v4
         with:
           repository: dasmig/birth-generator
-          ref: a093ecb7916868ad9476b326119471768b0ed1a3
+          ref: v3.0.0
           path: birth-generator
 
       - name: Checkout biodata-generator
         uses: actions/checkout@v4
         with:
           repository: dasmig/biodata-generator
-          ref: e7fa38368e4741a6974e2556fdf35564e14116fe
+          ref: v3.0.0
           path: biodata-generator
 
       - name: Checkout interest-generator
         uses: actions/checkout@v4
         with:
           repository: dasmig/interest-generator
-          ref: b48a5e54bcad2d5ff4597effadc83dd33c9c73c7
+          ref: v2.0.0
           path: interest-generator
 
       - name: Checkout trait-generator
         uses: actions/checkout@v4
         with:
           repository: dasmig/trait-generator
-          ref: 204ca1b65d09c2955b7ac4d4e8845511199794fa
+          ref: v2.0.0
           path: trait-generator
 
       - name: Checkout occupation-generator
         uses: actions/checkout@v4
         with:
           repository: dasmig/occupation-generator
-          ref: 48cd5824c5212efe896b0125bc0268e4107a0652
+          ref: v2.0.0
           path: occupation-generator
 
       - name: Setup Emscripten
