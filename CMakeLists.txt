@@ -19,6 +19,7 @@ set(BIODATA_GEN_DIR "${CMAKE_SOURCE_DIR}/../biodata-generator" CACHE PATH "Path 
 set(INTEREST_GEN_DIR "${CMAKE_SOURCE_DIR}/../interest-generator" CACHE PATH "Path to interest-generator repo")
 set(TRAIT_GEN_DIR "${CMAKE_SOURCE_DIR}/../trait-generator" CACHE PATH "Path to trait-generator repo")
 set(OCCUPATION_GEN_DIR "${CMAKE_SOURCE_DIR}/../occupation-generator" CACHE PATH "Path to occupation-generator repo")
+set(PERSONA_GEN_DIR "${CMAKE_SOURCE_DIR}/../persona-generator" CACHE PATH "Path to persona-generator repo")
 
 # ── Wasm modules ──
 #
@@ -164,9 +165,9 @@ target_link_options(occupationgen_demo PRIVATE
   -sENVIRONMENT=web
 )
 
-# persona-generator demo (composes eight libraries)
-add_executable(personagen_demo src/personagen_demo.cpp)
-target_include_directories(personagen_demo PRIVATE
+# persona-generator demo (persona-generator composes the eight libraries)
+set(PERSONA_INCLUDE_DIRS
+  "${PERSONA_GEN_DIR}"
   "${ENTITY_GEN_DIR}"
   "${COUNTRY_GEN_DIR}"
   "${CITY_GEN_DIR}"
@@ -175,8 +176,13 @@ target_include_directories(personagen_demo PRIVATE
   "${NAME_GEN_DIR}"
   "${INTEREST_GEN_DIR}"
   "${OCCUPATION_GEN_DIR}"
+  "${TRAIT_GEN_DIR}"
 )
-target_compile_definitions(personagen_demo PRIVATE DASMIG_COUNTRY_EMBED DASMIG_CITY_EMBED DASMIG_BIRTH_EMBED DASMIG_BIODATA_EMBED DASMIG_NAME_EMBED DASMIG_INTEREST_EMBED DASMIG_OCCUPATION_EMBED)
+set(PERSONA_EMBED DASMIG_COUNTRY_EMBED DASMIG_CITY_EMBED DASMIG_BIRTH_EMBED DASMIG_BIODATA_EMBED
+  DASMIG_NAME_EMBED DASMIG_INTEREST_EMBED DASMIG_OCCUPATION_EMBED DASMIG_TRAIT_EMBED)
+add_executable(personagen_demo src/personagen_demo.cpp)
+target_include_directories(personagen_demo PRIVATE ${PERSONA_INCLUDE_DIRS})
+target_compile_definitions(personagen_demo PRIVATE ${PERSONA_EMBED})
 target_link_options(personagen_demo PRIVATE
   --bind
   -sWASM=1

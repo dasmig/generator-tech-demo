@@ -35,17 +35,25 @@ export async function verifyRequestApis(call) {
       assert.ok(entity.components[key] >= 3 && entity.components[key] <= 18);
 
     for (const country of ['', 'BR', 'JP']) {
-      const args = [country, '2024-02-29', seed];
+      const args = [country, '', '2024-02-29', seed];
       const persona = await call('pgMod', 'generatePersonaSeeded', args);
-      assert.equal(persona.error, undefined);
-      if (country) assert.equal(persona.CCA2, country);
-      assert.ok(persona.Name && persona.City && persona.Height && persona.Religion && persona.Occupation);
-      const [year, month, day] = persona.Birthday.split('-').map(Number);
-      assert.equal(Number(persona.Age), 2024 - year - Number(month > 2 || (month === 2 && day > 29)));
-      await call('pgMod', 'generatePersonaSeeded', ['US', '2023-01-01', 'abcd']);
-      await call('pgMod', 'generatePersona', ['DE']);
+      assert.equal(persona.error, undefined, persona.error);
+      assert.equal(persona.signature.seed, seed.padStart(16, '0'));
+      if (country) assert.equal(persona.country.cca2, country);
+      assert.ok(persona.name && persona.city.name && persona.biodata.height_cm && persona.interest.religion
+        && persona.occupation.status && persona.personality.traits.length === 3);
+      assert.equal(persona.biodata.age, persona.age, 'persona-generator passes the age to biodata');
+      const [year, month, day] = persona.birth.date.split('-').map(Number);
+      assert.equal(persona.age, 2024 - year - Number(month > 2 || (month === 2 && day > 29)));
+      await call('pgMod', 'generatePersonaSeeded', ['US', 'female', '2023-01-01', 'abcd']);
+      await call('pgMod', 'generatePersona', ['DE', '']);
       assert.deepEqual(await call('pgMod', 'generatePersonaSeeded', args), persona,
-        'Persona adapters must replay from entity context seeds, not independent singleton entropy');
+        'A persona must replay from its seed, not from singleton entropy');
+      // Forcing the sex changes the parts that depend on it, not the others.
+      const other = persona.sex === 'female' ? 'male' : 'female';
+      const forced = await call('pgMod', 'generatePersonaSeeded', [persona.country.cca2, other, '2024-02-29', seed]);
+      assert.equal(forced.sex, other);
+      assert.deepEqual([forced.city, forced.personality], [persona.city, persona.personality]);
     }
   }
 
@@ -142,7 +150,9 @@ export async function verifyRequestApis(call) {
     ['igMod', 'generateInterestSeeded', ['XX', '', 30, 2, 1, '1']],
     ['ogMod', 'generateOccupationSeeded', ['US', '', 35, 'unknown', '', '1']],
     ['ogMod', 'generateOccupationSeeded', ['BR', 'female', 8, '', 'employed', '1']],
-    ['pgMod', 'generatePersonaSeeded', ['XX', '2024-02-29', '1']]
+    ['pgMod', 'generatePersonaSeeded', ['XX', '', '2024-02-29', '1']],
+    ['pgMod', 'generatePersonaSeeded', ['US', 'other', '2024-02-29', '1']],
+    ['pgMod', 'generatePersonaSeeded', ['US', '', '2024-02-29', '10000000000000000']]
   ];
   for (const [module, method, args] of errors) assert.ok((await call(module, method, args)).error);
   for (const [module, method, args] of cases) {

@@ -292,7 +292,9 @@ try {
   assert.match(await evaluate('byId("og-output").textContent'), /only education input varies/);
   assert.equal(await evaluate('document.querySelectorAll("#eg-output tbody tr").length'), 10);
   assert.match(await evaluate('byId("eg-output").textContent'), /weighted_choice_component/);
-  const personaKeys = await evaluate(`Object.keys(JSON.parse(pgMod.generatePersona('BR')))`);
+  const personaKeys = await evaluate(`Object.keys(JSON.parse(pgMod.generatePersona('BR', '')))`);
+  assert.deepEqual(await evaluate(`Array.from(byId('pg-country').options, option => option.value).filter(Boolean)`),
+    await evaluate('JSON.parse(pgMod.supportedCountries())'), "The persona country list must be persona-generator's");
   assert.deepEqual(await evaluate('Object.keys(personaSources).sort()'), personaKeys.sort());
   assert.equal(await evaluate('document.querySelectorAll("#pg-provenance tbody tr").length'), personaKeys.length);
   assert.match(await evaluate('byId("pg-output").textContent'), /Fictional persona/);
