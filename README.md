@@ -62,6 +62,20 @@ cmake --build build
 
 This produces in `build/` a `.js` and a `.wasm` file per demo (`namegen_demo`, `nickgen_demo`, `entitygen_demo`, `birthgen_demo`, `biodatagen_demo`, `citygen_demo`, `countrygen_demo`, `interestgen_demo`, `occupationgen_demo`, `traitgen_demo`, `personagen_demo`), plus `personagen_demo.data`, which holds city-generator's admin1 names (the only file not compiled in).
 
+## The persona npm package
+
+`package/` is the production build of the persona generator, for the game and any other JavaScript host: `@dasmig/persona`, an ES module for browsers, workers and Node with TypeScript types. It wraps a small C API (`src/persona_api.cpp`: `dasmig_persona_generate` and `dasmig_persona_info`, JSON out) around persona-generator, with the `lite` data of all eight libraries compiled in and city's admin1 names embedded, so the package is `persona.mjs` and `persona.wasm` and fetches nothing else. See [package/README.md](package/README.md) for the API.
+
+The same build assembles it in `build/package`:
+
+```bash
+cmake --build build --target persona_api
+node package/test.mjs build/package      # known answers, replay, requests, errors
+npm pack ./build/package                  # dasmig-persona-<version>.tgz
+```
+
+The test checks the package against persona-generator's known answers: five personas and a hash of 2,000 JSON documents, so a pass means the WebAssembly build gives byte-for-byte the personas of a native one. CI runs it and uploads the packed tarball as the `persona-npm-package` artifact.
+
 ## What the demos show
 
 The **country and city** demos retain population-weighted single draws and add side-by-side batches of 100, 500 or 2,000 draws per mode. Both modes use the same filter and paired 32-bit random call seeds. Sampling is with replacement: counts include repeats, and shares divide each count by that mode's draw total. Weighted selection uses `max(population, 1)`; uniform selection gives each eligible catalogue row equal probability. All observed rows are shown, sorted by combined count; unobserved rows are omitted. Unique counts and the full loaded catalogue size are labeled separately. City rows use GeoNames IDs so namesakes are not merged. These are samples from embedded lite data, not exact population proportions or exhaustive world coverage.
