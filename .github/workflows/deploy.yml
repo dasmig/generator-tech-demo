@@ -146,7 +146,9 @@ jobs:
         run: node tests/traitgen_smoke.mjs _site .
 
       - name: Test the persona npm package
-        run: node package/test.mjs build/package
+        run: |
+          node package/test.mjs build/package
+          node package/browser-test.mjs build/package
 
       - name: Pack the persona npm package
         run: npm pack ./build/package --pack-destination .

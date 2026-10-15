@@ -64,17 +64,24 @@ This produces in `build/` a `.js` and a `.wasm` file per demo (`namegen_demo`, `
 
 ## The persona npm package
 
-`package/` is the production build of the persona generator, for the game and any other JavaScript host: `@dasmig/persona`, an ES module for browsers, workers and Node with TypeScript types. It wraps a small C API (`src/persona_api.cpp`: `dasmig_persona_generate` and `dasmig_persona_info`, JSON out) around persona-generator, with the `lite` data of all eight libraries compiled in and city's admin1 names embedded, so the package is `persona.mjs` and `persona.wasm` and fetches nothing else. See [package/README.md](package/README.md) for the API.
+`package/` is the production build of the persona generator, for the game and any other JavaScript host: `@dasmig/persona`, an ES module for browsers, workers and Node 20+ with TypeScript types. See [package/README.md](package/README.md) for the API.
 
-The same build assembles it in `build/package`:
+- `src/persona_api.cpp` is a small C API over persona-generator (`dasmig_persona_generate` and `dasmig_persona_info`, JSON out). The `lite` data of all eight libraries is compiled in and city's admin1 names are embedded, so the module fetches nothing but `persona.wasm`.
+- The module is built for browsers and workers only, so bundlers (Vite, webpack 5) find no Node code in it. `package/index.mjs` is the browser entry; `package/node.mjs`, the package's `node` export, reads `persona.wasm` from disk and passes it in. Both wrap `package/generator.mjs`, which checks the request before the module runs.
+- The build writes `versions.mjs` (each library's `git describe`, as `generator.versions`) and `DATA_LICENSES.txt` (the libraries' data licences) next to them.
+
+The same build assembles the package in `build/package`:
 
 ```bash
 cmake --build build --target persona_api
-node package/test.mjs build/package      # known answers, replay, requests, errors
-npm pack ./build/package                  # dasmig-persona-<version>.tgz
+node package/test.mjs build/package          # Node entry: known answers, replay, requests, errors
+node package/browser-test.mjs build/package  # browser entry in Chrome, in a page and a module worker
+npm pack ./build/package                      # dasmig-persona-<version>.tgz
 ```
 
-The test checks the package against persona-generator's known answers: five personas and a hash of 2,000 JSON documents, so a pass means the WebAssembly build gives byte-for-byte the personas of a native one. CI runs it and uploads the packed tarball as the `persona-npm-package` artifact.
+The Node test checks the package against persona-generator's known answers (five personas and a hash of 2,000 JSON documents), so a pass means the WebAssembly build gives byte for byte the personas of a native one. CI runs both tests and uploads the packed tarball as the `persona-npm-package` artifact.
+
+All modules, demos included, use native WebAssembly exceptions (`-fwasm-exceptions`; Chrome 95, Firefox 100, Safari 15.2 and Node 17 or later). Emscripten's JavaScript-based exceptions route every call that may throw through JavaScript, which made loading the persona data about 1.6 times slower.
 
 ## What the demos show
 

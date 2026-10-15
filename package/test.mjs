@@ -1,4 +1,5 @@
-// Tests the assembled npm package: node package/test.mjs build/package
+// Tests the assembled npm package's Node entry: node package/test.mjs build/package
+// (package/browser-test.mjs tests the browser entry).
 //
 // The known answers are persona-generator v1.0.0's (tests/tests.cpp), so a
 // pass means the WebAssembly build gives the same personas as a native one.
@@ -7,7 +8,7 @@ import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 
 const dir = path.resolve(process.argv[2] || 'build/package');
-const { createPersonaGenerator } = await import(pathToFileURL(path.join(dir, 'index.mjs')).href);
+const { createPersonaGenerator } = await import(pathToFileURL(path.join(dir, 'node.mjs')).href);
 const personas = await createPersonaGenerator();
 
 // persona::to_string(), from the JSON.
@@ -18,6 +19,10 @@ const signature = p => p.signature.seed + '-' + p.signature.data;
 assert.equal(personas.countries.length, 79);
 assert.ok(!personas.countries.includes('KR'));
 assert.equal(personas.dataHash, '2c51b25a966f8fa8');
+assert.equal(personas.maxTraits, 52);
+assert.equal(personas.versions['persona-generator'].startsWith('v'), true, JSON.stringify(personas.versions));
+assert.equal(Object.keys(personas.versions).length, 10);
+assert.ok(Object.isFrozen(personas) && Object.isFrozen(personas.countries));
 
 // Known answers.
 const one = personas.generate({ seed: 1 });
@@ -67,22 +72,43 @@ assert.equal(male.sex, 'male');
 assert.deepEqual([male.city, male.personality], [female.city, female.personality]);
 assert.equal(personas.generate({ seed: 'ffffffffffffffff' }).signature.seed, 'ffffffffffffffff');
 assert.equal(personas.generate({ seed: (1n << 64n) - 1n }).signature.seed, 'ffffffffffffffff');
+assert.equal(personas.generate({ seed: '0x2A' }).signature.seed, '000000000000002a');
+assert.deepEqual(personas.generate({ seed: '2a' }), personas.generate({ seed: 42 }));
+assert.equal(personas.generate({ traits: 20, seed: 1 }).personality.traits.length, 20);
+const most = personas.generate({ traits: personas.maxTraits, seed: 1 }).personality.traits.length;
+assert.ok(most > 20 && most <= personas.maxTraits, 'fewer traits only when no other is compatible');
+assert.equal(personas.generate({ country: 'jp', seed: 1 }).country.cca2, 'JP');
 
-// Errors.
+// Errors: the wrapper checks the request, so a malformed field is a
+// TypeError and a value out of range is a RangeError, before the module runs.
 for (const [request, kind, message] of [
-  [{ country: 'XX' }, Error, /XX/],
-  [{ country: 'US', referenceDate: '2023-02-30' }, Error, /reference date/i],
-  [{ ages: { min: 40, max: 20 } }, Error, /ages/],
-  [{ seed: '10000000000000000' }, Error, /hexadecimal/i],
-  [{ seed: 'xyz' }, Error, /hexadecimal/i],
-  [{ sex: 'other' }, TypeError, /sex/],
+  [{ country: 'XX' }, RangeError, /"XX" is not supported/],
+  [{ country: 'NZ' }, RangeError, /not supported/],
+  [{ country: 'KR' }, RangeError, /not supported/],
+  [{ country: ' br ' }, RangeError, /not supported/],
+  [{ country: 7 }, TypeError, /country/],
+  [{ contry: 'BR' }, TypeError, /unknown field "contry"/],
+  [{ country: 'US', referenceDate: '2023-02-30' }, RangeError, /not a calendar date/],
+  [{ referenceDate: '2023-2-3' }, RangeError, /YYYY-MM-DD/],
+  [{ referenceDate: '1899-12-31' }, RangeError, /1900 and 2100/],
+  [{ referenceDate: new Date(NaN) }, RangeError, /invalid Date/],
+  [{ referenceDate: 20230701 }, TypeError, /referenceDate/],
+  [{ ages: { min: 40, max: 20 } }, RangeError, /ages.min \(40\)/],
   [{ ages: { min: 20 } }, TypeError, /ages.max/],
-  [{ ages: { min: -1, max: 20 } }, TypeError, /ages.min/],
+  [{ ages: { min: -1, max: 20 } }, RangeError, /ages.min/],
+  [{ ages: { min: 20, max: 121 } }, RangeError, /ages.max/],
   [{ traits: 1.5 }, TypeError, /traits/],
-  [{ seed: -1 }, TypeError, /seed/],
-  [{ seed: 1n << 64n }, TypeError, /seed/],
-  [{ referenceDate: new Date(NaN) }, TypeError, /referenceDate/],
-  [null, TypeError, /object/]
+  [{ traits: 53 }, RangeError, /traits must be from 0 to 52/],
+  [{ sex: 'other' }, RangeError, /sex/],
+  [{ sex: 1 }, TypeError, /sex/],
+  [{ seed: '10000000000000000' }, RangeError, /hexadecimal/],
+  [{ seed: 'xyz' }, RangeError, /hexadecimal/],
+  [{ seed: -1 }, RangeError, /seed/],
+  [{ seed: 2 ** 53 }, RangeError, /bigint/],
+  [{ seed: 1n << 64n }, RangeError, /seed/],
+  [{ seed: {} }, TypeError, /seed/],
+  [null, TypeError, /object/],
+  [[], TypeError, /object/]
 ]) {
   assert.throws(() => personas.generate(request), error => error instanceof kind && message.test(error.message),
     JSON.stringify(request, (_, v) => typeof v === 'bigint' ? v.toString() : v));
