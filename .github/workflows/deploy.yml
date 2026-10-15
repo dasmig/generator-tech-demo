@@ -93,6 +93,13 @@ jobs:
           ref: v2.0.0
           path: occupation-generator
 
+      - name: Checkout persona-generator
+        uses: actions/checkout@v4
+        with:
+          repository: dasmig/persona-generator
+          ref: v1.0.0
+          path: persona-generator
+
       - name: Setup Emscripten
         uses: mymindstorm/setup-emsdk@v14
         with:
@@ -111,6 +118,7 @@ jobs:
           -DINTEREST_GEN_DIR=${{ github.workspace }}/interest-generator
           -DTRAIT_GEN_DIR=${{ github.workspace }}/trait-generator
           -DOCCUPATION_GEN_DIR=${{ github.workspace }}/occupation-generator
+          -DPERSONA_GEN_DIR=${{ github.workspace }}/persona-generator
 
       - name: Build
         run: cmake --build build

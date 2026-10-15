@@ -380,12 +380,14 @@
   <div class="demo-card" id="personagen-card" style="border-color: var(--accent);">
     <h2>⭐ Persona Generator</h2>
     <p class="desc">
-      Generates a complete fictional persona by composing eight libraries
-      through entity-generator adapter components. Country, city, birthday,
-      physical traits, name, religion, hobbies, favourite genres and occupation in a
-      single synthetic entity. Adapters pass country, age and sex to the
-      libraries that support those inputs. This is fictional sample data,
-      not a description or prediction of a real person.
+      Generates a complete fictional persona with persona-generator, which
+      composes eight libraries through entity-generator fields: country, city,
+      birthday, body, name, personality, religion, hobbies, favourite genres
+      and occupation in one call. Each field is conditioned on the ones it
+      depends on (the country sets the city, the name culture, the body and the
+      job; the age and sex set the rest), and the persona's seed replays all of
+      it. This is fictional sample data, not a description or prediction of a
+      real person.
     </p>
     <div class="controls">
       <div class="field">
@@ -440,7 +442,6 @@
           <option value="JM">Jamaica</option>
           <option value="JO">Jordan</option>
           <option value="JP">Japan</option>
-          <option value="KR">South Korea</option>
           <option value="KZ">Kazakhstan</option>
           <option value="LB">Lebanon</option>
           <option value="LT">Lithuania</option>
@@ -472,6 +473,14 @@
           <option value="US">United States</option>
           <option value="YE">Yemen</option>
           <option value="ZA">South Africa</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="pg-sex">Sex</label>
+        <select id="pg-sex">
+          <option value="">Any</option>
+          <option value="male">Male</option>
+          <option value="female">Female</option>
         </select>
       </div>
       <button class="btn" id="pg-generate" disabled>Generate Persona</button>
@@ -1406,62 +1415,36 @@
   // ─── Persona Generator ───
   let pgMod = null;
   let personaMap = null;
+  // The persona's JSON keys and the persona-generator pipeline field behind each.
   const personaSources = {
-    'Country': ['country-generator', 'country_component', 'Selected country or supported-country draw'],
-    'CCA2': ['country-generator', 'cca2_component', 'Country'],
-    'Flag': ['country-generator', 'flag_component', 'Country'],
-    'Capital': ['country-generator', 'capital_component', 'Country'],
-    'Region': ['country-generator', 'region_component', 'Country'],
-    'Languages': ['country-generator', 'languages_component', 'Country'],
-    'Currency': ['country-generator', 'currency_component', 'Country'],
-    'City': ['city-generator', 'city_component', 'Country'],
-    'Timezone': ['city-generator', 'timezone_component', 'City'],
-    'City Population': ['city-generator', 'city_population_component', 'City'],
-    'State/Province': ['city-generator', 'city_admin1_component', 'City + admin1 name data'],
-    'Coordinates': ['city-generator', 'city_coords_component', 'City'],
-    'Latitude': ['city-generator', 'city_lat_component', 'City'],
-    'Longitude': ['city-generator', 'city_lon_component', 'City'],
-    'Elevation': ['city-generator', 'city_elevation_component', 'City'],
-    'Birthday': ['birth-generator', 'birth_component', 'Country; reference = today'],
-    'Age': ['birth-generator', 'age_component', 'Birthday'],
-    'Sex': ['birth-generator', 'sex_component', 'Birthday'],
-    'Height': ['biodata-generator', 'biodata_component', 'Country + Sex'],
-    'Weight': ['biodata-generator', 'weight_component', 'Height (stores the full biodata result)'],
-    'BMI': ['biodata-generator', 'bmi_component', 'Height'],
-    'Eye Color': ['biodata-generator', 'eye_color_component', 'Height'],
-    'Hair Color': ['biodata-generator', 'hair_color_component', 'Height'],
-    'Skin Type': ['biodata-generator', 'skin_type_component', 'Height'],
-    'Blood Type': ['biodata-generator', 'blood_type_component', 'Height'],
-    'Name': ['name-generator', 'name_component', 'Country → culture; Sex → gender'],
-    'Religion': ['interest-generator', 'interest_component', 'Country + Age + Sex'],
-    'Hobbies': ['interest-generator', 'interest_list_component', 'Religion (stores the full interest result)'],
-    'Films': ['interest-generator', 'interest_list_component', 'Religion'],
-    'Games': ['interest-generator', 'interest_list_component', 'Religion'],
-    'Books': ['interest-generator', 'interest_list_component', 'Religion'],
-    'Music': ['interest-generator', 'interest_list_component', 'Religion'],
-    'Occupation': ['occupation-generator', 'occupation_component', 'Country + Age + Sex (stores the full occupation result)'],
-    'Employment': ['occupation-generator', 'occupation_part_component', 'Occupation'],
-    'Education': ['occupation-generator', 'occupation_part_component', 'Occupation'],
-    'Job Group': ['occupation-generator', 'occupation_part_component', 'Occupation'],
-    'Skills': ['occupation-generator', 'occupation_part_component', 'Occupation'],
-    'Gear': ['occupation-generator', 'occupation_part_component', 'Occupation']
+    'name': ['name-generator', 'name', 'country → culture; birth → sex'],
+    'sex': ['birth-generator', 'birth', 'Requested sex, or drawn with the birth'],
+    'age': ['birth-generator', 'birth', 'Completed years at the reference date'],
+    'admin1': ['city-generator', 'city', 'City + admin1 name data'],
+    'country': ['country-generator', 'country', 'Requested country, or a population-weighted supported country'],
+    'city': ['city-generator', 'city', 'country'],
+    'birth': ['birth-generator', 'birth', 'country; request sex and reference date (today)'],
+    'biodata': ['biodata-generator', 'biodata', 'country + birth (age and sex)'],
+    'personality': ['trait-generator', 'traits', 'Independent (3 traits)'],
+    'interest': ['interest-generator', 'interest', 'country + birth (age and sex)'],
+    'occupation': ['occupation-generator', 'occupation', 'country + birth (age and sex)'],
+    'signature': ['persona-generator', '—', 'Call seed + hash of the request and all eight libraries’ data']
   };
   loadDemo('pg', () => createPersonagenModule(), mod => mod.init(), mod => { pgMod = mod; }, 'all eight libraries loaded.');
 
   function renderPersona() {
-    const country = document.getElementById('pg-country').value;
-    const json = pgMod.generatePersona(country);
-    const d = parseResult(json);
+    const d = parseResult(pgMod.generatePersona(byId('pg-country').value, byId('pg-sex').value));
     if (personaMap) { personaMap.remove(); personaMap = null; }
+    const { country, city, birth, biodata: body, personality, interest, occupation } = d;
 
     // ── Formatting helpers ──
     const cap = s => s ? s.charAt(0).toUpperCase() + s.slice(1) : '';
+    const list = items => items && items.length ? items.join(', ') : '-';
+    const labels = items => list((items || []).map(item => item.label));
+    const fixed1 = n => typeof n === 'number' ? n.toFixed(1) : '-';
     const fmtTz = s => s ? s.replace(/_/g, ' ') : '';
-    const fmtPop = s => {
-      const n = parseInt(s, 10);
-      return isNaN(n) ? s : n.toLocaleString();
-    };
     const fmtSkin = s => 'Fitzpatrick ' + s + ' (generated category)';
+    const elevation = city.elevation ?? city.dem;
 
     const stat = (label, value) =>
       '<div class="persona-stat"><div class="persona-stat-label">'
@@ -1489,18 +1472,17 @@
       + '<div class="persona-stat-value">' + esc(display) + ' <span class="country-chevron" aria-hidden="true">▸</span></div></button>';
 
     // ── Flag image URL from CCA2 ──
-    const cca2 = (d['CCA2'] || '').toLowerCase();
-    const flagUrl = cca2 ? 'https://flagcdn.com/w80/' + encodeURIComponent(cca2) + '.png' : '';
+    const flagUrl = 'https://flagcdn.com/w80/' + encodeURIComponent(country.cca2.toLowerCase()) + '.png';
 
     let html = '<div class="persona">';
 
     // ── Header: flag image + name + tagline ──
     html += '<div class="persona-header"><div class="persona-name">';
-    if (flagUrl) html += '<img class="persona-flag-img" src="' + flagUrl + '" alt="' + esc(d['Country']) + ' flag">';
-    html += '<h3>' + esc(d['Name'] || '—') + '</h3></div>';
+    html += '<img class="persona-flag-img" src="' + flagUrl + '" alt="' + esc(country.name_common) + ' flag">';
+    html += '<h3>' + esc(d.name) + '</h3></div>';
     html += '<div class="persona-tagline">'
-      + 'Fictional persona · ' + esc(d['Age'] || '') + (d['Age'] === '1' ? ' year · ' : ' years · ') + esc(d['Sex'])
-      + (d['Blood Type'] ? ' · ' + esc(d['Blood Type']) : '')
+      + 'Fictional persona · ' + d.age + (d.age === 1 ? ' year · ' : ' years · ') + esc(cap(d.sex))
+      + ' · ' + esc(body.blood)
       + '</div></div>';
 
     // ── Sections ──
@@ -1509,92 +1491,98 @@
     // Location
     html += section('Location · country-generator + city-generator');
     html += '<div class="persona-row">';
-    html += toggle('pg-country-details', 'Country', d['Country'] || '');
-    html += toggle('pg-city-details', 'City', d['City'] || '');
-    if (d['Timezone']) html += stat('Timezone', fmtTz(d['Timezone']));
+    html += toggle('pg-country-details', 'Country', country.name_common);
+    html += toggle('pg-city-details', 'City', city.name);
+    html += stat('Timezone', fmtTz(city.timezone));
     html += '</div>';
 
     html += '<div class="country-details" id="pg-country-details">';
-    if (d['Capital']) html += stat('Capital', d['Capital']);
-    if (d['Region']) html += stat('Region', d['Region']);
-    if (d['Languages']) html += stat('Languages', d['Languages']);
-    if (d['Currency']) html += stat('Currency', d['Currency']);
+    html += stat('Capital', list(country.capital));
+    html += stat('Region', country.region + ' / ' + country.subregion);
+    html += stat('Languages', list(country.languages));
+    html += stat('Currency', country.currency_name + ' (' + country.currency_code + ') ' + country.currency_symbol);
     html += '</div>';
 
     html += '<div class="country-details" id="pg-city-details">';
-    if (d['State/Province']) html += stat('State / Province', d['State/Province']);
-    if (d['City Population']) html += stat('Population', fmtPop(d['City Population']));
-    if (d['Coordinates']) html += stat('Coordinates', d['Coordinates']);
-    if (d['Elevation']) html += stat('Elevation', d['Elevation']);
+    if (d.admin1) html += stat('State / Province', d.admin1);
+    html += stat('Population', city.population.toLocaleString());
+    html += stat('Coordinates', fixed1(city.latitude) + '°, ' + fixed1(city.longitude) + '°');
+    html += stat('Elevation', typeof elevation === 'number' ? elevation + ' m' : 'N/A');
     html += '<div class="persona-map" id="pg-map"></div>';
     html += '</div>';
 
     // Demographics
     html += section('Demographics · birth-generator');
     html += '<div class="persona-row">';
-    if (d['Birthday']) html += stat('Birthday', d['Birthday']);
-    if (d['Age']) html += stat('Age', d['Age']);
-    if (d['Sex']) html += stat('Sex', cap(d['Sex']));
+    html += stat('Birthday', birth.date);
+    html += stat('Age', String(d.age));
+    html += stat('Sex', cap(d.sex));
     html += '</div>';
 
-    // Physical
-    html += section('Physical · biodata-generator · not age-adjusted');
+    // Physical: drawn for this persona's country, age and sex
+    html += section('Physical · biodata-generator');
     html += '<div class="persona-row">';
-    if (d['Height']) html += stat('Height', d['Height']);
-    if (d['Weight']) html += stat('Weight', d['Weight']);
-    if (d['BMI']) html += stat('BMI (synthetic)', d['BMI']);
-    if (d['Eye Color']) html += statHtml('Eye Color', colorDot(d['Eye Color'], eyeColors) + esc(cap(d['Eye Color'])));
-    if (d['Hair Color']) html += statHtml('Hair Color', colorDot(d['Hair Color'], hairColors) + esc(cap(d['Hair Color'])));
-    if (d['Skin Type']) html += stat('Skin Type', fmtSkin(d['Skin Type']));
+    html += stat('Height', fixed1(body.height_cm) + ' cm');
+    html += stat('Weight', fixed1(body.weight_kg) + ' kg');
+    html += stat('BMI (synthetic)', fixed1(body.bmi));
+    html += statHtml('Eye Color', colorDot(body.eyes, eyeColors) + esc(cap(body.eyes)));
+    html += statHtml('Hair Color', colorDot(body.hair, hairColors) + esc(cap(body.hair)));
+    html += stat('Skin Type', fmtSkin(body.skin));
+    html += '</div>';
+
+    // Personality: independent of the other fields
+    html += section('Personality · trait-generator');
+    html += '<div class="persona-row wide">';
+    html += stat('Traits', labels(personality.traits));
+    html += stat('Big Five (centered on zero)', Object.entries(personality.axes)
+      .map(([axis, score]) => cap(axis) + ' ' + (score >= 0 ? '+' : '') + score.toFixed(2)).join(' · '));
     html += '</div>';
 
     // Interests: drawn for this persona's country, age and sex
-    if (d['Religion']) {
-      html += section('Interests · interest-generator');
-      html += '<div class="persona-row wide">';
-      html += stat('Religion', d['Religion']);
-      html += stat('Hobbies', d['Hobbies'] || '-');
-      html += stat('Films', d['Films'] || '-');
-      html += stat('Games', d['Games'] || '-');
-      html += stat('Books', d['Books'] || '-');
-      html += stat('Music', d['Music'] || '-');
-      html += '</div>';
-    }
+    html += section('Interests · interest-generator');
+    html += '<div class="persona-row wide">';
+    html += stat('Religion', interest.religion);
+    html += stat('Hobbies', labels(interest.hobbies));
+    html += stat('Films', labels(interest.films));
+    html += stat('Games', labels(interest.games));
+    html += stat('Books', labels(interest.books));
+    html += stat('Music', labels(interest.music));
+    html += '</div>';
 
     // Occupation: drawn for this persona's country, age and sex
-    if (d['Occupation']) {
-      html += section('Occupation · occupation-generator');
-      html += '<div class="persona-row wide">';
-      html += stat('Employment', cap(d['Employment'] || '-'));
-      html += stat('Education', (d['Education'] || '-').replace(/_/g, ' '));
-      html += stat('Occupation', d['Occupation']);
-      html += stat('Job group', d['Job Group'] || '-');
-      html += stat('Skills', d['Skills'] || '-');
-      html += stat('Gear', d['Gear'] || '-');
-      html += '</div>';
-    }
+    const job = occupation.job;
+    html += section('Occupation · occupation-generator');
+    html += '<div class="persona-row wide">';
+    html += stat('Employment', cap(occupation.status.replace(/_/g, ' ')));
+    html += stat('Education', (occupation.education || '-').replace(/_/g, ' '));
+    html += stat('Occupation', job ? job.label : '-');
+    html += stat('Job group', job ? job.isco + ' ' + job.isco_label : '-');
+    html += stat('Skills', job ? list(job.skills) : '-');
+    html += stat('Gear', job ? list(job.gear) : '-');
+    html += '</div>';
 
     html += '</div></div>';
-    html += '<p class="note">Physical values use country and sex only: this demo leaves biodata’s optional age input unset, even for a child persona. This is fictional composition, not an age-appropriate or medical profile.</p>';
-    html += '<details id="pg-provenance"><summary>Which component supplies each field?</summary>'
-      + '<p class="note">entity-generator orchestrates seven library adapters and their extractors in dependency order. Name comes from name_component (name-generator). Height, Religion and Occupation are storage keys for full biodata, interest and occupation results; their extractors do not generate new profiles.</p>'
-      + comparisonTable('Persona field provenance', ['Field', 'Library', 'Adapter component', 'Reads'],
+    html += '<p class="note">Seed ' + esc(d.signature.seed) + ' · data ' + esc(d.signature.data)
+      + '. Physical values, interests and occupation use the persona’s country, age and sex. This is fictional composition, not an age-appropriate or medical profile.</p>';
+    html += '<details id="pg-provenance"><summary>Which library supplies each part?</summary>'
+      + '<p class="note">persona-generator declares one entity-generator field per library, with its dependencies, and runs them in dependency order. Each field draws from its own stream split from the persona’s seed, so forcing a country or a sex does not shift the unrelated parts.</p>'
+      + comparisonTable('Persona provenance', ['JSON key', 'Library', 'Pipeline field', 'Reads'],
         Object.keys(d).map(key => {
-          if (!personaSources[key]) throw new Error('Missing component provenance for ' + key + '.');
+          if (!personaSources[key]) throw new Error('Missing provenance for ' + key + '.');
           return [key, ...personaSources[key]];
         })) + '</details>';
     document.getElementById('pg-output').innerHTML = html;
 
     // ── Initialize Leaflet map when city panel toggles open ──
-    const lat = parseFloat(d['Latitude']);
-    const lon = parseFloat(d['Longitude']);
+    const lat = city.latitude;
+    const lon = city.longitude;
     document.querySelectorAll('#pg-output .country-toggle').forEach(button => {
       button.addEventListener('click', () => {
         const panel = byId(button.getAttribute('aria-controls'));
         const open = panel.classList.toggle('open');
         button.setAttribute('aria-expanded', String(open));
         button.querySelector('.country-chevron').classList.toggle('open', open);
-        if (panel.id === 'pg-city-details' && open && !personaMap && !isNaN(lat) && !isNaN(lon)) {
+        if (panel.id === 'pg-city-details' && open && !personaMap) {
           if (typeof L === 'undefined') {
             byId('pg-map').textContent = 'Map unavailable. City coordinates are shown above.';
             return;
@@ -1620,7 +1608,7 @@
         }
       });
     });
-    return 'Generated a fictional persona. Expand component provenance to inspect its field suppliers.';
+    return 'Generated a fictional persona. Its seed replays it; expand provenance to see which library supplies each part.';
   }
 
   byId('pg-generate').addEventListener('click', () => {
