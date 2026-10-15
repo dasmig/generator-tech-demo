@@ -193,3 +193,53 @@ target_link_options(personagen_demo PRIVATE
   -sENVIRONMENT=web
   "SHELL:--preload-file ${CITY_GEN_DIR}/resources/admin1CodesASCII.txt@/resources/city/admin1CodesASCII.txt"
 )
+
+# ── Production persona module: the npm package in package/ ──
+#
+# A small C API (src/persona_api.cpp) built as an ES module for browsers,
+# workers and Node. city's admin1 names are embedded in the module instead of
+# preloaded, so the package is two files: persona.mjs and persona.wasm. The
+# build assembles the package in build/package (npm pack build/package).
+set(PACKAGE_DIR "${CMAKE_BINARY_DIR}/package")
+add_executable(persona_api src/persona_api.cpp)
+set_target_properties(persona_api PROPERTIES
+  OUTPUT_NAME persona
+  SUFFIX ".mjs"
+  RUNTIME_OUTPUT_DIRECTORY "${PACKAGE_DIR}"
+)
+target_include_directories(persona_api PRIVATE ${PERSONA_INCLUDE_DIRS})
+target_compile_definitions(persona_api PRIVATE ${PERSONA_EMBED})
+target_link_options(persona_api PRIVATE
+  -sWASM=1
+  -sALLOW_MEMORY_GROWTH=1
+  -sMODULARIZE=1
+  -sEXPORT_ES6=1
+  -sEXPORT_NAME=createPersonaModule
+  -sENVIRONMENT=web,worker,node
+  -sEXPORTED_FUNCTIONS=['_dasmig_persona_generate','_dasmig_persona_info']
+  -sEXPORTED_RUNTIME_METHODS=['cwrap']
+  "SHELL:--embed-file ${CITY_GEN_DIR}/resources/admin1CodesASCII.txt@/resources/city/admin1CodesASCII.txt"
+)
+set(PACKAGE_SOURCES package.json index.mjs index.d.ts README.md)
+foreach(file IN LISTS PACKAGE_SOURCES)
+  add_custom_command(TARGET persona_api POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_SOURCE_DIR}/package/${file}" "${PACKAGE_DIR}/${file}")
+endforeach()
+add_custom_command(TARGET persona_api POST_BUILD
+  COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_SOURCE_DIR}/LICENSE" "${PACKAGE_DIR}/LICENSE")
+
+# The package ships the eight libraries' compiled-in data, so it carries their
+# data licences, gathered from each checkout.
+set(DATA_LICENSES "The persona module compiles in the lite data of eight dasmig libraries.\nTheir data sources and licences follow, as each library states them.\n")
+foreach(lib COUNTRY CITY BIRTH BIODATA NAME INTEREST OCCUPATION TRAIT)
+  string(TOLOWER "${lib}-generator" lib_name)
+  set(lib_file "${${lib}_GEN_DIR}/LICENSE_DATA.txt")
+  string(APPEND DATA_LICENSES "\n== ${lib_name} ==\n\n")
+  if(EXISTS "${lib_file}")
+    file(READ "${lib_file}" lib_text)
+    string(APPEND DATA_LICENSES "${lib_text}")
+  else()
+    string(APPEND DATA_LICENSES "See https://github.com/dasmig/${lib_name}/blob/HEAD/doc/data.md (Source).\n")
+  endif()
+endforeach()
+file(WRITE "${PACKAGE_DIR}/DATA_LICENSES.txt" "${DATA_LICENSES}")
