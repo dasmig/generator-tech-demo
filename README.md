@@ -4,22 +4,17 @@ Live WebAssembly demos for the [name-generator](https://github.com/dasmig/name-g
 
 Everything runs client-side in the browser — no server required.
 
-The demos use the libraries' releases on [dasmig-core 1.0](https://github.com/dasmig/dasmig-core): name-generator v4.0.0, city-generator v4.0.0, nickname-generator, entity-generator, country-generator, birth-generator and biodata-generator v3.0.0, and interest-generator, trait-generator and occupation-generator v2.0.0, all with the **request-first API**. Every generation call supplies the library's request struct; deterministic calls supply the request followed by a call seed, without generator-wide seed or option controls. Their `lite` data is compiled into the modules (`DASMIG_*_EMBED`), so the same seed, inputs, date and data give the same result here as in a native build. The standalone birth demo accepts an **Age as of** reference date (1900–2100), defaulting to today's local date. Each draw generates a birthday and its completed-year age relative to that date; changing the reference does not age a previously generated birthday. The persona demo still passes today's date (`src/today.hpp`). The libraries never read the clock themselves.
+The demos use the libraries' releases on [dasmig-core 1.0](https://github.com/dasmig/dasmig-core): name-generator v4.0.0, city-generator v4.0.0, entity-generator v4.0.0, nickname-generator, country-generator, birth-generator and biodata-generator v3.0.0, and interest-generator, trait-generator and occupation-generator v2.0.0, all with the **request-first API**. Every generation call supplies the library's request struct; deterministic calls supply the request followed by a call seed, without generator-wide seed or option controls. Their `lite` data is compiled into the modules (`DASMIG_*_EMBED`), so the same seed, inputs, date and data give the same result here as in a native build. The standalone birth demo accepts an **Age as of** reference date (1900–2100), defaulting to today's local date. Each draw generates a birthday and its completed-year age relative to that date; changing the reference does not age a previously generated birthday. The persona demo still passes today's date (`src/today.hpp`). The libraries never read the clock themselves.
 
-`.github/workflows/deploy.yml` pins these exact merged commits for deterministic consumer integration coverage. Advance the pins and smoke expectations together when adopting a newer API or dataset:
+`.github/workflows/deploy.yml` checks out these release tags, so the site changes only when a tag moves. Advance the tags and smoke expectations together when adopting a newer API or dataset:
 
-| Library | Pinned merged commit |
+| Library | Tag |
 |---|---|
-| country-generator | `a01ce1fd91e082730a24cbfa4f49941e3930a7b6` |
-| city-generator | `2429b4394374743f1370c0b733048d7f526960d9` |
-| birth-generator | `a093ecb7916868ad9476b326119471768b0ed1a3` |
-| biodata-generator | `e7fa38368e4741a6974e2556fdf35564e14116fe` |
-| interest-generator | `b48a5e54bcad2d5ff4597effadc83dd33c9c73c7` |
-| occupation-generator | `48cd5824c5212efe896b0125bc0268e4107a0652` |
-| name-generator | `b7bc6a2f00361724cb28c43c3a8d78d5a2aecbee` |
-| nickname-generator | `298fafab391b83ea0d918e3031cc8d1855dd0bdf` |
-| entity-generator | `491eb7a839250e3da000bf71f77a0de323bfa71d` |
-| trait-generator | `204ca1b65d09c2955b7ac4d4e8845511199794fa` |
+| name-generator | v4.0.0 |
+| city-generator | v4.0.0 |
+| entity-generator | v4.0.0 |
+| nickname-generator, country-generator, birth-generator, biodata-generator | v3.0.0 |
+| interest-generator, trait-generator, occupation-generator | v2.0.0 |
 
 ## Prerequisites
 
@@ -40,7 +35,7 @@ cd ..
 
 ## Build
 
-The CMake file expects the generator libraries as sibling directories, checked out at the exact commits above (the deploy workflow checks out those SHAs):
+The CMake file expects the generator libraries as sibling directories, checked out at the tags above (the deploy workflow checks out those tags):
 
 ```
 Repo/
