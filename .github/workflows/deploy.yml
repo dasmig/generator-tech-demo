@@ -145,6 +145,18 @@ jobs:
       - name: Test all demos in Chrome
         run: node tests/traitgen_smoke.mjs _site .
 
+      - name: Test the persona npm package
+        run: node package/test.mjs build/package
+
+      - name: Pack the persona npm package
+        run: npm pack ./build/package --pack-destination .
+
+      - name: Upload the persona npm package
+        uses: actions/upload-artifact@v4
+        with:
+          name: persona-npm-package
+          path: dasmig-persona-*.tgz
+
       - name: Upload Pages artifact
         if: github.ref == 'refs/heads/master'
         uses: actions/upload-pages-artifact@v3
