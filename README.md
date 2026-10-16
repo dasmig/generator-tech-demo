@@ -77,6 +77,7 @@ The same build assembles the package in `build/package`:
 cmake --build build --target persona_api
 node package/test.mjs build/package          # Node entry: known answers, replay, requests, errors
 node package/browser-test.mjs build/package  # browser entry in Chrome, in a page and a module worker
+node package/bench.mjs build/package         # sizes, startup, memory per module, time per persona
 npm pack ./build/package                      # dasmig-persona-<version>.tgz
 ```
 

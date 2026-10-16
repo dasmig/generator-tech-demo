@@ -150,6 +150,16 @@ jobs:
           node package/test.mjs build/package
           node package/browser-test.mjs build/package
 
+      # A report, not a gate: sizes, startup, memory per module, time per persona.
+      - name: Benchmark the persona npm package
+        run: node package/bench.mjs build/package --out build/bench.tsv
+
+      - name: Upload the benchmark report
+        uses: actions/upload-artifact@v4
+        with:
+          name: bench-report
+          path: build/bench.tsv
+
       - name: Pack the persona npm package
         run: npm pack ./build/package --pack-destination .
 
