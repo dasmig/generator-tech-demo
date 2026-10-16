@@ -86,8 +86,9 @@ EMSCRIPTEN_KEEPALIVE const char* dasmig_persona_generate(const char* country, co
     catch (const std::exception& error) { return reply(demo_error(error.what())); }
 }
 
-/// @brief What this module can generate: the supported countries and the
-///        hash of the data of all eight libraries.
+/// @brief What this module can generate: the supported countries, the trait
+///        catalogue's size (the most traits a request can ask for) and the
+///        hash of the eight libraries' data.
 EMSCRIPTEN_KEEPALIVE const char* dasmig_persona_info()
 {
     try
@@ -96,7 +97,10 @@ EMSCRIPTEN_KEEPALIVE const char* dasmig_persona_info()
         dasmig::core::json_writer w;
         w.begin_object().key("countries").begin_array();
         for (const auto code : dasmig::psg::supported_countries()) w.value(code);
-        w.end_array().field("data", hex(dasmig::psg::instance().data_hash())).end_object();
+        w.end_array()
+            .field("max_traits", dasmig::trtg::instance().trait_count())
+            .field("data", hex(dasmig::psg::instance().data_hash()))
+            .end_object();
         return reply(w.str());
     }
     catch (const std::exception& error) { return reply(demo_error(error.what())); }

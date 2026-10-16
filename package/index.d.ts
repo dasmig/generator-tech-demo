@@ -3,13 +3,19 @@
 
 /** What a persona call asks for. Every field is optional: what is left out is drawn. */
 export interface PersonaRequest {
-  /** ISO 3166-1 alpha-2 code, any case. Unset draws one of `countries`, weighted by population. */
+  /**
+   * ISO 3166-1 alpha-2 code, any case, from the generator's `countries`; another code is a RangeError.
+   * Unset draws one of `countries`, weighted by population.
+   */
   country?: string;
   /** Unset draws it with the birth. */
   sex?: Sex;
   /** Inclusive age range in completed years (0-120). Unset draws from the country's age pyramid. */
   ages?: { min: number; max: number };
-  /** Number of personality traits; default 3. */
+  /**
+   * Number of personality traits, 0 to the generator's `maxTraits`; default 3. Fewer are returned
+   * when no other trait is compatible with those already chosen (traits in one group exclude each other).
+   */
   traits?: number;
   /**
    * The date ages are computed at: `YYYY-MM-DD`, or a Date (its local calendar date).
@@ -17,8 +23,9 @@ export interface PersonaRequest {
    */
   referenceDate?: string | Date;
   /**
-   * The call seed: 1-16 hexadecimal digits, a bigint, or a non-negative safe integer.
-   * Unset draws a random one. The same seed, request and data give the same persona.
+   * The call seed, a 64-bit unsigned integer: a bigint, a non-negative safe integer, or a string
+   * of 1-16 **hexadecimal** digits with an optional `0x` (so `'42'` is 0x42, not 42), the form of
+   * `signature.seed`. Unset draws a random one. The same seed, request and data give the same persona.
    */
   seed?: string | bigint | number;
 }
@@ -106,18 +113,26 @@ export interface Birth {
   signature: Signature;
 }
 
+/** `intermediate` covers green, hazel and amber. */
+export type EyeColor = 'blue' | 'intermediate' | 'brown';
+/** `grey` only at older ages. */
+export type HairColor = 'black' | 'brown' | 'blond' | 'red' | 'grey';
+/** Fitzpatrick skin phototype. */
+export type SkinType = 'I' | 'II' | 'III' | 'IV' | 'V' | 'VI';
+export type BloodType = 'O+' | 'O-' | 'A+' | 'A-' | 'B+' | 'B-' | 'AB+' | 'AB-';
+export type Handedness = 'right' | 'left';
+
 export interface Biodata {
   country: string;
   sex: Sex;
   height_cm: number;
   weight_kg: number;
   bmi: number;
-  eyes: string;
-  hair: string;
-  /** Fitzpatrick type, I to VI. */
-  skin: string;
-  blood: string;
-  hand: string;
+  eyes: EyeColor;
+  hair: HairColor;
+  skin: SkinType;
+  blood: BloodType;
+  hand: Handedness;
   age: number;
   signature: Signature;
 }
@@ -208,19 +223,39 @@ export interface Persona {
 }
 
 export interface PersonaGenerator {
-  /** The countries a random persona is drawn from (ISO 3166-1 alpha-2, sorted). */
+  /** The countries a persona can be generated for (ISO 3166-1 alpha-2, uppercase, sorted). */
   readonly countries: readonly string[];
-  /** Hash of the data of all eight libraries, as in every persona's `signature.data`. */
+  /** The most personality traits a request can ask for: the trait catalogue's size. */
+  readonly maxTraits: number;
+  /**
+   * Hash of the data of all eight libraries (16 hex digits). A saved seed replays the same persona
+   * only while this is unchanged; it changes when a package update changes any library's data.
+   */
   readonly dataHash: string;
-  /** Generate a persona. Throws on an invalid request (for example an unknown country). */
+  /** The library versions (git tags) this module was built from. */
+  readonly versions: Readonly<Record<string, string>>;
+  /**
+   * Generate a persona. Takes about a third of a millisecond.
+   * @throws {TypeError} A request field of the wrong type, or an unknown field.
+   * @throws {RangeError} A field outside its range: an unsupported country, ages, traits, date or seed.
+   */
   generate(request?: PersonaRequest): Persona;
-  /** Generate a persona as the JSON text the module returns. */
+  /** Generate a persona as the JSON text the module returns, exactly as the C++ library writes it. */
   generateJson(request?: PersonaRequest): string;
 }
 
+/** Emscripten module options this package passes on. */
+export interface ModuleOptions {
+  /** Map a file the module loads (`persona.wasm`) to its URL. */
+  locateFile?: (path: string, prefix: string) => string;
+  /** The contents of persona.wasm, to skip fetching it. */
+  wasmBinary?: ArrayBuffer | Uint8Array;
+  [option: string]: unknown;
+}
+
 /**
- * Load the WebAssembly module and return a generator.
- * @param moduleOptions Emscripten module options, for example `locateFile` when
- *   persona.wasm is served from another path than the module.
+ * Load the WebAssembly module and its data, and return a generator. Loading takes a second or
+ * two and blocks the thread it runs on, so create one generator, reuse it, and in a browser
+ * prefer a Web Worker.
  */
-export function createPersonaGenerator(moduleOptions?: Record<string, unknown>): Promise<PersonaGenerator>;
+export function createPersonaGenerator(moduleOptions?: ModuleOptions): Promise<PersonaGenerator>;

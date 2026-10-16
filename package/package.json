@@ -8,6 +8,7 @@
   "exports": {
     ".": {
       "types": "./index.d.ts",
+      "node": "./node.mjs",
       "default": "./index.mjs"
     },
     "./persona.wasm": "./persona.wasm",
@@ -15,6 +16,9 @@
   },
   "files": [
     "index.mjs",
+    "node.mjs",
+    "generator.mjs",
+    "versions.mjs",
     "index.d.ts",
     "persona.mjs",
     "persona.wasm",
@@ -24,7 +28,7 @@
   ],
   "sideEffects": false,
   "engines": {
-    "node": ">=18"
+    "node": ">=20"
   },
   "keywords": [
     "procedural-generation",
@@ -40,6 +44,9 @@
     "directory": "package"
   },
   "homepage": "https://github.com/dasmig/persona-generator",
+  "bugs": {
+    "url": "https://github.com/dasmig/generator-tech-demo/issues"
+  },
   "author": "Diego Dasso Migotto",
   "license": "MIT"
 }

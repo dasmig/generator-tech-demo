@@ -27,7 +27,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: dasmig/name-generator
-          ref: v4.0.0
+          ref: v4.1.0
           path: name-generator
 
       - name: Checkout nickname-generator
@@ -90,14 +90,14 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: dasmig/occupation-generator
-          ref: v2.0.0
+          ref: v2.1.0
           path: occupation-generator
 
       - name: Checkout persona-generator
         uses: actions/checkout@v4
         with:
           repository: dasmig/persona-generator
-          ref: v1.0.0
+          ref: v1.1.0
           path: persona-generator
 
       - name: Setup Emscripten
@@ -146,7 +146,9 @@ jobs:
         run: node tests/traitgen_smoke.mjs _site .
 
       - name: Test the persona npm package
-        run: node package/test.mjs build/package
+        run: |
+          node package/test.mjs build/package
+          node package/browser-test.mjs build/package
 
       - name: Pack the persona npm package
         run: npm pack ./build/package --pack-destination .
