@@ -98,7 +98,7 @@ try {
     text = result?.result?.value;
     if (text === undefined) await delay(100);
   }
-  const answer = 'Brandon White 0000000000000001-16ccfc2fe06c547b';
+  const answer = 'Jimmy White 0000000000000001-d29a76dea8889ccb';
   assert.equal(text, `page: ${answer} | worker: ${answer}`);
   console.log('PASS: @dasmig/persona browser entry loads and matches the known answer in a page and a module worker.');
 } finally {

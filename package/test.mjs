@@ -1,7 +1,7 @@
 // Tests the assembled npm package's Node entry: node package/test.mjs build/package
 // (package/browser-test.mjs tests the browser entry).
 //
-// The known answers are persona-generator v1.0.0's (tests/tests.cpp), so a
+// The known answers are persona-generator v1.1.0's (tests/tests.cpp), so a
 // pass means the WebAssembly build gives the same personas as a native one.
 import assert from 'node:assert/strict';
 import path from 'node:path';
@@ -18,7 +18,7 @@ const signature = p => p.signature.seed + '-' + p.signature.data;
 
 assert.equal(personas.countries.length, 79);
 assert.ok(!personas.countries.includes('KR'));
-assert.equal(personas.dataHash, '2c51b25a966f8fa8');
+assert.equal(personas.dataHash, '12083193eb329143');
 assert.equal(personas.maxTraits, 52);
 assert.equal(personas.versions['persona-generator'].startsWith('v'), true, JSON.stringify(personas.versions));
 assert.equal(Object.keys(personas.versions).length, 10);
@@ -26,18 +26,18 @@ assert.ok(Object.isFrozen(personas) && Object.isFrozen(personas.countries));
 
 // Known answers.
 const one = personas.generate({ seed: 1 });
-assert.equal(summary(one), 'Brandon White, 13, male, Gosport, United Kingdom, student');
-assert.equal(signature(one), '0000000000000001-16ccfc2fe06c547b');
+assert.equal(summary(one), 'Jimmy White, 13, male, Gosport, United Kingdom, student');
+assert.equal(signature(one), '0000000000000001-d29a76dea8889ccb');
 const two = personas.generate({ seed: '2' });
-assert.equal(summary(two), 'Romana Nováková, 16, female, Mashhad, Iran, student');
-assert.equal(signature(two), '0000000000000002-16ccfc2fe06c547b');
+assert.equal(summary(two), 'Samaneh Sadeghi, 16, female, Mashhad, Iran, student');
+assert.equal(signature(two), '0000000000000002-d29a76dea8889ccb');
 const three = personas.generate({ country: 'BR', sex: 'female', ages: { min: 25, max: 35 }, traits: 5, seed: 3n });
 assert.equal(summary(three), 'Thayna Brandao, 34, female, São Paulo, Brazil, Farm labourer');
-assert.equal(signature(three), '0000000000000003-a4436f388f2880a1');
+assert.equal(signature(three), '0000000000000003-00a99a1fc2c48775');
 assert.equal(three.personality.traits.length, 5);
 const four = personas.generate({ country: 'jp', referenceDate: '2030-03-09', seed: 4 });
 assert.equal(summary(four), 'Toshinori Toyama, 70, male, Edogawe, Japan, Shop assistant');
-assert.equal(signature(four), '0000000000000004-b617ce3a636b9167');
+assert.equal(signature(four), '0000000000000004-a458d5cf038b5c6f');
 
 // The hash of 2,000 JSON documents. The native test runs without admin1
 // names, which this module embeds, so they are blanked before hashing.
@@ -48,7 +48,7 @@ for (let s = 0; s < 2000; ++s) {
   const json = personas.generateJson({ seed: s }).replace(/"admin1":"(?:[^"\\]|\\.)*"/, '"admin1":""');
   for (const byte of encoder.encode(json)) hash = ((hash ^ BigInt(byte)) * 0x100000001b3n) & mask;
 }
-assert.equal(hash.toString(16), 'b9d64e6d46c6a12c');
+assert.equal(hash.toString(16), '948572c821a722c4');
 
 // Admin1 names are embedded.
 assert.equal(personas.generate({ country: 'BR', seed: 1 }).admin1.length > 0, true);
@@ -114,6 +114,6 @@ for (const [request, kind, message] of [
     JSON.stringify(request, (_, v) => typeof v === 'bigint' ? v.toString() : v));
 }
 // A failed call leaves the generator usable.
-assert.equal(signature(personas.generate({ seed: 1 })), '0000000000000001-16ccfc2fe06c547b');
+assert.equal(signature(personas.generate({ seed: 1 })), '0000000000000001-d29a76dea8889ccb');
 
-console.log('PASS: @dasmig/persona matches persona-generator v1.0.0 known answers (5 personas, 2,000-document hash), replay, requests and errors.');
+console.log('PASS: @dasmig/persona matches persona-generator v1.1.0 known answers (5 personas, 2,000-document hash), replay, requests and errors.');
