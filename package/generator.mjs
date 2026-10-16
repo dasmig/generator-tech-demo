@@ -2,44 +2,10 @@
 // shared by the browser entry (index.mjs) and the Node entry (node.mjs). It
 // checks the request, passes it on and parses the JSON that comes back.
 import { versions } from './versions.mjs';
+import { batchPlan, integer, malformed, outOfRange, seedText } from './batch.mjs';
 
 const keys = new Set(['country', 'sex', 'ages', 'traits', 'referenceDate', 'seed']);
 const sexes = new Set(['male', 'female']);
-const maxSeed = (1n << 64n) - 1n;
-
-function malformed(message) {
-  throw new TypeError('persona request: ' + message);
-}
-
-function outOfRange(message) {
-  throw new RangeError('persona request: ' + message);
-}
-
-function integer(value, name, min, max) {
-  if (typeof value !== 'number' || !Number.isInteger(value)) malformed(`${name} must be an integer`);
-  if (value < min || value > max) outOfRange(`${name} must be from ${min} to ${max}, not ${value}`);
-  return value;
-}
-
-// The seed as the module takes it: 1 to 16 lowercase hexadecimal digits.
-function seedText(seed) {
-  if (seed === undefined) return '';
-  if (typeof seed === 'string') {
-    const match = /^(?:0x)?([0-9a-f]{1,16})$/i.exec(seed);
-    if (!match) outOfRange(`seed string must be 1 to 16 hexadecimal digits, optionally after 0x, not "${seed}"`);
-    return match[1].toLowerCase();
-  }
-  if (typeof seed === 'bigint') {
-    if (seed < 0n || seed > maxSeed) outOfRange('seed must be an unsigned 64-bit integer');
-    return seed.toString(16);
-  }
-  if (typeof seed === 'number') {
-    if (!Number.isSafeInteger(seed) || seed < 0)
-      outOfRange('seed number must be a non-negative safe integer; use a bigint or a hexadecimal string for larger seeds');
-    return seed.toString(16);
-  }
-  return malformed('seed must be a hexadecimal string, a bigint or a number');
-}
 
 function dateText(date) {
   if (date === undefined) return '';
@@ -76,15 +42,19 @@ export async function createGenerator(createModule, moduleOptions) {
   const module = await createModule(moduleOptions);
   const generate = module.cwrap('dasmig_persona_generate', 'string',
     ['string', 'string', 'number', 'number', 'number', 'string', 'string']);
+  const generateBatchRaw = module.cwrap('dasmig_persona_generate_batch', 'string',
+    ['string', 'string', 'number', 'number', 'number', 'string', 'string', 'number', 'number']);
+  const requestKeys = new Set([...keys].filter(key => key !== 'seed'));
   const info = parse(module.cwrap('dasmig_persona_info', 'string', [])());
   const countries = Object.freeze([...info.countries]);
   const supported = new Set(countries);
 
-  function generateJson(request = {}) {
+  // The request's fields as the module's arguments (everything but the seed).
+  function requestArgs(request, allowed) {
     if (request === null || typeof request !== 'object' || Array.isArray(request)) malformed('must be an object');
     for (const key of Object.keys(request))
-      if (!keys.has(key)) malformed(`unknown field "${key}"; the fields are ${[...keys].join(', ')}`);
-    const { country, sex, ages, traits, referenceDate, seed } = request;
+      if (!allowed.has(key)) malformed(`unknown field "${key}"; the fields are ${[...allowed].join(', ')}`);
+    const { country, sex, ages, traits, referenceDate } = request;
 
     let code = '';
     if (country !== undefined) {
@@ -103,7 +73,18 @@ export async function createGenerator(createModule, moduleOptions) {
       if (min > max) outOfRange(`ages.min (${min}) must not be greater than ages.max (${max})`);
     }
     const count = traits === undefined ? -1 : integer(traits, 'traits', 0, info.max_traits);
-    return generate(code, sex ?? '', min, max, count, dateText(referenceDate), seedText(seed));
+    return [code, sex ?? '', min, max, count, dateText(referenceDate)];
+  }
+
+  function generateJson(request = {}) {
+    return generate(...requestArgs(request, keys), seedText(request.seed));
+  }
+
+  function generateBatchJsonl(options) {
+    const plan = batchPlan(options);
+    const text = generateBatchRaw(...requestArgs(plan.request, requestKeys), plan.seed, plan.first, plan.count);
+    if (text.startsWith('{"error"')) throw new Error(JSON.parse(text).error);
+    return text;
   }
 
   return Object.freeze({
@@ -118,6 +99,11 @@ export async function createGenerator(createModule, moduleOptions) {
     },
     generate(request) {
       return parse(generateJson(request));
+    },
+    generateBatchJsonl,
+    generateBatch(options) {
+      const text = generateBatchJsonl(options);
+      return text === '' ? [] : text.slice(0, -1).split('\n').map(line => JSON.parse(line));
     }
   });
 }

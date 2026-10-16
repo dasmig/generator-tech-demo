@@ -22,14 +22,22 @@ const check = `
 const pages = {
   '/test.html': `<!doctype html><meta charset="utf-8"><script type="module">
     window.result = (async () => {
-      const { createPersonaGenerator } = await import('./index.mjs');
+      const { createPersonaGenerator, createPersonaPool } = await import('./index.mjs');
       const personas = await createPersonaGenerator();${check}
       const worker = new Worker('./worker.mjs', { type: 'module' });
       const fromWorker = await new Promise((resolve, reject) => {
         worker.onmessage = event => resolve(event.data);
         worker.onerror = event => reject(new Error(event.message || 'worker failed'));
       });
-      return 'page: ' + answer + ' | worker: ' + fromWorker;
+      // A pool of module Web Workers gives the batch one generator gives.
+      const pool = await createPersonaPool({ workers: 2 });
+      let pooled;
+      try {
+        pooled = (await pool.generateBatchJsonl({ count: 30, seed: 5 })) === personas.generateBatchJsonl({ count: 30, seed: 5 });
+      } finally {
+        pool.close();
+      }
+      return 'page: ' + answer + ' | worker: ' + fromWorker + ' | pool: ' + pooled;
     })().catch(error => 'FAIL ' + error.message);
   </script>`,
   '/worker.mjs': `import { createPersonaGenerator } from './index.mjs';
@@ -99,8 +107,8 @@ try {
     if (text === undefined) await delay(100);
   }
   const answer = 'Jimmy White 0000000000000001-d29a76dea8889ccb';
-  assert.equal(text, `page: ${answer} | worker: ${answer}`);
-  console.log('PASS: @dasmig/persona browser entry loads and matches the known answer in a page and a module worker.');
+  assert.equal(text, `page: ${answer} | worker: ${answer} | pool: true`);
+  console.log('PASS: @dasmig/persona browser entry loads and matches the known answer in a page and a module worker, and a pool of workers matches its batches.');
 } finally {
   socket?.close();
   chrome.kill();

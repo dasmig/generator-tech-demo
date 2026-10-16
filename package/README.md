@@ -76,6 +76,28 @@ An invalid request throws before anything is generated: a `TypeError` for a fiel
 
 Each part draws from its own random stream, split from the persona's seed. Forcing one choice does not shift the unrelated parts: the same seed with the other sex keeps the city and the personality.
 
+## Batches
+
+For test data and populations, generate many personas from one batch seed:
+
+```js
+// 10,000 personas, as objects or as JSON Lines (one persona per line).
+const people = personas.generateBatch({ request: { country: 'BR' }, count: 10000, seed: 42 });
+const lines = personas.generateBatchJsonl({ request: { country: 'BR' }, count: 10000, seed: 42 });
+
+// The same personas, split across workers (Web Workers in a browser, worker threads in Node).
+import { createPersonaPool } from '@dasmig/persona';
+const pool = await createPersonaPool({ workers: 4 });
+const same = await pool.generateBatchJsonl({ request: { country: 'BR' }, count: 10000, seed: 42 });
+pool.close();
+```
+
+- **Persona `i` of a batch** is exactly `generate({ ...request, seed })` for the seed derived from the batch seed and `i` (`core::item_seed` in the C++ libraries). So any persona replays on its own from its `signature.seed`, a range can be generated alone (`first: 1000` starts at persona 1000), two batches that follow each other equal one, and the output is the same for any pool size.
+- **Options.** `request` (the fields above except `seed`), `count` (0 to 2^31 - 1), `seed` (a random one if left out, which makes the batch unrepeatable) and `first` (default 0).
+- **Speed.** About 14,000 personas per second on one generator in Node 24, 20,000 with a pool of 2 and 38,000 with a pool of 4, once the pool has started (about half a second). The JSON Lines form skips building the objects.
+- **Memory.** Every worker loads its own module, about 60 MB, and a pool defaults to the number of cores, at most 4. The pool needs no `SharedArrayBuffer`, so it works on any page: pieces travel as strings.
+- In a browser the pool starts module Web Workers from `pool-worker.mjs` next to the package's entry; bundlers that follow `new URL(..., import.meta.url)` pick it up.
+
 ## Replaying personas
 
 To recreate a persona later (for example, from a saved game), store its `signature.seed` and the request it was made with, including `referenceDate`.

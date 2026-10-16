@@ -242,6 +242,52 @@ export interface PersonaGenerator {
   generate(request?: PersonaRequest): Persona;
   /** Generate a persona as the JSON text the module returns, exactly as the C++ library writes it. */
   generateJson(request?: PersonaRequest): string;
+  /**
+   * Generate a batch on this thread. Persona `i` is `generate({ ...request, seed })` for the seed
+   * derived from the batch seed and `first + i`, so any persona replays on its own, a range can be
+   * generated alone, and two batches that follow each other equal one. For large batches use a
+   * pool (`createPersonaPool`), which splits the work across workers with the same result.
+   * @throws {TypeError} A field of the wrong type, an unknown field, or a seed inside the request.
+   * @throws {RangeError} A count, first index, seed, country or other field out of range.
+   */
+  generateBatch(options: BatchOptions): Persona[];
+  /** The same batch as JSON Lines: one persona per line, each line ending in `\n`. Empty for a count of 0. */
+  generateBatchJsonl(options: BatchOptions): string;
+}
+
+/** What a batch asks for. */
+export interface BatchOptions {
+  /** What every persona is generated from (the same fields as `generate`, but no `seed`). */
+  request?: Omit<PersonaRequest, 'seed'>;
+  /** Number of personas, 0 to 2^31 - 1. */
+  count: number;
+  /**
+   * The batch seed, in the forms `PersonaRequest.seed` takes. Unset draws a random one, so the batch
+   * cannot be repeated; each persona's `signature.seed` still replays that persona alone.
+   */
+  seed?: string | bigint | number;
+  /** Index of the first persona, default 0: `first: 1000` starts at persona 1000 of the same batch. */
+  first?: number;
+}
+
+/** A pool of workers that generates batches in pieces and joins them in order. */
+export interface PersonaPool {
+  /** Number of workers. */
+  readonly size: number;
+  /** Same personas as `PersonaGenerator.generateBatch` with the same options, for any pool size. */
+  generateBatch(options: BatchOptions): Promise<Persona[]>;
+  /** Same text as `PersonaGenerator.generateBatchJsonl`. */
+  generateBatchJsonl(options: BatchOptions): Promise<string>;
+  /** Stop the workers. The pool cannot be used afterwards. */
+  close(): void;
+}
+
+export interface PoolOptions {
+  /**
+   * Number of workers, 1 to 64. Each loads its own copy of the module, about 60 MB, and takes a
+   * second or two to start. Default: the number of cores, at most 4.
+   */
+  workers?: number;
 }
 
 /** Emscripten module options this package passes on. */
@@ -259,3 +305,9 @@ export interface ModuleOptions {
  * prefer a Web Worker.
  */
 export function createPersonaGenerator(moduleOptions?: ModuleOptions): Promise<PersonaGenerator>;
+
+/**
+ * Start a pool of Web Workers (worker threads in Node), each with its own module. Resolves when all
+ * are ready. Call `close()` when done.
+ */
+export function createPersonaPool(options?: PoolOptions): Promise<PersonaPool>;
