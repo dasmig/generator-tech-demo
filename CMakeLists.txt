@@ -221,11 +221,11 @@ target_link_options(persona_api PRIVATE
   -sEXPORT_ES6=1
   -sEXPORT_NAME=createPersonaModule
   -sENVIRONMENT=web,worker
-  -sEXPORTED_FUNCTIONS=['_dasmig_persona_generate','_dasmig_persona_info']
+  -sEXPORTED_FUNCTIONS=['_dasmig_persona_generate','_dasmig_persona_generate_batch','_dasmig_persona_info']
   -sEXPORTED_RUNTIME_METHODS=['cwrap']
   "SHELL:--embed-file ${CITY_GEN_DIR}/resources/admin1CodesASCII.txt@/resources/city/admin1CodesASCII.txt"
 )
-set(PACKAGE_SOURCES package.json index.mjs node.mjs generator.mjs index.d.ts README.md)
+set(PACKAGE_SOURCES package.json index.mjs node.mjs generator.mjs batch.mjs pool.mjs pool-worker.mjs pool-worker-node.mjs pool-worker-core.mjs index.d.ts README.md)
 foreach(file IN LISTS PACKAGE_SOURCES)
   add_custom_command(TARGET persona_api POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_SOURCE_DIR}/package/${file}" "${PACKAGE_DIR}/${file}")

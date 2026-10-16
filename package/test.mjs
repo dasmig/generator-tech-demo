@@ -1,14 +1,14 @@
 // Tests the assembled npm package's Node entry: node package/test.mjs build/package
 // (package/browser-test.mjs tests the browser entry).
 //
-// The known answers are persona-generator v1.1.0's (tests/tests.cpp), so a
+// The known answers are persona-generator v1.2.0's (tests/tests.cpp), so a
 // pass means the WebAssembly build gives the same personas as a native one.
 import assert from 'node:assert/strict';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 
 const dir = path.resolve(process.argv[2] || 'build/package');
-const { createPersonaGenerator } = await import(pathToFileURL(path.join(dir, 'node.mjs')).href);
+const { createPersonaGenerator, createPersonaPool } = await import(pathToFileURL(path.join(dir, 'node.mjs')).href);
 const personas = await createPersonaGenerator();
 
 // persona::to_string(), from the JSON.
@@ -116,4 +116,80 @@ for (const [request, kind, message] of [
 // A failed call leaves the generator usable.
 assert.equal(signature(personas.generate({ seed: 1 })), '0000000000000001-d29a76dea8889ccb');
 
-console.log('PASS: @dasmig/persona matches persona-generator v1.1.0 known answers (5 personas, 2,000-document hash), replay, requests and errors.');
+// Batches. Persona i of a batch is the single call with the seed
+// core::item_seed(batchSeed, i): splitmix64_mix(seed ^ splitmix64_mix(i ^ 0x6a09e667f3bcc909)).
+const mix = z => {
+  z = ((z ^ (z >> 30n)) * 0xbf58476d1ce4e5b9n) & mask;
+  z = ((z ^ (z >> 27n)) * 0x94d049bb133111ebn) & mask;
+  return z ^ (z >> 31n);
+};
+const itemSeed = (batchSeed, index) => mix(batchSeed ^ mix(BigInt(index) ^ 0x6a09e667f3bcc909n));
+
+const request = { country: 'BR', sex: 'female', ages: { min: 20, max: 40 }, traits: 4 };
+const batch = personas.generateBatch({ request, count: 60, seed: 7 });
+assert.equal(batch.length, 60);
+for (let i = 0; i < batch.length; ++i) {
+  assert.deepEqual(batch[i], personas.generate({ ...request, seed: itemSeed(7n, i) }), `persona ${i}`);
+}
+// A range is generated directly, and two batches that follow each other equal one.
+assert.deepEqual(personas.generateBatch({ request, count: 20, first: 40, seed: 7 }), batch.slice(40));
+assert.deepEqual([...personas.generateBatch({ request, count: 25, seed: '7' }),
+  ...personas.generateBatch({ request, count: 35, first: 25, seed: 7n })], batch);
+// JSON Lines: one persona per line, as the C++ library writes it.
+const lines = personas.generateBatchJsonl({ request, count: 60, seed: 7 });
+assert.ok(lines.endsWith('\n'));
+assert.equal(lines.split('\n').length, 61);
+assert.deepEqual(lines.slice(0, -1).split('\n').map(line => JSON.parse(line)), batch);
+assert.deepEqual(personas.generateBatch({ count: 0, seed: 1 }), []);
+assert.equal(personas.generateBatchJsonl({ count: 0 }), '');
+// Without a seed the batch is random but each persona replays from its signature.
+const unseeded = personas.generateBatch({ count: 3 });
+assert.notEqual(unseeded[0].signature.seed, unseeded[1].signature.seed);
+assert.deepEqual(personas.generate({ seed: unseeded[2].signature.seed }), unseeded[2]);
+for (const [options, kind, message] of [
+  [{}, TypeError, /count is required/],
+  [{ count: 1.5 }, TypeError, /count/],
+  [{ count: -1 }, RangeError, /count/],
+  [{ count: 2 ** 31 }, RangeError, /count/],
+  [{ count: 1, first: -1 }, RangeError, /first/],
+  [{ count: 1, first: 2 ** 53 }, RangeError, /first/],
+  [{ count: 1, seed: 'xyz' }, RangeError, /hexadecimal/],
+  [{ count: 1, request: { seed: 1 } }, TypeError, /own seed/],
+  [{ count: 1, request: { country: 'XX' } }, RangeError, /not supported/],
+  [{ count: 1, request: { contry: 'BR' } }, TypeError, /unknown field/],
+  [{ count: 1, extra: 1 }, TypeError, /unknown batch field/],
+  [null, TypeError, /object/]
+]) {
+  assert.throws(() => personas.generateBatch(options), error => error instanceof kind && message.test(error.message),
+    JSON.stringify(options));
+}
+
+// Pools of 1, 2 and 4 workers give the same personas as one generator.
+const poolOptions = { request: { sex: 'male' }, count: 203, first: 11, seed: 'abc123' };
+const expected = personas.generateBatchJsonl(poolOptions);
+for (const workers of [1, 2, 4]) {
+  const pool = await createPersonaPool({ workers });
+  try {
+    assert.equal(pool.size, workers);
+    assert.equal(await pool.generateBatchJsonl(poolOptions), expected, `${workers} workers`);
+    assert.deepEqual(await pool.generateBatch({ ...poolOptions, count: 3 }),
+      personas.generateBatch({ ...poolOptions, count: 3 }));
+    assert.deepEqual(await pool.generateBatch({ count: 0 }), []);
+    // Fewer personas than workers, and two calls at once.
+    const [few, other] = await Promise.all([pool.generateBatchJsonl({ ...poolOptions, count: 1 }),
+      pool.generateBatchJsonl({ ...poolOptions, count: 5 })]);
+    assert.equal(few, expected.slice(0, expected.indexOf('\n') + 1));
+    assert.equal(other, expected.split('\n').slice(0, 5).join('\n') + '\n');
+    await assert.rejects(pool.generateBatch({ count: 1, request: { country: 'XX' } }), RangeError);
+    await assert.rejects(pool.generateBatch({ count: 1, seed: 'xyz' }), RangeError);
+    assert.equal(await pool.generateBatchJsonl(poolOptions), expected, 'still usable after errors');
+  } finally {
+    pool.close();
+  }
+  await assert.rejects(pool.generateBatch({ count: 1 }), /closed/);
+}
+await assert.rejects(createPersonaPool({ workers: 0 }), RangeError);
+await assert.rejects(createPersonaPool({ workers: 1.5 }), TypeError);
+await assert.rejects(createPersonaPool({ threads: 2 }), TypeError);
+
+console.log('PASS: @dasmig/persona matches persona-generator v1.2.0 known answers (5 personas, 2,000-document hash), replay, requests, errors, batches and worker pools.');

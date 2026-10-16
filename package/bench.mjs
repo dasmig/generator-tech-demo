@@ -18,7 +18,7 @@ const quick = args.includes('--quick');
 const calls = quick ? 1000 : 10000;
 const startups = quick ? 1 : 5;
 
-const { createPersonaGenerator } = await import(pathToFileURL(path.join(dir, 'node.mjs')).href);
+const { createPersonaGenerator, createPersonaPool } = await import(pathToFileURL(path.join(dir, 'node.mjs')).href);
 const build = `node ${process.versions.node}, wasm32`;
 const results = [];
 const add = (benchmark, metric, value, unit) => {
@@ -87,6 +87,31 @@ const time = (name, call) => {
 time('generate', s => personas.generate({ seed: s }));
 time('generate BR', s => personas.generate({ country: 'BR', seed: s }));
 time('generateJson', s => personas.generateJson({ seed: s }));
+// Batches: one generator, then pools of 1, 2 and 4 workers (their startup is
+// reported apart). The same personas come out of each.
+const batchItems = Math.max(calls, 2000);
+const batchOptions = { count: batchItems, seed: 1 };
+const batchRate = async (name, run) => {
+  await run(); // warm up
+  const times = [];
+  for (let r = 0; r < 3; ++r) {
+    const t0 = performance.now();
+    await run();
+    times.push(performance.now() - t0);
+  }
+  add(`${name} x${batchItems}`, 'per_second', batchItems / (median(times) / 1000), 'items');
+};
+await batchRate('generateBatchJsonl', () => personas.generateBatchJsonl(batchOptions));
+for (const workers of [1, 2, 4]) {
+  const t0 = performance.now();
+  const pool = await createPersonaPool({ workers });
+  add(`pool of ${workers}`, 'startup', performance.now() - t0, 'ms');
+  try {
+    await batchRate(`pool of ${workers} generateBatchJsonl`, () => pool.generateBatchJsonl(batchOptions));
+  } finally {
+    pool.close();
+  }
+}
 add('module', 'memory_end', memoryOf(), 'MiB');
 add('process', 'peak_memory', process.resourceUsage().maxRSS / 1024, 'MiB');
 

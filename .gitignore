@@ -6,3 +6,4 @@ emsdk/
 build-v2/
 build-node/
 build-v2*.log
+build-batch/
