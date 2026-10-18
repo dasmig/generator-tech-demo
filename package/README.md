@@ -1,5 +1,10 @@
 # @dasmig/persona
 
+[![npm](https://img.shields.io/npm/v/@dasmig/persona.svg)](https://www.npmjs.com/package/@dasmig/persona)
+[![license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/dasmig/generator-tech-demo/blob/master/LICENSE)
+[![node](https://img.shields.io/node/v/@dasmig/persona.svg)](https://www.npmjs.com/package/@dasmig/persona)
+[![types](https://img.shields.io/badge/types-included-blue.svg)](https://www.npmjs.com/package/@dasmig/persona)
+
 Complete fictional characters from one seeded call: name, country, city, birth date and age, body, personality, religion, hobbies, favourite media and job. It is [persona-generator](https://github.com/dasmig/persona-generator) (C++23) compiled to WebAssembly, with the `lite` data of the eight libraries it composes built in, so nothing is fetched at run time but the module's own `persona.wasm`.
 
 The output is fictional sample data, not a description or prediction of a real person.
@@ -16,7 +21,15 @@ createPersonaGenerator().then(personas => {
 });
 ```
 
+## Install
+
+```
+npm install @dasmig/persona
+```
+
 The package is an ES module only (no CommonJS build), for browsers, Web Workers and Node 20+.
+
+It ships its own TypeScript types (`index.d.ts`) and the WebAssembly module (`persona.wasm`, about 8 MB, under 3 MB compressed), which bundlers such as Vite, webpack and esbuild pick up from `new URL('persona.wasm', import.meta.url)`; pass `locateFile` or `wasmBinary` to `createPersonaGenerator()` to load it some other way. It has no dependencies.
 
 ## Loading
 
@@ -111,6 +124,12 @@ Each part of a persona also has a `signature`, with its own seed and its library
 The data comes from open datasets (GeoNames, mledoze/countries, UN World Population Prospects, NCD-RisC, the CIA World Factbook, ILOSTAT and others) and from catalogues written for the libraries. `DATA_LICENSES.txt` lists each source and its licence. The names come from [name-dataset](https://github.com/philipperemy/name-dataset); see name-generator's [data notes](https://github.com/dasmig/name-generator/blob/HEAD/doc/data.md) for its provenance.
 
 Each library documents its data's limits in its own `doc/data.md`.
+
+## Versions
+
+The package version is its own. `personas.versions` lists the persona-generator release and the library releases this build was made from (for example `persona-generator: 'v3.0.0'`), and the [releases](https://github.com/dasmig/generator-tech-demo/releases) of the repository say which versions each package release contains. The same seed gives the same persona only for the same library versions, so a library update that changes output is a major version of the package.
+
+Source: [generator-tech-demo/package](https://github.com/dasmig/generator-tech-demo/tree/master/package). Issues: [github.com/dasmig/generator-tech-demo/issues](https://github.com/dasmig/generator-tech-demo/issues).
 
 ## Licence
 
