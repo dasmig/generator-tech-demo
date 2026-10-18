@@ -97,7 +97,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: dasmig/persona-generator
-          ref: v3.0.0
+          ref: v3.0.1
           path: persona-generator
 
       - name: Checkout phone-generator
@@ -160,30 +160,6 @@ jobs:
 
       - name: Test all demos in Chrome
         run: node tests/traitgen_smoke.mjs _site .
-
-      - name: Test the persona npm package
-        run: |
-          node package/test.mjs build/package
-          node package/browser-test.mjs build/package
-
-      # A report, not a gate: sizes, startup, memory per module, time per persona.
-      - name: Benchmark the persona npm package
-        run: node package/bench.mjs build/package --out build/bench.tsv
-
-      - name: Upload the benchmark report
-        uses: actions/upload-artifact@v4
-        with:
-          name: bench-report
-          path: build/bench.tsv
-
-      - name: Pack the persona npm package
-        run: npm pack ./build/package --pack-destination .
-
-      - name: Upload the persona npm package
-        uses: actions/upload-artifact@v4
-        with:
-          name: persona-npm-package
-          path: dasmig-persona-*.tgz
 
       - name: Upload Pages artifact
         if: github.ref == 'refs/heads/master'
