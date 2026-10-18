@@ -34,14 +34,14 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: dasmig/nickname-generator
-          ref: v3.1.2
+          ref: v5.2.0
           path: nickname-generator
 
       - name: Checkout entity-generator
         uses: actions/checkout@v4
         with:
           repository: dasmig/entity-generator
-          ref: v4.1.2
+          ref: v4.2.0
           path: entity-generator
 
       - name: Checkout country-generator
@@ -55,7 +55,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: dasmig/city-generator
-          ref: v4.1.2
+          ref: v4.2.0
           path: city-generator
 
       - name: Checkout birth-generator
@@ -69,7 +69,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: dasmig/biodata-generator
-          ref: v4.0.1
+          ref: v5.0.0
           path: biodata-generator
 
       - name: Checkout interest-generator
@@ -97,7 +97,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: dasmig/persona-generator
-          ref: v2.0.1
+          ref: v3.0.0
           path: persona-generator
 
       - name: Checkout phone-generator
