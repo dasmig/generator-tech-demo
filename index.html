@@ -930,6 +930,138 @@
   </div>
 
   <!-- Trait Generator -->
+  <!-- ─── Phone Generator ─── -->
+  <div class="demo-card" id="phonegen-card">
+    <h2>phone-generator</h2>
+    <p class="desc">
+      Generate fictional phone numbers that are valid in a country's numbering plan, drawn from libphonenumber's mobile and fixed-line ranges and written the way the country writes them.
+      The safe option uses the numbers regulators reserve for fiction (for example 555-01xx in the US and Canada) where a country has such a range; elsewhere it avoids the allocated ranges. Outputs are synthetic.
+      <a class="repo-link" href="https://github.com/dasmig/phone-generator" target="_blank" rel="noopener">GitHub →</a>
+    </p>
+    <div class="controls">
+      <div class="field">
+        <label for="ph-country">Country</label>
+        <select id="ph-country">
+          <option value="">Any</option>
+          <option value="US">United States</option>
+          <option value="BR">Brazil</option>
+          <option value="GB">United Kingdom</option>
+          <option value="DE">Germany</option>
+          <option value="FR">France</option>
+          <option value="JP">Japan</option>
+          <option value="CN">China</option>
+          <option value="IN">India</option>
+          <option value="AU">Australia</option>
+          <option value="CA">Canada</option>
+          <option value="IT">Italy</option>
+          <option value="ES">Spain</option>
+          <option value="MX">Mexico</option>
+          <option value="KR">South Korea</option>
+          <option value="RU">Russia</option>
+          <option value="ZA">South Africa</option>
+          <option value="NG">Nigeria</option>
+          <option value="EG">Egypt</option>
+          <option value="AR">Argentina</option>
+          <option value="SE">Sweden</option>
+          <option value="SA">Saudi Arabia</option>
+          <option value="ID">Indonesia</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="ph-type">Type</label>
+        <select id="ph-type">
+          <option value="">Any</option>
+          <option value="mobile">Mobile</option>
+          <option value="fixed">Fixed line</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="ph-safe">Safe for tests</label>
+        <select id="ph-safe">
+          <option value="no">No (any valid number)</option>
+          <option value="yes">Yes (reserved where available)</option>
+        </select>
+      </div>
+      <button class="btn" id="ph-generate" disabled>Generate</button>
+      <button class="btn secondary" id="ph-compare" disabled>Compare safe</button>
+    </div>
+    <p class="note">“Any” country is drawn by population. Compare safe draws one call seed and shows the number with and without the safe option; the type may differ when the country has a reserved range for only one type. “Reserved for fiction” is Yes only for numbers from a regulator's range.</p>
+    <div id="ph-output">
+      <div class="output empty">Waiting for module to load…</div>
+    </div>
+    <div class="status" id="ph-status">Loading WebAssembly…</div>
+  </div>
+
+  <!-- ─── Email Generator ─── -->
+  <div class="demo-card" id="emailgen-card">
+    <h2>email-generator</h2>
+    <p class="desc">
+      Generate fictional email addresses in a country's style from a name, nickname and birth year, with the providers people use there. Leave the names empty for a handle.
+      Compare the same name and seed across eight countries. The safe option uses the reserved example domains. Outputs are synthetic.
+      <a class="repo-link" href="https://github.com/dasmig/email-generator" target="_blank" rel="noopener">GitHub →</a>
+    </p>
+    <div class="controls">
+      <div class="field">
+        <label for="em-country">Country</label>
+        <select id="em-country">
+          <option value="">Any</option>
+          <option value="US">United States</option>
+          <option value="BR">Brazil</option>
+          <option value="GB">United Kingdom</option>
+          <option value="DE">Germany</option>
+          <option value="FR">France</option>
+          <option value="JP">Japan</option>
+          <option value="CN">China</option>
+          <option value="IN">India</option>
+          <option value="AU">Australia</option>
+          <option value="CA">Canada</option>
+          <option value="IT">Italy</option>
+          <option value="ES">Spain</option>
+          <option value="MX">Mexico</option>
+          <option value="KR">South Korea</option>
+          <option value="RU">Russia</option>
+          <option value="ZA">South Africa</option>
+          <option value="NG">Nigeria</option>
+          <option value="EG">Egypt</option>
+          <option value="AR">Argentina</option>
+          <option value="SE">Sweden</option>
+          <option value="SA">Saudi Arabia</option>
+          <option value="ID">Indonesia</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="em-given">Given name</label>
+        <input type="text" id="em-given" placeholder="e.g. Zoë" style="width:140px" maxlength="60">
+      </div>
+      <div class="field">
+        <label for="em-family">Family name</label>
+        <input type="text" id="em-family" placeholder="e.g. Müller" style="width:140px" maxlength="60">
+      </div>
+      <div class="field">
+        <label for="em-nickname">Nickname</label>
+        <input type="text" id="em-nickname" placeholder="optional" style="width:120px" maxlength="60">
+      </div>
+      <div class="field">
+        <label for="em-year">Birth year</label>
+        <input type="text" id="em-year" placeholder="optional" inputmode="numeric" style="width:90px" maxlength="4">
+      </div>
+      <div class="field">
+        <label for="em-safe">Safe for tests</label>
+        <select id="em-safe">
+          <option value="no">No (provider domain)</option>
+          <option value="yes">Yes (example.com, .net, .org)</option>
+        </select>
+      </div>
+      <button class="btn" id="em-generate" disabled>Generate</button>
+      <button class="btn secondary" id="em-compare" disabled>Compare countries</button>
+    </div>
+    <p class="note">Names are folded to ASCII (Ø is o) and family-name particles are skipped (da Silva is silva). A style is only used when the inputs can fill it: no birth year, no year in the address. “Any” country is drawn by population. Comparison uses the same call seed in US, DE, BR, JP, CN, RU, FR and EG.</p>
+    <div id="em-output">
+      <div class="output empty">Waiting for module to load…</div>
+    </div>
+    <div class="status" id="em-status">Loading WebAssembly…</div>
+  </div>
+
   <div class="demo-card" id="traitgen-card">
     <h2>trait-generator</h2>
     <p class="desc">
@@ -1059,12 +1191,14 @@
 <script src="biodatagen_demo.js"></script>
 <script src="interestgen_demo.js"></script>
 <script src="occupationgen_demo.js"></script>
+<script src="phonegen_demo.js"></script>
+<script src="emailgen_demo.js"></script>
 <script src="traitgen_demo.js"></script>
 <script src="personagen_demo.js"></script>
 
 <script>
   const byId = id => document.getElementById(id);
-  for (const prefix of ['pg', 'ng', 'nng', 'eg', 'bg', 'bd', 'ig', 'og', 'tg', 'cg', 'ctg']) {
+  for (const prefix of ['pg', 'ng', 'nng', 'eg', 'bg', 'bd', 'ig', 'og', 'ph', 'em', 'tg', 'cg', 'ctg']) {
     byId(prefix + '-status').setAttribute('role', 'status');
     byId(prefix + '-output').setAttribute('aria-live', 'polite');
     byId(prefix + '-output').setAttribute('aria-atomic', 'true');
@@ -1322,6 +1456,51 @@
       + '<p class="note">Fixed sex input: ' + esc(sex || 'unknown (no factor)')
       + ' · Shared draw seed (hex): ' + esc(data[0].interest.signature.seed) + '.</p>';
     return 'Compared ages 8, 30 and 72 with country ' + data[0].interest.country + ', fixed sex input and seed.';
+  }));
+
+  // ─── Phone Generator ───
+  let phMod = null;
+  loadDemo('ph', () => createPhonegenModule(), mod => mod.init(), mod => { phMod = mod; }, 'number plans loaded.');
+
+  byId('ph-generate').addEventListener('click', () => {
+    if (!phMod) return;
+    runDemo('ph', () => renderTable('ph-output', parseResult(phMod.generatePhone(
+      byId('ph-country').value, byId('ph-type').value, byId('ph-safe').value === 'yes'))));
+  });
+
+  byId('ph-compare').addEventListener('click', () => runDemo('ph', () => {
+    const data = parseResult(phMod.compareSafe(byId('ph-country').value, byId('ph-type').value));
+    const fields = [['Country', 'country'], ['Type', 'type'], ['International', 'international'],
+      ['National', 'national'], ['E.164', 'e164'], ['Reserved for fiction', 'reserved']];
+    byId('ph-output').innerHTML = comparisonTable('Fictional phone numbers · only the safe option varies',
+      ['Field', ...data.map(item => item.safe ? 'Safe' : 'Any valid number')], fields.map(([label, key]) =>
+        [label, ...data.map(item => typeof item.phone[key] === 'boolean' ? (item.phone[key] ? 'Yes' : 'No') : item.phone[key])]))
+      + '<p class="note">Shared draw seed (hex): ' + esc(data[0].phone.signature.seed) + '. A number that is not reserved is valid in the plan but may belong to someone.</p>';
+    return 'Compared the safe option in ' + data[0].phone.country + ' with the same seed.';
+  }));
+
+  // ─── Email Generator ───
+  let emMod = null;
+  loadDemo('em', () => createEmailgenModule(), mod => mod.init(), mod => { emMod = mod; }, 'styles and providers loaded.');
+
+  function emailInputs() {
+    const year = byId('em-year').value.trim();
+    if (year && !/^\d{4}$/.test(year)) throw new Error('Birth year must have four digits, or be empty.');
+    return [byId('em-given').value, byId('em-family').value, byId('em-nickname').value,
+      year ? parseInt(year, 10) : 0, byId('em-safe').value === 'yes'];
+  }
+
+  byId('em-generate').addEventListener('click', () => {
+    if (!emMod) return;
+    runDemo('em', () => renderTable('em-output', parseResult(emMod.generateEmail(byId('em-country').value, ...emailInputs()))));
+  });
+
+  byId('em-compare').addEventListener('click', () => runDemo('em', () => {
+    const data = parseResult(emMod.compareCountries(...emailInputs()));
+    byId('em-output').innerHTML = comparisonTable('Fictional email addresses · only the country varies',
+      ['Country', 'Address', 'Domain kind'], data.map(item => [item.country, item.email.address, item.email.kind]))
+      + '<p class="note">Shared draw seed (hex): ' + esc(data[0].email.signature.seed) + '. Styles and domains follow each country; the name is the same.</p>';
+    return 'Compared eight countries with the same name inputs and seed.';
   }));
 
   // ─── Occupation Generator ───

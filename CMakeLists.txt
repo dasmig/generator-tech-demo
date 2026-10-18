@@ -22,6 +22,8 @@ set(BIODATA_GEN_DIR "${CMAKE_SOURCE_DIR}/../biodata-generator" CACHE PATH "Path 
 set(INTEREST_GEN_DIR "${CMAKE_SOURCE_DIR}/../interest-generator" CACHE PATH "Path to interest-generator repo")
 set(TRAIT_GEN_DIR "${CMAKE_SOURCE_DIR}/../trait-generator" CACHE PATH "Path to trait-generator repo")
 set(OCCUPATION_GEN_DIR "${CMAKE_SOURCE_DIR}/../occupation-generator" CACHE PATH "Path to occupation-generator repo")
+set(PHONE_GEN_DIR "${CMAKE_SOURCE_DIR}/../phone-generator" CACHE PATH "Path to phone-generator repo")
+set(EMAIL_GEN_DIR "${CMAKE_SOURCE_DIR}/../email-generator" CACHE PATH "Path to email-generator repo")
 set(PERSONA_GEN_DIR "${CMAKE_SOURCE_DIR}/../persona-generator" CACHE PATH "Path to persona-generator repo")
 
 # ── Wasm modules ──
@@ -137,6 +139,34 @@ target_link_options(interestgen_demo PRIVATE
   -sEXPORTED_RUNTIME_METHODS=['UTF8ToString','stringToUTF8']
   -sMODULARIZE=1
   -sEXPORT_NAME=createInterestgenModule
+  -sENVIRONMENT=web
+)
+
+# phone-generator demo
+add_executable(phonegen_demo src/phonegen_demo.cpp)
+target_include_directories(phonegen_demo PRIVATE "${PHONE_GEN_DIR}")
+target_compile_definitions(phonegen_demo PRIVATE DASMIG_PHONE_EMBED)
+target_link_options(phonegen_demo PRIVATE
+  --bind
+  -sWASM=1
+  -sALLOW_MEMORY_GROWTH=1
+  -sEXPORTED_RUNTIME_METHODS=['UTF8ToString','stringToUTF8']
+  -sMODULARIZE=1
+  -sEXPORT_NAME=createPhonegenModule
+  -sENVIRONMENT=web
+)
+
+# email-generator demo
+add_executable(emailgen_demo src/emailgen_demo.cpp)
+target_include_directories(emailgen_demo PRIVATE "${EMAIL_GEN_DIR}")
+target_compile_definitions(emailgen_demo PRIVATE DASMIG_EMAIL_EMBED)
+target_link_options(emailgen_demo PRIVATE
+  --bind
+  -sWASM=1
+  -sALLOW_MEMORY_GROWTH=1
+  -sEXPORTED_RUNTIME_METHODS=['UTF8ToString','stringToUTF8']
+  -sMODULARIZE=1
+  -sEXPORT_NAME=createEmailgenModule
   -sENVIRONMENT=web
 )
 

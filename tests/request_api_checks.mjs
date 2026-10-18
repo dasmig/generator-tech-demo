@@ -10,7 +10,9 @@ export async function verifyRequestApis(call) {
     ['bgMod', 'generateBirthSeeded', ['US', 'female', '2024-02-29', -1, 20, 25]],
     ['bdMod', 'generateBiodataSeeded', ['BR', 'male', -1]],
     ['igMod', 'generateInterestSeeded', ['US', 'female', 30, 2, 1]],
-    ['ogMod', 'generateOccupationSeeded', ['DE', 'male', 35, 'advanced', 'employed']]
+    ['ogMod', 'generateOccupationSeeded', ['DE', 'male', 35, 'advanced', 'employed']],
+    ['phMod', 'generatePhoneSeeded', ['US', 'mobile', false]],
+    ['emMod', 'generateEmailSeeded', ['DE', 'Zoë', 'Müller', 'zm', 1988, false]]
   ];
   for (const seed of ['0', '1', 'ffffffffffffffff']) {
     for (const [module, method, args] of cases) {
@@ -150,6 +152,9 @@ export async function verifyRequestApis(call) {
     ['igMod', 'generateInterestSeeded', ['XX', '', 30, 2, 1, '1']],
     ['ogMod', 'generateOccupationSeeded', ['US', '', 35, 'unknown', '', '1']],
     ['ogMod', 'generateOccupationSeeded', ['BR', 'female', 8, '', 'employed', '1']],
+    ['phMod', 'generatePhoneSeeded', ['XX', '', false, '1']],
+    ['phMod', 'generatePhoneSeeded', ['US', 'cell', false, '1']],
+    ['emMod', 'generateEmailSeeded', ['XX', '', '', '', 0, false, '1']],
     ['pgMod', 'generatePersonaSeeded', ['XX', '', '2024-02-29', '1']],
     ['pgMod', 'generatePersonaSeeded', ['US', 'other', '2024-02-29', '1']],
     ['pgMod', 'generatePersonaSeeded', ['US', '', '2024-02-29', '10000000000000000']]
