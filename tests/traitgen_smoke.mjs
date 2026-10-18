@@ -281,6 +281,52 @@ try {
   const worker = await evaluate(`JSON.parse(ogMod.generateOccupation('DE', 'male', 42, 'advanced'))`);
   assert.equal(worker.Education, 'advanced');
   assert.equal(worker.Country, 'DE');
+  for (const country of ['', 'US', 'GB', 'BR', 'DE']) {
+    for (const type of ['', 'mobile', 'fixed']) {
+      const phone = await evaluate(`JSON.parse(phMod.generatePhone('${country}', '${type}', false))`);
+      assert.equal(phone.error, undefined, phone.error);
+      assert.match(phone['E.164'], /^\+\d{8,15}$/);
+      assert.equal(phone['International'].replace(/\D/g, ''), phone['E.164'].slice(1));
+      assert.equal(phone['Reserved for fiction'], false);
+      if (country) assert.equal(phone.Country, country);
+      if (type) assert.equal(phone.Type, type === 'mobile' ? 'mobile' : 'fixed line');
+    }
+  }
+  for (const country of ['US', 'CA']) {
+    const safe = await evaluate(`JSON.parse(phMod.generatePhone('${country}', '', true))`);
+    assert.equal(safe['Reserved for fiction'], true);
+    assert.match(safe['E.164'], /^\+1\d{3}55501\d\d$/);
+  }
+  const pair = await evaluate(`JSON.parse(phMod.compareSafe('US', ''))`);
+  assert.deepEqual(pair.map(item => item.safe), [false, true]);
+  assert.equal(pair[0].phone.signature.seed, pair[1].phone.signature.seed);
+  assert.equal(pair[1].phone.reserved, true);
+  const reserved = new Set(['example.com', 'example.net', 'example.org']);
+  for (const country of ['', 'US', 'DE', 'JP']) {
+    const mail = await evaluate(`JSON.parse(emMod.generateEmail('${country}', 'Zoë', 'Müller', 'zm', 1988, true))`);
+    assert.equal(mail.error, undefined, mail.error);
+    assert.ok(reserved.has(mail.Domain));
+    assert.equal(mail['Domain kind'], 'reserved');
+    assert.match(mail['Local part'], /^[a-z0-9]([a-z0-9._-]*[a-z0-9])?$/);
+    if (country) assert.equal(mail.Country, country);
+  }
+  const countries = await evaluate(`JSON.parse(emMod.compareCountries('Ana', 'da Silva', '', 1990, false))`);
+  assert.deepEqual(countries.map(item => item.country), ['US', 'DE', 'BR', 'JP', 'CN', 'RU', 'FR', 'EG']);
+  assert.equal(new Set(countries.map(item => item.email.signature.seed)).size, 1);
+  assert.ok(countries.every(item => item.email.country === item.country));
+  for (const expression of ["phMod.generatePhone('XX', '', false)", "phMod.compareSafe('XX', '')",
+    "phMod.generatePhone('US', 'cell', false)", "emMod.generateEmail('XX', '', '', '', 0, false)"]) {
+    assert.ok(await evaluate(`JSON.parse(${expression}).error`), 'Invalid phone or email input must report an error');
+  }
+  await evaluate(`byId('em-given').value = 'Zoë'; byId('em-family').value = 'Müller'; byId('em-year').value = '1988';
+    byId('ph-country').value = 'GB'; byId('ph-compare').click(); byId('em-compare').click()`);
+  assert.match(await evaluate('byId("ph-output").textContent'), /only the safe option varies/);
+  assert.match(await evaluate('byId("em-output").textContent'), /only the country varies/);
+  await evaluate(`byId('em-year').value = '88'; byId('em-generate').click()`);
+  assert.match(await evaluate('byId("em-status").textContent'), /four digits/);
+  await evaluate(`byId('em-year').value = ''; byId('em-generate').click(); byId('ph-generate').click()`);
+  assert.match(await evaluate('byId("em-output").textContent'), /Local part/);
+  assert.match(await evaluate('byId("ph-output").textContent'), /RFC 3966/);
   for (const expression of ["bdMod.compareBiodata('XX')", "igMod.compareAges('XX', '')", "ogMod.compareEducation('XX', '')",
     "ctgMod.sampleCountry('invalid-region', true, 1)", "cgMod.sampleCity('XX', false, 1)"]) {
     assert.ok(await evaluate(`JSON.parse(${expression}).error`), 'Invalid filter must report an error');
