@@ -104,14 +104,14 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: dasmig/phone-generator
-          ref: v1.0.1
+          ref: v2.0.0
           path: phone-generator
 
       - name: Checkout email-generator
         uses: actions/checkout@v4
         with:
           repository: dasmig/email-generator
-          ref: v1.0.1
+          ref: v2.0.0
           path: email-generator
 
       - name: Setup Emscripten

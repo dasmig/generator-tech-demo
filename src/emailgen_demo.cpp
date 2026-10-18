@@ -36,11 +36,12 @@ std::string describe(const dasmig::email& email)
 {
     dasmig::core::json_writer writer;
     writer.begin_object()
-        .field("Country", email.country)
+        .field("Country", email.country_code)
         .field("Address", email.address())
         .field("Local part", email.local)
         .field("Domain", email.domain)
-        .field("Domain kind", email.kind)
+        .field("Domain kind", email.kind.empty() ? std::string{"-"} : email.kind)
+        .field("Reserved for fiction", email.reserved)
         .field("Seed (hex)", std::format("{:016x}", email.signature().seed))
         .end_object();
     return writer.str();
