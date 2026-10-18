@@ -69,14 +69,14 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: dasmig/biodata-generator
-          ref: v3.1.0
+          ref: v4.0.0
           path: biodata-generator
 
       - name: Checkout interest-generator
         uses: actions/checkout@v4
         with:
           repository: dasmig/interest-generator
-          ref: v2.1.0
+          ref: v3.0.0
           path: interest-generator
 
       - name: Checkout trait-generator
@@ -90,14 +90,14 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: dasmig/occupation-generator
-          ref: v2.2.0
+          ref: v3.0.0
           path: occupation-generator
 
       - name: Checkout persona-generator
         uses: actions/checkout@v4
         with:
           repository: dasmig/persona-generator
-          ref: v1.2.0
+          ref: v2.0.0
           path: persona-generator
 
       - name: Checkout phone-generator

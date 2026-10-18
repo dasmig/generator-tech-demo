@@ -106,7 +106,7 @@ export async function verifyRequestApis(call) {
     const child = await call('bdMod', 'generateBiodataSeeded', ['BR', 'male', 8, seed]);
     assert.equal(Object.hasOwn(base, 'age'), false);
     assert.equal(child.age, 8);
-    assert.equal(child.country, 'BR');
+    assert.equal(child.country_code, 'BR');
     assert.equal(child.sex, 'male');
     assert.ok(child.height_cm < base.height_cm && child.weight_kg < base.weight_kg);
     for (const key of ['eyes', 'skin', 'blood', 'hand']) assert.equal(child[key], base[key]);
@@ -114,13 +114,13 @@ export async function verifyRequestApis(call) {
   }
   for (const [age, hobbies, media] of [[-1, 3, 2], [30, 2, 1], [8, 0, 0]]) {
     const interests = await call('igMod', 'generateInterestSeeded', ['US', '', age, hobbies, media, '1']);
-    assert.equal(interests.country, 'US');
+    assert.equal(interests.country_code, 'US');
     assert.equal(interests.hobbies.length, hobbies);
     for (const key of ['films', 'games', 'books', 'music']) assert.equal(interests[key].length, media);
   }
   for (const status of ['employed', 'unemployed', 'student', 'retired', 'inactive']) {
     const occupation = await call('ogMod', 'generateOccupationSeeded', ['DE', 'female', 35, 'advanced', status, '1']);
-    assert.equal(occupation.country, 'DE');
+    assert.equal(occupation.country_code, 'DE');
     assert.equal(occupation.sex, 'female');
     assert.equal(occupation.age, 35);
     assert.equal(occupation.education, 'advanced');
@@ -134,14 +134,14 @@ export async function verifyRequestApis(call) {
   for (const country of ['', 'US', 'BR']) {
     for (const biodata of await call('bdMod', 'compareBiodata', [country]))
       assert.deepEqual(await call('bdMod', 'generateBiodataSeeded',
-        [biodata.country, biodata.sex, -1, biodata.signature.seed]), biodata);
+        [biodata.country_code, biodata.sex, -1, biodata.signature.seed]), biodata);
     for (const sex of ['', 'male', 'female']) {
       for (const { age, interest } of await call('igMod', 'compareAges', [country, sex]))
         assert.deepEqual(await call('igMod', 'generateInterestSeeded',
-          [interest.country, sex, age, 3, 2, interest.signature.seed]), interest);
+          [interest.country_code, sex, age, 3, 2, interest.signature.seed]), interest);
       for (const { education, occupation } of await call('ogMod', 'compareEducation', [country, sex]))
         assert.deepEqual(await call('ogMod', 'generateOccupationSeeded',
-          [occupation.country, occupation.sex, 35, education, 'employed', occupation.signature.seed]), occupation);
+          [occupation.country_code, occupation.sex, 35, education, 'employed', occupation.signature.seed]), occupation);
     }
   }
   const errors = [

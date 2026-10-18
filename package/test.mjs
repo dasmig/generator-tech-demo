@@ -48,7 +48,7 @@ for (let s = 0; s < 2000; ++s) {
   const json = personas.generateJson({ seed: s }).replace(/"admin1":"(?:[^"\\]|\\.)*"/, '"admin1":""');
   for (const byte of encoder.encode(json)) hash = ((hash ^ BigInt(byte)) * 0x100000001b3n) & mask;
 }
-assert.equal(hash.toString(16), '948572c821a722c4');
+assert.equal(hash.toString(16), '7473373b067d7eca');
 
 // Admin1 names are embedded.
 assert.equal(personas.generate({ country: 'BR', seed: 1 }).admin1.length > 0, true);
