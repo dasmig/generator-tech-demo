@@ -244,15 +244,15 @@ try {
   for (const country of ['', 'US', 'BR']) {
     const biodata = await evaluate(`JSON.parse(bdMod.compareBiodata('${country}'))`);
     assert.deepEqual(biodata.map(value => value.sex), ['male', 'female']);
-    assert.equal(biodata[0].country, biodata[1].country);
-    if (country) assert.equal(biodata[0].country, country);
+    assert.equal(biodata[0].country_code, biodata[1].country_code);
+    if (country) assert.equal(biodata[0].country_code, country);
     assert.equal(biodata[0].signature.seed, biodata[1].signature.seed);
     assert.ok(biodata.every(value => Number.isFinite(value.height_cm) && Number.isFinite(value.weight_kg)));
     for (const sex of ['', 'male', 'female']) {
       const interests = await evaluate(`JSON.parse(igMod.compareAges('${country}', '${sex}'))`);
       assert.deepEqual(interests.map(value => value.age), [8, 30, 72]);
-      assert.equal(new Set(interests.map(value => value.interest.country)).size, 1);
-      if (country) assert.equal(interests[0].interest.country, country);
+      assert.equal(new Set(interests.map(value => value.interest.country_code)).size, 1);
+      if (country) assert.equal(interests[0].interest.country_code, country);
       assert.equal(new Set(interests.map(value => value.interest.signature.seed)).size, 1);
       assert.equal(new Set(interests.map(value => value.interest.religion)).size, 1);
       for (const value of interests) {
@@ -266,10 +266,10 @@ try {
     for (const sex of ['', 'male', 'female']) {
       const jobs = await evaluate(`JSON.parse(ogMod.compareEducation('${country}', '${sex}'))`);
       assert.deepEqual(jobs.map(value => value.education), ['less_than_basic', 'basic', 'intermediate', 'advanced']);
-      for (const field of ['country', 'sex']) {
+      for (const field of ['country_code', 'sex']) {
         assert.equal(new Set(jobs.map(value => value.occupation[field])).size, 1);
       }
-      if (country) assert.equal(jobs[0].occupation.country, country);
+      if (country) assert.equal(jobs[0].occupation.country_code, country);
       assert.equal(new Set(jobs.map(value => value.occupation.signature.seed)).size, 1);
       assert.ok(jobs.every(value => value.occupation.status === 'employed' && value.occupation.age === 35 && value.occupation.job));
       assert.deepEqual(jobs.map(value => value.occupation.education), ['less_than_basic', 'basic', 'intermediate', 'advanced']);

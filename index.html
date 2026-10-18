@@ -1384,7 +1384,7 @@
       ['Field', ...data.map(item => item.sex)], fields.map(([label, key]) =>
         [label, ...data.map(item => typeof item[key] === 'number' ? item[key].toFixed(1) : item[key])]))
       + '<p class="note">Shared draw seed (hex): ' + esc(data[0].signature.seed) + '. No age input or health assessment.</p>';
-    return 'Compared two sex inputs with country ' + data[0].country + ' and the same draw seed.';
+    return 'Compared two sex inputs with country ' + data[0].country_code + ' and the same draw seed.';
   }));
 
   // ─── Interest Generator ───
@@ -1411,7 +1411,7 @@
           : item.interest[key])]))
       + '<p class="note">Fixed sex input: ' + esc(sex || 'unknown (no factor)')
       + ' · Shared draw seed (hex): ' + esc(data[0].interest.signature.seed) + '.</p>';
-    return 'Compared ages 8, 30 and 72 with country ' + data[0].interest.country + ', fixed sex input and seed.';
+    return 'Compared ages 8, 30 and 72 with country ' + data[0].interest.country_code + ', fixed sex input and seed.';
   }));
 
   // The countries a module can generate for, named by the browser (the library only has codes).
@@ -1490,9 +1490,9 @@
       ['Skills', item => item.occupation.job ? item.occupation.job.skills.join(', ') : '-']];
     byId('og-output').innerHTML = comparisonTable('Fictional occupations · only education input varies',
       ['Field', ...data.map(item => label(item.education))], rows.map(([name, value]) => [name, ...data.map(value)]))
-      + '<p class="note">Fixed: ' + esc(data[0].occupation.country) + ', ' + esc(data[0].occupation.sex) + ', age 35, employed · Shared draw seed (hex): '
+      + '<p class="note">Fixed: ' + esc(data[0].occupation.country_code) + ', ' + esc(data[0].occupation.sex) + ', age 35, employed · Shared draw seed (hex): '
       + esc(data[0].occupation.signature.seed) + '.</p>';
-    return 'Compared four education levels with country ' + data[0].occupation.country + ', fixed sex and seed.';
+    return 'Compared four education levels with country ' + data[0].occupation.country_code + ', fixed sex and seed.';
   }));
 
   // ─── City Generator ───
