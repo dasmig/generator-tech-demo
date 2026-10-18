@@ -27,91 +27,91 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: dasmig/name-generator
-          ref: v4.2.0
+          ref: v4.2.2
           path: name-generator
 
       - name: Checkout nickname-generator
         uses: actions/checkout@v4
         with:
           repository: dasmig/nickname-generator
-          ref: v3.1.0
+          ref: v3.1.2
           path: nickname-generator
 
       - name: Checkout entity-generator
         uses: actions/checkout@v4
         with:
           repository: dasmig/entity-generator
-          ref: v4.1.0
+          ref: v4.1.2
           path: entity-generator
 
       - name: Checkout country-generator
         uses: actions/checkout@v4
         with:
           repository: dasmig/country-generator
-          ref: v3.1.0
+          ref: v3.1.2
           path: country-generator
 
       - name: Checkout city-generator
         uses: actions/checkout@v4
         with:
           repository: dasmig/city-generator
-          ref: v4.1.0
+          ref: v4.1.2
           path: city-generator
 
       - name: Checkout birth-generator
         uses: actions/checkout@v4
         with:
           repository: dasmig/birth-generator
-          ref: v3.1.0
+          ref: v3.1.2
           path: birth-generator
 
       - name: Checkout biodata-generator
         uses: actions/checkout@v4
         with:
           repository: dasmig/biodata-generator
-          ref: v4.0.0
+          ref: v4.0.1
           path: biodata-generator
 
       - name: Checkout interest-generator
         uses: actions/checkout@v4
         with:
           repository: dasmig/interest-generator
-          ref: v3.0.0
+          ref: v3.0.1
           path: interest-generator
 
       - name: Checkout trait-generator
         uses: actions/checkout@v4
         with:
           repository: dasmig/trait-generator
-          ref: v2.1.0
+          ref: v2.1.2
           path: trait-generator
 
       - name: Checkout occupation-generator
         uses: actions/checkout@v4
         with:
           repository: dasmig/occupation-generator
-          ref: v3.0.0
+          ref: v3.0.1
           path: occupation-generator
 
       - name: Checkout persona-generator
         uses: actions/checkout@v4
         with:
           repository: dasmig/persona-generator
-          ref: v2.0.0
+          ref: v2.0.1
           path: persona-generator
 
       - name: Checkout phone-generator
         uses: actions/checkout@v4
         with:
           repository: dasmig/phone-generator
-          ref: v2.1.0
+          ref: v2.1.1
           path: phone-generator
 
       - name: Checkout email-generator
         uses: actions/checkout@v4
         with:
           repository: dasmig/email-generator
-          ref: v2.1.0
+          ref: v2.1.1
           path: email-generator
 
       - name: Setup Emscripten
