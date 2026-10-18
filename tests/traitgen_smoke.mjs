@@ -306,14 +306,15 @@ try {
     const mail = await evaluate(`JSON.parse(emMod.generateEmail('${country}', 'Zoë', 'Müller', 'zm', 1988, true))`);
     assert.equal(mail.error, undefined, mail.error);
     assert.ok(reserved.has(mail.Domain));
-    assert.equal(mail['Domain kind'], 'reserved');
+    assert.equal(mail['Reserved for fiction'], true);
+    assert.equal(mail['Domain kind'], '-');
     assert.match(mail['Local part'], /^[a-z0-9]([a-z0-9._-]*[a-z0-9])?$/);
     if (country) assert.equal(mail.Country, country);
   }
   const countries = await evaluate(`JSON.parse(emMod.compareCountries('Ana', 'da Silva', '', 1990, false))`);
   assert.deepEqual(countries.map(item => item.country), ['US', 'DE', 'BR', 'JP', 'CN', 'RU', 'FR', 'EG']);
   assert.equal(new Set(countries.map(item => item.email.signature.seed)).size, 1);
-  assert.ok(countries.every(item => item.email.country === item.country));
+  assert.ok(countries.every(item => item.email.country_code === item.country));
   for (const expression of ["phMod.generatePhone('XX', '', false)", "phMod.compareSafe('XX', '')",
     "phMod.generatePhone('US', 'cell', false)", "emMod.generateEmail('XX', '', '', '', 0, false)"]) {
     assert.ok(await evaluate(`JSON.parse(${expression}).error`), 'Invalid phone or email input must report an error');

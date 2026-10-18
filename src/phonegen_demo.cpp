@@ -32,7 +32,7 @@ std::string describe(const dasmig::phone& phone)
 {
     dasmig::core::json_writer writer;
     writer.begin_object()
-        .field("Country", phone.country)
+        .field("Country", phone.country_code)
         .field("Type", phone.type == dasmig::phone_type::mobile ? "mobile" : "fixed line")
         .field("International", phone.international())
         .field("National", phone.national())
@@ -73,7 +73,7 @@ std::string compare_safe(const std::string& country, const std::string& type)
         auto& gen = dasmig::phg::instance();
         auto request = make_request(country, type, false);
         const auto anchor = gen.get_phone(request);
-        request.country = anchor.country;
+        request.country = anchor.country_code;
         dasmig::core::json_writer writer;
         writer.begin_array();
         for (const bool safe : {false, true})

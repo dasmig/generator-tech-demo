@@ -4,7 +4,7 @@ Live WebAssembly demos for the [name-generator](https://github.com/dasmig/name-g
 
 Everything runs client-side in the browser — no server required.
 
-The demos use the libraries' releases on [dasmig-core 1.1](https://github.com/dasmig/dasmig-core): name-generator v4.2.0, city-generator v4.1.0, entity-generator v4.1.0, nickname-generator, country-generator, birth-generator and biodata-generator v3.1.0, interest-generator and trait-generator v2.1.0, occupation-generator v2.2.0, phone-generator and email-generator v1.0.1, and persona-generator v1.2.0, all with the **request-first API**. Every generation call supplies the library's request struct; deterministic calls supply the request followed by a call seed, without generator-wide seed or option controls. Their `lite` data is compiled into the modules (`DASMIG_*_EMBED`), so the same seed, inputs, date and data give the same result here as in a native build. The standalone birth demo accepts an **Age as of** reference date (1900–2100), defaulting to today's local date. Each draw generates a birthday and its completed-year age relative to that date; changing the reference does not age a previously generated birthday. The persona demo passes today's date (`src/today.hpp`) as its request's reference date. The libraries never read the clock themselves.
+The demos use the libraries' releases on [dasmig-core 1.1](https://github.com/dasmig/dasmig-core): name-generator v4.2.0, city-generator v4.1.0, entity-generator v4.1.0, nickname-generator, country-generator, birth-generator and biodata-generator v3.1.0, interest-generator and trait-generator v2.1.0, occupation-generator v2.2.0, phone-generator and email-generator v2.0.0, and persona-generator v1.2.0, all with the **request-first API**. Every generation call supplies the library's request struct; deterministic calls supply the request followed by a call seed, without generator-wide seed or option controls. Their `lite` data is compiled into the modules (`DASMIG_*_EMBED`), so the same seed, inputs, date and data give the same result here as in a native build. The standalone birth demo accepts an **Age as of** reference date (1900–2100), defaulting to today's local date. Each draw generates a birthday and its completed-year age relative to that date; changing the reference does not age a previously generated birthday. The persona demo passes today's date (`src/today.hpp`) as its request's reference date. The libraries never read the clock themselves.
 
 `.github/workflows/deploy.yml` checks out these release tags, so the site changes only when a tag moves. Advance the tags and smoke expectations together when adopting a newer API or dataset:
 
@@ -16,8 +16,7 @@ The demos use the libraries' releases on [dasmig-core 1.1](https://github.com/da
 | nickname-generator, country-generator, birth-generator, biodata-generator | v3.1.0 |
 | interest-generator, trait-generator | v2.1.0 |
 | occupation-generator | v2.2.0 |
-| phone-generator | v1.0.1 |
-| email-generator | v1.0.1 |
+| phone-generator, email-generator | v2.0.0 |
 | persona-generator | v1.2.0 |
 
 ## Prerequisites

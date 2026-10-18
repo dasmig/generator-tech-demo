@@ -1470,13 +1470,13 @@
 
   byId('ph-compare').addEventListener('click', () => runDemo('ph', () => {
     const data = parseResult(phMod.compareSafe(byId('ph-country').value, byId('ph-type').value));
-    const fields = [['Country', 'country'], ['Type', 'type'], ['International', 'international'],
+    const fields = [['Country', 'country_code'], ['Type', 'type'], ['International', 'international'],
       ['National', 'national'], ['E.164', 'e164'], ['Reserved for fiction', 'reserved']];
     byId('ph-output').innerHTML = comparisonTable('Fictional phone numbers · only the safe option varies',
       ['Field', ...data.map(item => item.safe ? 'Safe' : 'Any valid number')], fields.map(([label, key]) =>
         [label, ...data.map(item => typeof item.phone[key] === 'boolean' ? (item.phone[key] ? 'Yes' : 'No') : item.phone[key])]))
       + '<p class="note">Shared draw seed (hex): ' + esc(data[0].phone.signature.seed) + '. A number that is not reserved is valid in the plan but may belong to someone.</p>';
-    return 'Compared the safe option in ' + data[0].phone.country + ' with the same seed.';
+    return 'Compared the safe option in ' + data[0].phone.country_code + ' with the same seed.';
   }));
 
   // ─── Email Generator ───
@@ -1498,7 +1498,7 @@
   byId('em-compare').addEventListener('click', () => runDemo('em', () => {
     const data = parseResult(emMod.compareCountries(...emailInputs()));
     byId('em-output').innerHTML = comparisonTable('Fictional email addresses · only the country varies',
-      ['Country', 'Address', 'Domain kind'], data.map(item => [item.country, item.email.address, item.email.kind]))
+      ['Country', 'Address', 'Domain kind'], data.map(item => [item.country, item.email.address, item.email.reserved ? 'reserved' : item.email.kind]))
       + '<p class="note">Shared draw seed (hex): ' + esc(data[0].email.signature.seed) + '. Styles and domains follow each country; the name is the same.</p>';
     return 'Compared eight countries with the same name inputs and seed.';
   }));
