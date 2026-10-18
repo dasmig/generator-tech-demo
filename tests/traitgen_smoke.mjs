@@ -281,6 +281,14 @@ try {
   const worker = await evaluate(`JSON.parse(ogMod.generateOccupation('DE', 'male', 42, 'advanced'))`);
   assert.equal(worker.Education, 'advanced');
   assert.equal(worker.Country, 'DE');
+  for (const [select, mod] of [['ph-country', 'phMod'], ['em-country', 'emMod']]) {
+    const listed = await evaluate(`JSON.parse(${mod}.supportedCountries())`);
+    assert.equal(listed.length, 195);
+    assert.deepEqual(await evaluate(`Array.from(byId('${select}').options, option => option.value).filter(Boolean).sort()`),
+      [...listed].sort(), "The country list must be the library's own");
+    assert.equal(await evaluate(`byId('${select}').options[0].value`), '');
+    assert.equal(await evaluate(`Array.from(byId('${select}').options).find(option => option.value === 'BR').textContent`), 'Brazil');
+  }
   for (const country of ['', 'US', 'GB', 'BR', 'DE']) {
     for (const type of ['', 'mobile', 'fixed']) {
       const phone = await evaluate(`JSON.parse(phMod.generatePhone('${country}', '${type}', false))`);

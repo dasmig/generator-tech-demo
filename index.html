@@ -943,28 +943,6 @@
         <label for="ph-country">Country</label>
         <select id="ph-country">
           <option value="">Any</option>
-          <option value="US">United States</option>
-          <option value="BR">Brazil</option>
-          <option value="GB">United Kingdom</option>
-          <option value="DE">Germany</option>
-          <option value="FR">France</option>
-          <option value="JP">Japan</option>
-          <option value="CN">China</option>
-          <option value="IN">India</option>
-          <option value="AU">Australia</option>
-          <option value="CA">Canada</option>
-          <option value="IT">Italy</option>
-          <option value="ES">Spain</option>
-          <option value="MX">Mexico</option>
-          <option value="KR">South Korea</option>
-          <option value="RU">Russia</option>
-          <option value="ZA">South Africa</option>
-          <option value="NG">Nigeria</option>
-          <option value="EG">Egypt</option>
-          <option value="AR">Argentina</option>
-          <option value="SE">Sweden</option>
-          <option value="SA">Saudi Arabia</option>
-          <option value="ID">Indonesia</option>
         </select>
       </div>
       <div class="field">
@@ -1005,28 +983,6 @@
         <label for="em-country">Country</label>
         <select id="em-country">
           <option value="">Any</option>
-          <option value="US">United States</option>
-          <option value="BR">Brazil</option>
-          <option value="GB">United Kingdom</option>
-          <option value="DE">Germany</option>
-          <option value="FR">France</option>
-          <option value="JP">Japan</option>
-          <option value="CN">China</option>
-          <option value="IN">India</option>
-          <option value="AU">Australia</option>
-          <option value="CA">Canada</option>
-          <option value="IT">Italy</option>
-          <option value="ES">Spain</option>
-          <option value="MX">Mexico</option>
-          <option value="KR">South Korea</option>
-          <option value="RU">Russia</option>
-          <option value="ZA">South Africa</option>
-          <option value="NG">Nigeria</option>
-          <option value="EG">Egypt</option>
-          <option value="AR">Argentina</option>
-          <option value="SE">Sweden</option>
-          <option value="SA">Saudi Arabia</option>
-          <option value="ID">Indonesia</option>
         </select>
       </div>
       <div class="field">
@@ -1458,9 +1414,19 @@
     return 'Compared ages 8, 30 and 72 with country ' + data[0].interest.country + ', fixed sex input and seed.';
   }));
 
+  // The countries a module can generate for, named by the browser (the library only has codes).
+  function fillCountries(selectId, mod) {
+    const names = new Intl.DisplayNames(['en'], { type: 'region' });
+    const label = code => { try { return names.of(code) || code; } catch (error) { return code; } };
+    const select = byId(selectId);
+    JSON.parse(mod.supportedCountries()).map(code => [label(code), code])
+      .sort((a, b) => a[0].localeCompare(b[0]))
+      .forEach(([name, code]) => select.add(new Option(name, code)));
+  }
+
   // ─── Phone Generator ───
   let phMod = null;
-  loadDemo('ph', () => createPhonegenModule(), mod => mod.init(), mod => { phMod = mod; }, 'number plans loaded.');
+  loadDemo('ph', () => createPhonegenModule(), mod => mod.init(), mod => { phMod = mod; fillCountries('ph-country', mod); }, 'number plans loaded.');
 
   byId('ph-generate').addEventListener('click', () => {
     if (!phMod) return;
@@ -1481,7 +1447,7 @@
 
   // ─── Email Generator ───
   let emMod = null;
-  loadDemo('em', () => createEmailgenModule(), mod => mod.init(), mod => { emMod = mod; }, 'styles and providers loaded.');
+  loadDemo('em', () => createEmailgenModule(), mod => mod.init(), mod => { emMod = mod; fillCountries('em-country', mod); }, 'styles and providers loaded.');
 
   function emailInputs() {
     const year = byId('em-year').value.trim();

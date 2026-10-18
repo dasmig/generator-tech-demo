@@ -94,11 +94,22 @@ std::string compare_countries(const std::string& given, const std::string& famil
     catch (const std::runtime_error& error) { return demo_error(error.what()); }
 }
 
+// The country codes the library can generate for, as a JSON array.
+std::string supported_countries()
+{
+    dasmig::core::json_writer writer;
+    writer.begin_array();
+    for (const auto& code : dasmig::emg::instance().countries()) writer.value(code);
+    writer.end_array();
+    return writer.str();
+}
+
 } // namespace
 
 EMSCRIPTEN_BINDINGS(emailgen_demo)
 {
     emscripten::function("init", &init);
+    emscripten::function("supportedCountries", &supported_countries);
     emscripten::function("generateEmail", &generate_email);
     emscripten::function("generateEmailSeeded", &generate_email_seeded);
     emscripten::function("compareCountries", &compare_countries);
