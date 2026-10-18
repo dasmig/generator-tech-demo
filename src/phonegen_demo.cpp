@@ -90,11 +90,22 @@ std::string compare_safe(const std::string& country, const std::string& type)
     catch (const std::runtime_error& error) { return demo_error(error.what()); }
 }
 
+// The country codes the library can generate for, as a JSON array.
+std::string supported_countries()
+{
+    dasmig::core::json_writer writer;
+    writer.begin_array();
+    for (const auto& code : dasmig::phg::instance().countries()) writer.value(code);
+    writer.end_array();
+    return writer.str();
+}
+
 } // namespace
 
 EMSCRIPTEN_BINDINGS(phonegen_demo)
 {
     emscripten::function("init", &init);
+    emscripten::function("supportedCountries", &supported_countries);
     emscripten::function("generatePhone", &generate_phone);
     emscripten::function("generatePhoneSeeded", &generate_phone_seeded);
     emscripten::function("compareSafe", &compare_safe);
