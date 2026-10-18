@@ -1,7 +1,7 @@
 // Tests the assembled npm package's Node entry: node package/test.mjs build/package
 // (package/browser-test.mjs tests the browser entry).
 //
-// The known answers are persona-generator v1.2.0's (tests/tests.cpp), so a
+// The known answers are persona-generator v3.0.0's (tests/tests.cpp), so a
 // pass means the WebAssembly build gives the same personas as a native one.
 import assert from 'node:assert/strict';
 import path from 'node:path';
@@ -48,7 +48,7 @@ for (let s = 0; s < 2000; ++s) {
   const json = personas.generateJson({ seed: s }).replace(/"admin1":"(?:[^"\\]|\\.)*"/, '"admin1":""');
   for (const byte of encoder.encode(json)) hash = ((hash ^ BigInt(byte)) * 0x100000001b3n) & mask;
 }
-assert.equal(hash.toString(16), '7473373b067d7eca');
+assert.equal(hash.toString(16), '51137464edc90c7c');
 
 // Admin1 names are embedded.
 assert.equal(personas.generate({ country: 'BR', seed: 1 }).admin1.length > 0, true);
@@ -192,4 +192,4 @@ await assert.rejects(createPersonaPool({ workers: 0 }), RangeError);
 await assert.rejects(createPersonaPool({ workers: 1.5 }), TypeError);
 await assert.rejects(createPersonaPool({ threads: 2 }), TypeError);
 
-console.log('PASS: @dasmig/persona matches persona-generator v1.2.0 known answers (5 personas, 2,000-document hash), replay, requests, errors, batches and worker pools.');
+console.log('PASS: @dasmig/persona matches persona-generator v3.0.0 known answers (5 personas, 2,000-document hash), replay, requests, errors, batches and worker pools.');
