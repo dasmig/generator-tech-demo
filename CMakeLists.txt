@@ -24,6 +24,7 @@ set(TRAIT_GEN_DIR "${CMAKE_SOURCE_DIR}/../trait-generator" CACHE PATH "Path to t
 set(OCCUPATION_GEN_DIR "${CMAKE_SOURCE_DIR}/../occupation-generator" CACHE PATH "Path to occupation-generator repo")
 set(PHONE_GEN_DIR "${CMAKE_SOURCE_DIR}/../phone-generator" CACHE PATH "Path to phone-generator repo")
 set(EMAIL_GEN_DIR "${CMAKE_SOURCE_DIR}/../email-generator" CACHE PATH "Path to email-generator repo")
+set(ADDRESS_GEN_DIR "${CMAKE_SOURCE_DIR}/../address-generator" CACHE PATH "Path to address-generator repo")
 set(PERSONA_GEN_DIR "${CMAKE_SOURCE_DIR}/../persona-generator" CACHE PATH "Path to persona-generator repo")
 
 # ── Wasm modules ──
@@ -167,6 +168,21 @@ target_link_options(emailgen_demo PRIVATE
   -sEXPORTED_RUNTIME_METHODS=['UTF8ToString','stringToUTF8']
   -sMODULARIZE=1
   -sEXPORT_NAME=createEmailgenModule
+  -sENVIRONMENT=web
+)
+
+# address-generator demo: the data is a pack the page writes into /pack
+# (see scripts/make_web_pack.py in address-generator), not compiled in
+add_executable(addressgen_demo src/addressgen_demo.cpp)
+target_include_directories(addressgen_demo PRIVATE "${ADDRESS_GEN_DIR}")
+target_link_options(addressgen_demo PRIVATE
+  --bind
+  -sWASM=1
+  -sALLOW_MEMORY_GROWTH=1
+  -sFORCE_FILESYSTEM=1
+  -sEXPORTED_RUNTIME_METHODS=['UTF8ToString','stringToUTF8','FS']
+  -sMODULARIZE=1
+  -sEXPORT_NAME=createAddressgenModule
   -sENVIRONMENT=web
 )
 
