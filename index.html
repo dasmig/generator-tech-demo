@@ -1002,6 +1002,56 @@
     <div class="status" id="ad-status">Loading WebAssembly…</div>
   </div>
 
+  <!-- ─── User Generator ─── -->
+  <div class="demo-card" id="usergen-card">
+    <h2>user-generator</h2>
+    <p class="desc">
+      Generate fictional user accounts for apps and test data: a person with a username, email, phone number and postal address that agree on the country, plus a password, sign-up and last-login times, a platform, a locale and a time zone.
+      The safe option uses reserved example domains and, where a country has one, a phone number from the range set aside for fiction. Outputs are synthetic; the passwords are test data, never real credentials.
+      <a class="repo-link" href="https://github.com/dasmig/user-generator" target="_blank" rel="noopener">GitHub →</a>
+    </p>
+    <div class="controls">
+      <div class="field">
+        <label for="us-country">Country</label>
+        <select id="us-country">
+          <option value="">Any</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="us-sex">Sex</label>
+        <select id="us-sex">
+          <option value="">Any</option>
+          <option value="female">Female</option>
+          <option value="male">Male</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="us-account">Account status</label>
+        <select id="us-account">
+          <option value="">Any</option>
+          <option value="active">Active</option>
+          <option value="inactive">Inactive</option>
+          <option value="unverified">Unverified</option>
+          <option value="suspended">Suspended</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="us-safe">Safe for tests</label>
+        <select id="us-safe">
+          <option value="yes">Yes (reserved contacts)</option>
+          <option value="no">No (any valid contacts)</option>
+        </select>
+      </div>
+      <button class="btn" id="us-generate" disabled>Generate</button>
+      <button class="btn secondary" id="us-compare" disabled>Compare safe</button>
+    </div>
+    <p class="note">The 100 countries listed are the ones every part has data for. “Any” picks one uniformly in this demo, so its streets can be fetched first; the library itself draws by population. Ages are as of today. Compare safe draws one call seed and shows the same person with and without the safe option.</p>
+    <div id="us-output">
+      <div class="output empty">Waiting for module to load…</div>
+    </div>
+    <div class="status" id="us-status">Loading WebAssembly…</div>
+  </div>
+
   <!-- ─── Email Generator ─── -->
   <div class="demo-card" id="emailgen-card">
     <h2>email-generator</h2>
@@ -1182,12 +1232,13 @@
 <script src="phonegen_demo.js"></script>
 <script src="emailgen_demo.js"></script>
 <script src="addressgen_demo.js"></script>
+<script src="usergen_demo.js"></script>
 <script src="traitgen_demo.js"></script>
 <script src="personagen_demo.js"></script>
 
 <script>
   const byId = id => document.getElementById(id);
-  for (const prefix of ['pg', 'ng', 'nng', 'eg', 'bg', 'bd', 'ig', 'og', 'ph', 'em', 'ad', 'tg', 'cg', 'ctg']) {
+  for (const prefix of ['pg', 'ng', 'nng', 'eg', 'bg', 'bd', 'ig', 'og', 'ph', 'em', 'ad', 'us', 'tg', 'cg', 'ctg']) {
     byId(prefix + '-status').setAttribute('role', 'status');
     byId(prefix + '-output').setAttribute('aria-live', 'polite');
     byId(prefix + '-output').setAttribute('aria-atomic', 'true');
@@ -1478,15 +1529,14 @@
     return 'Compared the safe option in ' + data[0].phone.country_code + ' with the same seed.';
   }));
 
-  // ─── Address Generator ───
-  // The data is a pack: the shared tables are written into the module's /pack at start,
-  // and a country's street file is fetched the first time that country is used.
-  let adMod = null;
-  const adFetched = new Set();
+  // ─── Address data pack ───
+  // address-generator's data is a pack: the shared tables are written into a module's /pack at
+  // start, and a country's street file is fetched the first time that country is used. The
+  // address and user pages each load their own module, so each keeps its own set of fetched files.
   const adPack = 'address-pack/';
 
-  async function adCreate() {
-    const mod = await createAddressgenModule();
+  async function packCreate(factory) {
+    const mod = await factory();
     const response = await fetch(adPack + 'files.json');
     if (!response.ok) throw new Error('The address data pack was not found.');
     const files = await response.json();
@@ -1500,13 +1550,19 @@
     return mod;
   }
 
-  async function adEnsure(code) {
-    if (!code || adFetched.has(code) || !adMod.hasStreetFile(code)) return;
+  async function packEnsure(mod, fetched, code) {
+    if (!code || fetched.has(code) || !mod.hasStreetFile(code)) return;
     const file = await fetch(adPack + 'core/streets/' + code + '.tsv');
     if (!file.ok) throw new Error('Could not load the streets of ' + code + '.');
-    adMod.FS.writeFile('/pack/streets/' + code + '.tsv', new Uint8Array(await file.arrayBuffer()));
-    adFetched.add(code);
+    mod.FS.writeFile('/pack/streets/' + code + '.tsv', new Uint8Array(await file.arrayBuffer()));
+    fetched.add(code);
   }
+
+  // ─── Address Generator ───
+  let adMod = null;
+  const adFetched = new Set();
+  const adCreate = () => packCreate(() => createAddressgenModule());
+  const adEnsure = code => packEnsure(adMod, adFetched, code);
 
   // The chosen country, or one drawn from the countries the library has.
   function adCountry() {
@@ -1546,6 +1602,56 @@
         [label, ...data.map(item => item.address[key] || '-')]))
       + '<p class="note">Shared draw seed (hex): ' + esc(data[0].address.signature.seed) + '.</p>';
     return 'Compared the scripts in ' + code + ' with the same seed.';
+  }));
+
+  // ─── User Generator ───
+  // Six libraries' data is compiled in; the addresses come from the pack, so a country's
+  // street file is fetched before a user is generated for it.
+  let usMod = null;
+  const usFetched = new Set();
+  const usCreate = () => packCreate(() => createUsergenModule());
+  const usEnsure = code => packEnsure(usMod, usFetched, code);
+
+  // The chosen country, or one drawn from the countries the library has data for in every part.
+  function usCountry() {
+    const chosen = byId('us-country').value;
+    if (chosen) return chosen;
+    const codes = JSON.parse(usMod.supportedCountries());
+    return codes[Math.floor(Math.random() * codes.length)];
+  }
+
+  async function usRun(generate) {
+    const code = usCountry();
+    byId('us-status').textContent = 'Loading the streets of ' + code + '…';
+    byId('us-status').className = 'status';
+    try {
+      await usEnsure(code);
+    } catch (error) {
+      byId('us-output').innerHTML = '<div class="output empty">No result generated.</div>';
+      byId('us-status').textContent = 'Generation failed: ' + error.message + ' Check the connection and try again.';
+      byId('us-status').className = 'status error';
+      return;
+    }
+    runDemo('us', () => generate(code));
+  }
+
+  loadDemo('us', usCreate, mod => mod.init(), mod => { usMod = mod; fillCountries('us-country', mod); }, 'account data and address tables loaded; streets load per country.');
+
+  byId('us-generate').addEventListener('click', () => usRun(code => {
+    renderTable('us-output', parseResult(usMod.generateUser(code, byId('us-sex').value,
+      byId('us-safe').value === 'yes', byId('us-account').value)));
+    return 'Generated a user in ' + code + '.';
+  }));
+
+  byId('us-compare').addEventListener('click', () => usRun(code => {
+    const data = parseResult(usMod.compareSafe(code, byId('us-sex').value, byId('us-account').value));
+    const fields = [['Name', u => u.name], ['Username', u => u.account.username], ['Email', u => u.email.address],
+      ['Phone', u => u.phone.international], ['Address', u => u.address.formatted]];
+    byId('us-output').innerHTML = comparisonTable('Fictional user in ' + code + ' · only the safe option varies',
+      ['Field', ...data.map(item => item.safe ? 'Safe' : 'Any valid contacts')], fields.map(([label, value]) =>
+        [label, ...data.map(item => value(item.user) || '-')]))
+      + '<p class="note">Shared draw seed (hex): ' + esc(data[0].user.signature.seed) + '. Only the email domain and the phone number change; the person, username and address stay.</p>';
+    return 'Compared the safe option in ' + code + ' with the same seed.';
   }));
 
   // ─── Email Generator ───

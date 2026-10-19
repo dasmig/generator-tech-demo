@@ -351,6 +351,40 @@ try {
   await evaluate(`byId('ad-country').value = 'PT'; byId('ad-generate').click()`);
   await waitFor(() => evaluate('byId("ad-output").querySelectorAll("tbody tr").length > 0'), 'address table');
   assert.match(await evaluate('byId("ad-status").textContent'), /Generated an address in PT/);
+  // The user page: six libraries' data compiled in, addresses from the pack.
+  const userCountries = await evaluate('JSON.parse(usMod.supportedCountries())');
+  assert.ok(userCountries.length >= 50 && ['PT', 'US', 'JP', 'BR'].every(code => userCountries.includes(code)));
+  assert.ok(userCountries.every(code => addressCountries.includes(code)), 'Users are only offered for countries with addresses');
+  assert.ok((await evaluate('JSON.parse(usMod.generateUser("PT", "", true, ""))')).error,
+    'A country whose street file was not fetched must report an error');
+  for (const [country, sex] of [['PT', 'female'], ['US', 'male'], ['JP', ''], ['BR', '']]) {
+    const user = await evaluate(`(async () => { await usEnsure('${country}');
+      return JSON.parse(usMod.generateUser('${country}', '${sex}', true, '')); })()`);
+    assert.equal(user.error, undefined, user.error);
+    assert.ok(user.Name && user.Username && user.Password && user.Address && user.Locale);
+    assert.match(user.Email, /@example\.(com|net|org)$/, 'Safe users get a reserved email domain');
+    if (sex) assert.equal(user.Sex, sex);
+  }
+  assert.equal(await evaluate('usFetched.size'), 4, 'Only the countries asked for were fetched');
+  const seededUser = () => evaluate(`JSON.parse(usMod.generateUserSeeded('PT', 'female', true, 'active', '2a'))`);
+  const first = await seededUser();
+  assert.deepEqual(await seededUser(), first, 'A seed replays the same user');
+  assert.equal(first.account.status, 'active');
+  assert.equal(first.address.country_code, 'PT');
+  assert.equal(first.country.code, 'PT');
+  const safePair = await evaluate(`JSON.parse(usMod.compareSafe('PT', '', ''))`);
+  assert.deepEqual(safePair.map(item => item.safe), [false, true]);
+  assert.equal(safePair[0].user.name, safePair[1].user.name);
+  assert.equal(safePair[0].user.address.formatted, safePair[1].user.address.formatted);
+  assert.equal(safePair[0].user.signature.seed, safePair[1].user.signature.seed);
+  assert.match(safePair[1].user.email.address, /@example\.(com|net|org)$/);
+  for (const expression of ["usMod.generateUser('XX', '', true, '')", "usMod.generateUser('PT', 'robot', true, '')",
+    "usMod.generateUser('', '', true, '')", "usMod.generateUser('PT', '', true, 'banned')"]) {
+    assert.ok(await evaluate(`JSON.parse(${expression}).error`), 'Invalid user input must report an error: ' + expression);
+  }
+  await evaluate(`byId('us-country').value = 'PT'; byId('us-generate').click()`);
+  await waitFor(() => evaluate('byId("us-output").querySelectorAll("tbody tr").length > 0'), 'user table');
+  assert.match(await evaluate('byId("us-status").textContent'), /Generated a user in PT/);
   await evaluate(`byId('em-given').value = 'Zoë'; byId('em-family').value = 'Müller'; byId('em-year').value = '1988';
     byId('ph-country').value = 'GB'; byId('ph-compare').click(); byId('em-compare').click()`);
   assert.match(await evaluate('byId("ph-output").textContent'), /only the safe option varies/);

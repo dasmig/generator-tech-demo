@@ -122,6 +122,13 @@ jobs:
           ref: 434e0d4a9ad92e6510bfb4992495b9140d332c12 # merge of the pack script (PR 6); move to a tag at the next address-generator release
           path: address-generator
 
+      - name: Checkout user-generator
+        uses: actions/checkout@v4
+        with:
+          repository: dasmig/user-generator
+          ref: v1.0.0
+          path: user-generator
+
       - name: Setup Emscripten
         uses: mymindstorm/setup-emsdk@v14
         with:
@@ -143,6 +150,7 @@ jobs:
           -DPHONE_GEN_DIR=${{ github.workspace }}/phone-generator
           -DEMAIL_GEN_DIR=${{ github.workspace }}/email-generator
           -DADDRESS_GEN_DIR=${{ github.workspace }}/address-generator
+          -DUSER_GEN_DIR=${{ github.workspace }}/user-generator
           -DPERSONA_GEN_DIR=${{ github.workspace }}/persona-generator
 
       - name: Build

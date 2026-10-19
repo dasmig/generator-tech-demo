@@ -25,6 +25,7 @@ set(OCCUPATION_GEN_DIR "${CMAKE_SOURCE_DIR}/../occupation-generator" CACHE PATH 
 set(PHONE_GEN_DIR "${CMAKE_SOURCE_DIR}/../phone-generator" CACHE PATH "Path to phone-generator repo")
 set(EMAIL_GEN_DIR "${CMAKE_SOURCE_DIR}/../email-generator" CACHE PATH "Path to email-generator repo")
 set(ADDRESS_GEN_DIR "${CMAKE_SOURCE_DIR}/../address-generator" CACHE PATH "Path to address-generator repo")
+set(USER_GEN_DIR "${CMAKE_SOURCE_DIR}/../user-generator" CACHE PATH "Path to user-generator repo")
 set(PERSONA_GEN_DIR "${CMAKE_SOURCE_DIR}/../persona-generator" CACHE PATH "Path to persona-generator repo")
 
 # ── Wasm modules ──
@@ -183,6 +184,34 @@ target_link_options(addressgen_demo PRIVATE
   -sEXPORTED_RUNTIME_METHODS=['UTF8ToString','stringToUTF8','FS']
   -sMODULARIZE=1
   -sEXPORT_NAME=createAddressgenModule
+  -sENVIRONMENT=web
+)
+
+# user-generator demo: six libraries' lite data is compiled in; address-generator's
+# is a pack the page writes into /pack, as for the address demo
+set(USER_INCLUDE_DIRS
+  "${USER_GEN_DIR}"
+  "${COUNTRY_GEN_DIR}"
+  "${BIRTH_GEN_DIR}"
+  "${NAME_GEN_DIR}"
+  "${NICK_GEN_DIR}"
+  "${ADDRESS_GEN_DIR}"
+  "${PHONE_GEN_DIR}"
+  "${EMAIL_GEN_DIR}"
+)
+set(USER_EMBED DASMIG_COUNTRY_EMBED DASMIG_BIRTH_EMBED DASMIG_NAME_EMBED DASMIG_NICKNAME_EMBED
+  DASMIG_PHONE_EMBED DASMIG_EMAIL_EMBED DASMIG_USER_EMBED)
+add_executable(usergen_demo src/usergen_demo.cpp)
+target_include_directories(usergen_demo PRIVATE ${USER_INCLUDE_DIRS})
+target_compile_definitions(usergen_demo PRIVATE ${USER_EMBED})
+target_link_options(usergen_demo PRIVATE
+  --bind
+  -sWASM=1
+  -sALLOW_MEMORY_GROWTH=1
+  -sFORCE_FILESYSTEM=1
+  -sEXPORTED_RUNTIME_METHODS=['UTF8ToString','stringToUTF8','FS']
+  -sMODULARIZE=1
+  -sEXPORT_NAME=createUsergenModule
   -sENVIRONMENT=web
 )
 
