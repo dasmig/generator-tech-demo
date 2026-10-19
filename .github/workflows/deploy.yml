@@ -27,7 +27,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: dasmig/name-generator
-          ref: v4.2.2
+          ref: v4.3.0
           path: name-generator
 
       - name: Checkout nickname-generator
@@ -48,7 +48,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: dasmig/country-generator
-          ref: v3.1.2
+          ref: v3.2.0
           path: country-generator
 
       - name: Checkout city-generator
@@ -62,7 +62,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: dasmig/birth-generator
-          ref: v3.1.2
+          ref: v3.2.0
           path: birth-generator
 
       - name: Checkout biodata-generator
@@ -97,7 +97,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: dasmig/persona-generator
-          ref: v3.0.1
+          ref: v4.0.0
           path: persona-generator
 
       - name: Checkout phone-generator
@@ -119,14 +119,14 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: dasmig/address-generator
-          ref: 434e0d4a9ad92e6510bfb4992495b9140d332c12 # merge of the pack script (PR 6); move to a tag at the next address-generator release
+          ref: v2.1.0
           path: address-generator
 
       - name: Checkout user-generator
         uses: actions/checkout@v4
         with:
           repository: dasmig/user-generator
-          ref: v1.0.0
+          ref: v2.0.0
           path: user-generator
 
       - name: Setup Emscripten
