@@ -327,6 +327,30 @@ try {
     "phMod.generatePhone('US', 'cell', false)", "emMod.generateEmail('XX', '', '', '', 0, false)"]) {
     assert.ok(await evaluate(`JSON.parse(${expression}).error`), 'Invalid phone or email input must report an error');
   }
+  // The address data pack: tables at start, a country's streets on demand.
+  const addressCountries = await evaluate('JSON.parse(adMod.supportedCountries())');
+  assert.ok(addressCountries.length >= 200, 'The address module lists the countries it has data for');
+  assert.equal(await evaluate("adMod.streetsLoaded('PT')"), false, 'No street file is read before it is asked for');
+  assert.ok((await evaluate('JSON.parse(adMod.generateAddress("PT", "local"))')).error,
+    'A country whose street file was not fetched must report an error, not invent streets');
+  for (const [country, script] of [['PT', 'local'], ['US', 'local'], ['JP', 'latin'], ['BR', 'local']]) {
+    const address = await evaluate(`(async () => { await adEnsure('${country}');
+      return JSON.parse(adMod.generateAddress('${country}', '${script}')); })()`);
+    assert.equal(address.error, undefined, address.error);
+    assert.equal(address.Country, country);
+    assert.equal(address['Real street'], true);
+    assert.ok(address.Street && address.City && address.Address.includes(address.Street));
+  }
+  assert.equal(await evaluate('adFetched.size'), 4, 'Only the countries asked for were fetched');
+  assert.equal(await evaluate("adMod.streetsLoaded('DE')"), false);
+  const scripts = await evaluate(`(async () => { await adEnsure('JP'); return JSON.parse(adMod.compareScripts('JP')); })()`);
+  assert.deepEqual(scripts.map(item => item.script), ['local', 'latin']);
+  assert.equal(scripts[0].address.signature.seed, scripts[1].address.signature.seed);
+  assert.ok((await evaluate('JSON.parse(adMod.generateAddress("XX", "local"))')).error);
+  assert.ok((await evaluate('JSON.parse(adMod.generateAddress("PT", "cyrillic"))')).error);
+  await evaluate(`byId('ad-country').value = 'PT'; byId('ad-generate').click()`);
+  await waitFor(() => evaluate('byId("ad-output").querySelectorAll("tbody tr").length > 0'), 'address table');
+  assert.match(await evaluate('byId("ad-status").textContent'), /Generated an address in PT/);
   await evaluate(`byId('em-given').value = 'Zoë'; byId('em-family').value = 'Müller'; byId('em-year').value = '1988';
     byId('ph-country').value = 'GB'; byId('ph-compare').click(); byId('em-compare').click()`);
   assert.match(await evaluate('byId("ph-output").textContent'), /only the safe option varies/);

@@ -970,6 +970,38 @@
     <div class="status" id="ph-status">Loading WebAssembly…</div>
   </div>
 
+  <!-- ─── Address Generator ─── -->
+  <div class="demo-card" id="addressgen-card">
+    <h2>address-generator</h2>
+    <p class="desc">
+      Generate fictional postal addresses with real street names (from OpenStreetMap, weighted by how many addresses each street has), in each country's own layout and postcode format.
+      The street data is a data pack: the page loads the shared tables at start and a country's streets only when you ask for that country, so nothing you do not use is downloaded. Outputs are synthetic.
+      <a class="repo-link" href="https://github.com/dasmig/address-generator" target="_blank" rel="noopener">GitHub →</a>
+    </p>
+    <div class="controls">
+      <div class="field">
+        <label for="ad-country">Country</label>
+        <select id="ad-country">
+          <option value="">Any</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="ad-script">Script</label>
+        <select id="ad-script">
+          <option value="local">Local</option>
+          <option value="latin">Latin where available</option>
+        </select>
+      </div>
+      <button class="btn" id="ad-generate" disabled>Generate</button>
+      <button class="btn secondary" id="ad-compare" disabled>Compare scripts</button>
+    </div>
+    <p class="note">“Any” picks a country uniformly in this demo, so its streets can be fetched first; the library itself draws countries by population. Compare scripts draws one call seed and shows the address in the country's own layout and in the Latin one; only 14 countries have a Latin layout, and a street keeps its local name when the data has no Latin one.</p>
+    <div id="ad-output">
+      <div class="output empty">Waiting for module to load…</div>
+    </div>
+    <div class="status" id="ad-status">Loading WebAssembly…</div>
+  </div>
+
   <!-- ─── Email Generator ─── -->
   <div class="demo-card" id="emailgen-card">
     <h2>email-generator</h2>
@@ -1149,12 +1181,13 @@
 <script src="occupationgen_demo.js"></script>
 <script src="phonegen_demo.js"></script>
 <script src="emailgen_demo.js"></script>
+<script src="addressgen_demo.js"></script>
 <script src="traitgen_demo.js"></script>
 <script src="personagen_demo.js"></script>
 
 <script>
   const byId = id => document.getElementById(id);
-  for (const prefix of ['pg', 'ng', 'nng', 'eg', 'bg', 'bd', 'ig', 'og', 'ph', 'em', 'tg', 'cg', 'ctg']) {
+  for (const prefix of ['pg', 'ng', 'nng', 'eg', 'bg', 'bd', 'ig', 'og', 'ph', 'em', 'ad', 'tg', 'cg', 'ctg']) {
     byId(prefix + '-status').setAttribute('role', 'status');
     byId(prefix + '-output').setAttribute('aria-live', 'polite');
     byId(prefix + '-output').setAttribute('aria-atomic', 'true');
@@ -1443,6 +1476,76 @@
         [label, ...data.map(item => typeof item.phone[key] === 'boolean' ? (item.phone[key] ? 'Yes' : 'No') : item.phone[key])]))
       + '<p class="note">Shared draw seed (hex): ' + esc(data[0].phone.signature.seed) + '. A number that is not reserved is valid in the plan but may belong to someone.</p>';
     return 'Compared the safe option in ' + data[0].phone.country_code + ' with the same seed.';
+  }));
+
+  // ─── Address Generator ───
+  // The data is a pack: the shared tables are written into the module's /pack at start,
+  // and a country's street file is fetched the first time that country is used.
+  let adMod = null;
+  const adFetched = new Set();
+  const adPack = 'address-pack/';
+
+  async function adCreate() {
+    const mod = await createAddressgenModule();
+    const response = await fetch(adPack + 'files.json');
+    if (!response.ok) throw new Error('The address data pack was not found.');
+    const files = await response.json();
+    mod.FS.mkdir('/pack');
+    mod.FS.mkdir('/pack/streets');
+    await Promise.all(files.core.map(async name => {
+      const file = await fetch(adPack + 'core/' + name);
+      if (!file.ok) throw new Error('Could not load ' + name + '.');
+      mod.FS.writeFile('/pack/' + name, new Uint8Array(await file.arrayBuffer()));
+    }));
+    return mod;
+  }
+
+  async function adEnsure(code) {
+    if (!code || adFetched.has(code) || !adMod.hasStreetFile(code)) return;
+    const file = await fetch(adPack + 'core/streets/' + code + '.tsv');
+    if (!file.ok) throw new Error('Could not load the streets of ' + code + '.');
+    adMod.FS.writeFile('/pack/streets/' + code + '.tsv', new Uint8Array(await file.arrayBuffer()));
+    adFetched.add(code);
+  }
+
+  // The chosen country, or one drawn from the countries the library has.
+  function adCountry() {
+    const chosen = byId('ad-country').value;
+    if (chosen) return chosen;
+    const codes = JSON.parse(adMod.supportedCountries());
+    return codes[Math.floor(Math.random() * codes.length)];
+  }
+
+  async function adRun(generate) {
+    const code = adCountry();
+    byId('ad-status').textContent = 'Loading the streets of ' + code + '…';
+    byId('ad-status').className = 'status';
+    try {
+      await adEnsure(code);
+    } catch (error) {
+      byId('ad-output').innerHTML = '<div class="output empty">No result generated.</div>';
+      byId('ad-status').textContent = 'Generation failed: ' + error.message + ' Check the connection and try again.';
+      byId('ad-status').className = 'status error';
+      return;
+    }
+    runDemo('ad', () => generate(code));
+  }
+
+  loadDemo('ad', adCreate, mod => mod.init(), mod => { adMod = mod; fillCountries('ad-country', mod); }, 'address tables loaded; streets load per country.');
+
+  byId('ad-generate').addEventListener('click', () => adRun(code => {
+    renderTable('ad-output', parseResult(adMod.generateAddress(code, byId('ad-script').value)));
+    return 'Generated an address in ' + code + '.';
+  }));
+
+  byId('ad-compare').addEventListener('click', () => adRun(code => {
+    const data = parseResult(adMod.compareScripts(code));
+    const fields = [['Address', 'formatted'], ['Street', 'street'], ['City', 'city'], ['Region', 'region'], ['Postcode', 'postcode']];
+    byId('ad-output').innerHTML = comparisonTable('Fictional address in ' + code + ' · only the script varies',
+      ['Field', ...data.map(item => item.script === 'latin' ? 'Latin' : 'Local')], fields.map(([label, key]) =>
+        [label, ...data.map(item => item.address[key] || '-')]))
+      + '<p class="note">Shared draw seed (hex): ' + esc(data[0].address.signature.seed) + '.</p>';
+    return 'Compared the scripts in ' + code + ' with the same seed.';
   }));
 
   // ─── Email Generator ───
