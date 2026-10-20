@@ -27,7 +27,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: dasmig/name-generator
-          ref: v4.3.0
+          ref: v4.5.0
           path: name-generator
 
       - name: Checkout nickname-generator
@@ -129,6 +129,13 @@ jobs:
           ref: v2.0.0
           path: user-generator
 
+      - name: Checkout relationship-generator
+        uses: actions/checkout@v4
+        with:
+          repository: dasmig/relationship-generator
+          ref: v1.0.0
+          path: relationship-generator
+
       - name: Setup Emscripten
         uses: mymindstorm/setup-emsdk@v14
         with:
@@ -151,6 +158,7 @@ jobs:
           -DEMAIL_GEN_DIR=${{ github.workspace }}/email-generator
           -DADDRESS_GEN_DIR=${{ github.workspace }}/address-generator
           -DUSER_GEN_DIR=${{ github.workspace }}/user-generator
+          -DRELGEN_GEN_DIR=${{ github.workspace }}/relationship-generator
           -DPERSONA_GEN_DIR=${{ github.workspace }}/persona-generator
 
       - name: Build
