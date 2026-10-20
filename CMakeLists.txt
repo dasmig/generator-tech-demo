@@ -26,6 +26,7 @@ set(PHONE_GEN_DIR "${CMAKE_SOURCE_DIR}/../phone-generator" CACHE PATH "Path to p
 set(EMAIL_GEN_DIR "${CMAKE_SOURCE_DIR}/../email-generator" CACHE PATH "Path to email-generator repo")
 set(ADDRESS_GEN_DIR "${CMAKE_SOURCE_DIR}/../address-generator" CACHE PATH "Path to address-generator repo")
 set(USER_GEN_DIR "${CMAKE_SOURCE_DIR}/../user-generator" CACHE PATH "Path to user-generator repo")
+set(RELGEN_GEN_DIR "${CMAKE_SOURCE_DIR}/../relationship-generator" CACHE PATH "Path to relationship-generator repo")
 set(PERSONA_GEN_DIR "${CMAKE_SOURCE_DIR}/../persona-generator" CACHE PATH "Path to persona-generator repo")
 
 # ── Wasm modules ──
@@ -212,6 +213,26 @@ target_link_options(usergen_demo PRIVATE
   -sEXPORTED_RUNTIME_METHODS=['UTF8ToString','stringToUTF8','FS']
   -sMODULARIZE=1
   -sEXPORT_NAME=createUsergenModule
+  -sENVIRONMENT=web
+)
+
+# relationship-generator demo: its own lite tier, birth-generator's and name-generator's are compiled in
+set(RELGEN_INCLUDE_DIRS
+  "${RELGEN_GEN_DIR}"
+  "${BIRTH_GEN_DIR}"
+  "${NAME_GEN_DIR}"
+)
+set(RELGEN_EMBED DASMIG_RELATIONSHIP_EMBED DASMIG_BIRTH_EMBED DASMIG_NAME_EMBED)
+add_executable(relgen_demo src/relgen_demo.cpp)
+target_include_directories(relgen_demo PRIVATE ${RELGEN_INCLUDE_DIRS})
+target_compile_definitions(relgen_demo PRIVATE ${RELGEN_EMBED})
+target_link_options(relgen_demo PRIVATE
+  --bind
+  -sWASM=1
+  -sALLOW_MEMORY_GROWTH=1
+  -sEXPORTED_RUNTIME_METHODS=['UTF8ToString','stringToUTF8']
+  -sMODULARIZE=1
+  -sEXPORT_NAME=createRelgenModule
   -sENVIRONMENT=web
 )
 

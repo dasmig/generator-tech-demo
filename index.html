@@ -127,6 +127,10 @@
     .field, select, input { max-width: 100%; min-width: 0; }
     input[type="date"] { color-scheme: dark; }
     .note { color: var(--text-muted); font-size: .85rem; margin: .75rem 0; }
+    .family-tree h3 { font-size: .95rem; margin: 1rem 0 .35rem; color: var(--text-muted); }
+    .family-tree ul { list-style: none; margin: 0; padding: 0; }
+    .family-tree li { padding: .3rem 0; border-bottom: 1px solid var(--border); }
+    .family-detail { display: block; color: var(--text-muted); font-size: .85rem; }
     details { margin-top: 1rem; }
     summary { color: var(--accent); cursor: pointer; padding: .5rem 0; }
     .table-scroll { overflow-x: auto; }
@@ -1052,6 +1056,61 @@
     <div class="status" id="us-status">Loading WebAssembly…</div>
   </div>
 
+  <!-- ─── Relationship Generator ─── -->
+  <div class="demo-card" id="relgen-card">
+    <h2>relationship-generator</h2>
+    <p class="desc">
+      Generate the people around a person: parents and grandparents, siblings and half-siblings (twins included), partners, children and grandchildren, with ages, deaths and surnames that follow the country's naming convention. The numbers come from UN fertility, marriage and household statistics.
+      <a class="repo-link" href="https://github.com/dasmig/relationship-generator" target="_blank" rel="noopener">GitHub →</a>
+    </p>
+    <div class="controls">
+      <div class="field">
+        <label for="rl-country">Country</label>
+        <select id="rl-country">
+          <option value="">Any (by population)</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="rl-sex">Sex</label>
+        <select id="rl-sex">
+          <option value="">Any</option>
+          <option value="male">Male</option>
+          <option value="female">Female</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="rl-age">Age</label>
+        <input type="number" id="rl-age" min="0" max="100" step="1" placeholder="Any">
+      </div>
+      <div class="field">
+        <label for="rl-up">Generations above</label>
+        <select id="rl-up">
+          <option value="0">0</option>
+          <option value="1" selected>1 (parents)</option>
+          <option value="2">2 (grandparents)</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="rl-down">Generations below</label>
+        <select id="rl-down">
+          <option value="0">0</option>
+          <option value="1" selected>1 (children)</option>
+          <option value="2">2 (grandchildren)</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="rl-seed">Seed (hex, optional)</label>
+        <input type="text" id="rl-seed" maxlength="16" placeholder="Random" autocomplete="off" spellcheck="false">
+      </div>
+      <button class="btn" id="rl-generate" disabled>Generate</button>
+    </div>
+    <p class="note">The person is the one the inputs describe; what is left out is drawn. Ages are as of 1 July 2023, the date of the UN estimates. The same seed and inputs give the same family. Relatives who have died are listed with the age they died at.</p>
+    <div id="rl-output">
+      <div class="output empty">Waiting for module to load…</div>
+    </div>
+    <div class="status" id="rl-status">Loading WebAssembly…</div>
+  </div>
+
   <!-- ─── Email Generator ─── -->
   <div class="demo-card" id="emailgen-card">
     <h2>email-generator</h2>
@@ -1233,12 +1292,13 @@
 <script src="emailgen_demo.js"></script>
 <script src="addressgen_demo.js"></script>
 <script src="usergen_demo.js"></script>
+<script src="relgen_demo.js"></script>
 <script src="traitgen_demo.js"></script>
 <script src="personagen_demo.js"></script>
 
 <script>
   const byId = id => document.getElementById(id);
-  for (const prefix of ['pg', 'ng', 'nng', 'eg', 'bg', 'bd', 'ig', 'og', 'ph', 'em', 'ad', 'us', 'tg', 'cg', 'ctg']) {
+  for (const prefix of ['pg', 'ng', 'nng', 'eg', 'bg', 'bd', 'ig', 'og', 'ph', 'em', 'ad', 'us', 'rl', 'tg', 'cg', 'ctg']) {
     byId(prefix + '-status').setAttribute('role', 'status');
     byId(prefix + '-output').setAttribute('aria-live', 'polite');
     byId(prefix + '-output').setAttribute('aria-atomic', 'true');
@@ -1507,6 +1567,48 @@
       .sort((a, b) => a[0].localeCompare(b[0]))
       .forEach(([name, code]) => select.add(new Option(name, code)));
   }
+
+  // ─── Relationship Generator ───
+  let rlMod = null;
+  loadDemo('rl', () => createRelgenModule(), mod => mod.init(), mod => { rlMod = mod; fillCountries('rl-country', mod); }, 'demography tables loaded.');
+
+  const familyLevels = [
+    ['Grandparents', ['paternal_grandfather', 'paternal_grandmother', 'maternal_grandfather', 'maternal_grandmother']],
+    ['Parents', ['father', 'mother']],
+    ['The person, partners and siblings', ['anchor', 'partner', 'sibling', 'half_sibling']],
+    ['Children', ['child', 'stepchild']],
+    ['Grandchildren', ['grandchild']],
+  ];
+
+  function renderFamily(data) {
+    let html = '<div class="output family-tree">';
+    for (const [title, roles] of familyLevels) {
+      const people = data.members.filter(member => roles.includes(member.role));
+      if (!people.length) continue;
+      html += '<h3>' + esc(title) + '</h3><ul>' + people.map(member => {
+        const life = member.alive ? 'age ' + member.age
+          : 'died ' + member.death.slice(0, 4) + ', aged ' + member.death_age;
+        const label = member.role.replace(/_/g, ' ') + (member.twin ? ' (twin)' : '');
+        return '<li><strong>' + esc(member.name ? member.name.full : '(unnamed)') + '</strong> '
+          + '<span class="family-detail">' + esc(label + ' · ' + member.sex + ' · born ' + member.birth.slice(0, 4)
+          + ' · ' + life) + '</span></li>';
+      }).join('') + '</ul>';
+    }
+    byId('rl-output').innerHTML = html + '</div>';
+  }
+
+  byId('rl-generate').addEventListener('click', () => {
+    if (!rlMod) return;
+    runDemo('rl', () => {
+      const age = byId('rl-age').value.trim();
+      const data = parseResult(rlMod.generateFamily(byId('rl-country').value, byId('rl-sex').value,
+        age === '' ? -1 : Number(age), Number(byId('rl-up').value), Number(byId('rl-down').value),
+        byId('rl-seed').value.trim()));
+      renderFamily(data);
+      return 'Generated a family in ' + data.country + ': ' + data.members.length + ' people (seed '
+        + data.signature.seed + ').';
+    });
+  });
 
   // ─── Phone Generator ───
   let phMod = null;

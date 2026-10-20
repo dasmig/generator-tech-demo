@@ -385,6 +385,29 @@ try {
   await evaluate(`byId('us-country').value = 'PT'; byId('us-generate').click()`);
   await waitFor(() => evaluate('byId("us-output").querySelectorAll("tbody tr").length > 0'), 'user table');
   assert.match(await evaluate('byId("us-status").textContent'), /Generated a user in PT/);
+  // The relationship page: families from the module's own lite tier.
+  const familyCountries = await evaluate('JSON.parse(rlMod.supportedCountries())');
+  assert.ok(familyCountries.length >= 100 && ['PT', 'US', 'JP', 'BR', 'ES'].every(code => familyCountries.includes(code)));
+  const family = request => evaluate(`JSON.parse(rlMod.generateFamily(${request}))`);
+  const lisbon = await family("'PT', 'female', 30, 2, 2, '2a'");
+  assert.equal(lisbon.error, undefined, lisbon.error);
+  assert.deepEqual(await family("'PT', 'female', 30, 2, 2, '2a'"), lisbon, 'A seed replays the same family');
+  assert.equal(lisbon.country, 'PT');
+  assert.equal(lisbon.members[0].role, 'anchor');
+  assert.equal(lisbon.members[0].sex, 'female');
+  assert.equal(lisbon.members[0].age, 30);
+  assert.ok(lisbon.members.some(member => member.role === 'father') && lisbon.members.some(member => member.role === 'mother'));
+  assert.ok(lisbon.members.every(member => member.name && member.name.full), 'Everyone is named');
+  const lonely = await family("'PT', 'male', 40, 0, 0, '1'");
+  assert.ok(lonely.members.every(member => ['anchor', 'partner'].includes(member.role)), 'No generations, only the person and partners');
+  for (const expression of ["'XX', '', -1, 1, 1, ''", "'PT', 'robot', -1, 1, 1, ''", "'PT', '', -1, 3, 1, ''",
+    "'PT', '', 101, 1, 1, ''", "'PT', '', -1, 1, 1, 'zz'"]) {
+    assert.ok((await family(expression)).error, 'Invalid family input must report an error: ' + expression);
+  }
+  await evaluate(`byId('rl-country').value = 'PT'; byId('rl-seed').value = '2a'; byId('rl-generate').click()`);
+  await waitFor(() => evaluate('byId("rl-output").querySelectorAll(".family-tree li").length > 0'), 'family tree');
+  assert.match(await evaluate('byId("rl-status").textContent'), /Generated a family in PT/);
+  assert.match(await evaluate('byId("rl-output").textContent'), /Parents/);
   await evaluate(`byId('em-given').value = 'Zoë'; byId('em-family').value = 'Müller'; byId('em-year').value = '1988';
     byId('ph-country').value = 'GB'; byId('ph-compare').click(); byId('em-compare').click()`);
   assert.match(await evaluate('byId("ph-output").textContent'), /only the safe option varies/);
