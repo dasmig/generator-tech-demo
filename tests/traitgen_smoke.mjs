@@ -389,25 +389,33 @@ try {
   const familyCountries = await evaluate('JSON.parse(rlMod.supportedCountries())');
   assert.ok(familyCountries.length >= 100 && ['PT', 'US', 'JP', 'BR', 'ES'].every(code => familyCountries.includes(code)));
   const family = request => evaluate(`JSON.parse(rlMod.generateFamily(${request}))`);
-  const lisbon = await family("'PT', 'female', 30, 2, 2, '2a'");
+  const lisbon = await family("'PT', 'female', 30, 2, 2, false, false, '2a'");
   assert.equal(lisbon.error, undefined, lisbon.error);
-  assert.deepEqual(await family("'PT', 'female', 30, 2, 2, '2a'"), lisbon, 'A seed replays the same family');
+  assert.deepEqual(await family("'PT', 'female', 30, 2, 2, false, false, '2a'"), lisbon, 'A seed replays the same family');
   assert.equal(lisbon.country, 'PT');
   assert.equal(lisbon.members[0].role, 'anchor');
   assert.equal(lisbon.members[0].sex, 'female');
   assert.equal(lisbon.members[0].age, 30);
   assert.ok(lisbon.members.some(member => member.role === 'father') && lisbon.members.some(member => member.role === 'mother'));
   assert.ok(lisbon.members.every(member => member.name && member.name.full), 'Everyone is named');
-  const lonely = await family("'PT', 'male', 40, 0, 0, '1'");
+  const plainHome = lisbon.household;
+  assert.equal(plainHome, undefined, 'No household unless asked');
+  const homed = await family("'PT', 'female', 30, 2, 2, true, true, '2a'");
+  assert.equal(homed.error, undefined, homed.error);
+  assert.equal(homed.household.members[0], 0);
+  assert.deepEqual(await family("'PT', 'female', 30, 2, 2, true, true, '2a'"), homed, 'A seed replays the household');
+  const lonely = await family("'PT', 'male', 40, 0, 0, false, false, '1'");
   assert.ok(lonely.members.every(member => ['anchor', 'partner'].includes(member.role)), 'No generations, only the person and partners');
-  for (const expression of ["'XX', '', -1, 1, 1, ''", "'PT', 'robot', -1, 1, 1, ''", "'PT', '', -1, 3, 1, ''",
-    "'PT', '', 101, 1, 1, ''", "'PT', '', -1, 1, 1, 'zz'"]) {
+  for (const expression of ["'XX', '', -1, 1, 1, false, false, ''", "'PT', 'robot', -1, 1, 1, false, false, ''", "'PT', '', -1, 3, 1, false, false, ''",
+    "'PT', '', 101, 1, 1, false, false, ''", "'PT', '', -1, 1, 1, false, false, 'zz'"]) {
     assert.ok((await family(expression)).error, 'Invalid family input must report an error: ' + expression);
   }
   await evaluate(`byId('rl-country').value = 'PT'; byId('rl-seed').value = '2a'; byId('rl-generate').click()`);
   await waitFor(() => evaluate('byId("rl-output").querySelectorAll(".family-tree li").length > 0'), 'family tree');
   assert.match(await evaluate('byId("rl-status").textContent'), /Generated a family in PT/);
   assert.match(await evaluate('byId("rl-output").textContent'), /Parents/);
+  await evaluate(`byId('rl-step').value = 'yes'; byId('rl-home').value = 'yes'; byId('rl-generate').click()`);
+  await waitFor(() => evaluate('byId("rl-output").textContent.includes("Lives with")'), 'household');
   await evaluate(`byId('em-given').value = 'Zoë'; byId('em-family').value = 'Müller'; byId('em-year').value = '1988';
     byId('ph-country').value = 'GB'; byId('ph-compare').click(); byId('em-compare').click()`);
   assert.match(await evaluate('byId("ph-output").textContent'), /only the safe option varies/);

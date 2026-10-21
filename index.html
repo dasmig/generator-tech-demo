@@ -1099,12 +1099,26 @@
         </select>
       </div>
       <div class="field">
+        <label for="rl-step">Stepparents</label>
+        <select id="rl-step">
+          <option value="no" selected>No</option>
+          <option value="yes">Yes</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="rl-home">Household</label>
+        <select id="rl-home">
+          <option value="no" selected>No</option>
+          <option value="yes">Yes</option>
+        </select>
+      </div>
+      <div class="field">
         <label for="rl-seed">Seed (hex, optional)</label>
         <input type="text" id="rl-seed" maxlength="16" placeholder="Random" autocomplete="off" spellcheck="false">
       </div>
       <button class="btn" id="rl-generate" disabled>Generate</button>
     </div>
-    <p class="note">The person is the one the inputs describe; what is left out is drawn. Ages are as of 1 July 2023, the date of the UN estimates. The same seed and inputs give the same family. Relatives who have died are listed with the age they died at.</p>
+    <p class="note">The person is the one the inputs describe; what is left out is drawn. Ages are as of 1 July 2023, the date of the UN estimates. The same seed and inputs give the same family. Relatives who have died are listed with the age they died at. Stepparents (a parent's new partner) and the household (who the person lives with) are off unless chosen.</p>
     <div id="rl-output">
       <div class="output empty">Waiting for module to load…</div>
     </div>
@@ -1574,7 +1588,7 @@
 
   const familyLevels = [
     ['Grandparents', ['paternal_grandfather', 'paternal_grandmother', 'maternal_grandfather', 'maternal_grandmother']],
-    ['Parents', ['father', 'mother']],
+    ['Parents and stepparents', ['father', 'mother', 'stepfather', 'stepmother']],
     ['The person, partners and siblings', ['anchor', 'partner', 'sibling', 'half_sibling']],
     ['Children', ['child', 'stepchild']],
     ['Grandchildren', ['grandchild']],
@@ -1594,6 +1608,11 @@
           + ' · ' + life) + '</span></li>';
       }).join('') + '</ul>';
     }
+    if (data.household) {
+      const names = data.household.members.map(id => data.members[id].name ? data.members[id].name.full : '(unnamed)');
+      html += '<h3>Lives with</h3><ul><li><strong>' + esc(data.household.type.replace(/_/g, ' ')) + '</strong> '
+        + '<span class="family-detail">' + esc(names.join(', ')) + '</span></li></ul>';
+    }
     byId('rl-output').innerHTML = html + '</div>';
   }
 
@@ -1603,7 +1622,7 @@
       const age = byId('rl-age').value.trim();
       const data = parseResult(rlMod.generateFamily(byId('rl-country').value, byId('rl-sex').value,
         age === '' ? -1 : Number(age), Number(byId('rl-up').value), Number(byId('rl-down').value),
-        byId('rl-seed').value.trim()));
+        byId('rl-step').value === 'yes', byId('rl-home').value === 'yes', byId('rl-seed').value.trim()));
       renderFamily(data);
       return 'Generated a family in ' + data.country + ': ' + data.members.length + ' people (seed '
         + data.signature.seed + ').';
