@@ -37,7 +37,7 @@ std::string supported_countries()
 
 // An empty country, sex or seed, or a negative age, is left to the library to draw.
 std::string generate_family(const std::string& country, const std::string& sex, int age, int up, int down,
-                            const std::string& seed)
+                            bool stepparents, bool home, const std::string& seed)
 {
     try
     {
@@ -52,6 +52,8 @@ std::string generate_family(const std::string& country, const std::string& sex, 
         if (age >= 0) request.anchor.age = age;
         request.up = up;
         request.down = down;
+        request.stepparents = stepparents;
+        request.home = home;
         auto& gen = dasmig::relg::instance();
         return (seed.empty() ? gen.get_family(request) : gen.get_family(request, parse_demo_seed(seed))).to_json();
     }
