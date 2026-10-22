@@ -134,6 +134,8 @@ try {
   await send('Page.navigate', { url: `http://127.0.0.1:${server.address().port}/` });
   await waitFor(() => evaluate('typeof tgMod !== "undefined" && tgMod !== null'), 'trait module');
   assert.equal(await evaluate('tgMod.init()'), true);
+  // Demos other than the persona start as collapsed tiles; open them all so their controls can be focused
+  await evaluate("document.getElementById('toggle-all').click()");
   const generate = (count, seed) => evaluate(`JSON.parse(tgMod.generateTraits(${count}, ${JSON.stringify(seed)}))`);
   const axes = ['openness', 'conscientiousness', 'extraversion', 'agreeableness', 'neuroticism'];
   const loadings = await catalogue('trait-generator', 'loadings.tsv');
