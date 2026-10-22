@@ -7,7 +7,7 @@
   <title>Generator Libraries — Live Demos</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Kalam:wght@400;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin></script>
   <style>
@@ -33,7 +33,7 @@
       background: var(--bg);
       color: var(--text);
       line-height: 1.6;
-      padding: 2rem 1.5rem;
+      padding: 5.5rem 1.5rem 2rem;
       -webkit-font-smoothing: antialiased;
     }
     a { color: var(--accent); text-decoration: none; transition: color .2s; }
@@ -75,125 +75,148 @@
     }
     @keyframes orb { to { transform: translate(14vmax, 10vmax) scale(1.2); } }
 
+    /* ── Top bar ── */
+    .topbar {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      background: rgba(11,15,14,.7);
+      -webkit-backdrop-filter: blur(12px);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+    .topbar-inner {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: .8rem 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+    .brand {
+      font-family: var(--font-mono);
+      font-weight: 700;
+      font-size: .95rem;
+      color: var(--text);
+      letter-spacing: .02em;
+    }
+    .brand span { color: var(--accent); }
+    .brand:hover { color: var(--text); }
+    .topbar-links { display: flex; gap: 1.5rem; list-style: none; }
+    .topbar-links a {
+      color: var(--text-muted);
+      font-size: .8rem;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+    }
+    .topbar-links a:hover { color: var(--accent); }
+
     .container { max-width: 1000px; margin: 0 auto; counter-reset: demo; }
 
-    /* ── Main menu: dark hand-drawn title screen ── */
-    .rough-defs { position: absolute; }
-    .menu {
-      --ink: #cfc8bb;
-      --ink-mute: #7d7880;
-      --hand: "Segoe Print", "Bradley Hand", 'Kalam', "Comic Sans MS", cursive;
-      position: relative;
-      isolation: isolate;
-      overflow: hidden;
-      margin-bottom: 3rem;
-      padding: clamp(2rem, 6vw, 3.5rem) clamp(1.25rem, 5vw, 3.5rem) 1.5rem;
-      background: #0b0a0c;
-      border: 2px solid #3a373c;
-      font-family: var(--hand);
-      color: var(--ink);
+    /* ── Hero ── */
+    .hero { text-align: center; padding: 2.5rem 0 1rem; }
+    .hero > * { animation: rise .9s var(--ease) both; }
+    .hero-kicker {
+      display: inline-flex;
+      align-items: center;
+      gap: .5rem;
+      padding: .3rem .85rem;
+      margin-bottom: 1.25rem;
+      border: 1px solid rgba(66,220,163,.25);
+      border-radius: 999px;
+      background: var(--accent-soft);
+      font-family: var(--font-mono);
+      font-size: .72rem;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--accent);
     }
-    .menu::before { /* film grain */
+    .hero-kicker::before {
       content: '';
-      position: absolute; inset: 0; z-index: -1;
-      opacity: .5;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3CfeColorMatrix values='0 0 0 0 .82 0 0 0 0 .8 0 0 0 0 .78 0 0 0 .09 0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 8px var(--accent);
     }
-    .menu::after { /* vignette, and a dim glow on the floor */
-      content: '';
-      position: absolute; inset: 0; z-index: -1;
-      pointer-events: none;
-      background:
-        radial-gradient(ellipse 60% 22% at 50% 100%, rgba(216,192,112,.12), transparent),
-        radial-gradient(ellipse at 50% 45%, transparent 35%, rgba(0,0,0,.6));
+    h1 {
+      font-size: clamp(2.1rem, 6vw, 3.6rem);
+      font-weight: 700;
+      letter-spacing: -.025em;
+      line-height: 1.12;
+      margin-bottom: 1rem;
+      background: linear-gradient(90deg, #fff, var(--accent), #fff);
+      background-size: 200% 100%;
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      animation: rise .9s var(--ease) .1s both, shimmer 8s linear 1.2s infinite;
     }
-    .menu h1 {
-      font-family: var(--hand);
-      font-size: clamp(2.2rem, 7vw, 3.6rem);
-      font-weight: 400;
-      line-height: 1.1;
-      text-align: center;
-      color: var(--ink);
-      margin-bottom: .75rem;
-      filter: url(#rough);
+    .subtitle {
+      color: var(--text-muted);
+      max-width: 640px;
+      margin: 0 auto 1.75rem;
+      font-size: 1.05rem;
+      animation-delay: .25s;
     }
-    .menu .subtitle {
-      max-width: 34rem;
-      margin: 0 auto 2.25rem;
-      text-align: center;
-      font-size: .95rem;
-      color: var(--ink-mute);
-    }
-    .menu a { color: inherit; }
-    .menu .subtitle a { text-decoration: underline; text-decoration-style: dashed; text-underline-offset: 4px; }
-    .menu-list {
+    .hero-stats {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: .6rem;
+      margin-bottom: 2rem;
       list-style: none;
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(9.5rem, 1fr));
-      gap: .2rem 1.5rem;
-      max-width: 52rem;
-      margin: 0 auto;
-      filter: url(#rough);
+      animation-delay: .4s;
     }
-    .menu-list li { position: relative; padding-left: 1.4rem; }
-    .menu-list a {
-      position: relative;
+    .hero-stats li {
+      padding: .4rem .9rem;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-family: var(--font-mono);
+      font-size: .78rem;
+      color: var(--text-muted);
+    }
+    .hero-stats b { color: var(--accent); font-weight: 700; margin-right: .3rem; }
+    @keyframes rise { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: none; } }
+    @keyframes shimmer { to { background-position: -200% 0; } }
+
+    /* ── Demo index (jump pills) ── */
+    .demo-index {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: .5rem;
+      margin-bottom: 3rem;
+      list-style: none;
+      animation: rise .9s var(--ease) .55s both;
+    }
+    .demo-index a {
       display: inline-block;
-      padding: .3rem 0;
-      font-size: 1.15rem;
-      color: var(--ink-mute);
-      transition: color .2s;
+      padding: .35rem .85rem;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: var(--bg-card);
+      font-family: var(--font-mono);
+      font-size: .76rem;
+      color: var(--text-muted);
+      transition: border-color .2s, color .2s, background .2s, transform .2s, box-shadow .2s;
     }
-    .menu-list a::after { /* thin underline, as long as the word */
-      content: '';
-      position: absolute; left: 0; right: 0; bottom: .15rem;
-      border-bottom: 1px solid var(--ink-mute);
-      opacity: .45;
+    .demo-index a:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: var(--accent-soft);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 18px rgba(66,220,163,.15);
     }
-    .menu-list li::before { /* the glowing dot that marks the current entry */
-      content: '';
-      position: absolute; left: .35rem; top: 50%;
-      width: 5px; height: 5px; margin-top: -2.5px;
-      border-radius: 50%;
-      background: #fff;
-      box-shadow: 0 0 8px 3px rgba(255,63,164,.8), 0 0 18px 6px rgba(255,63,164,.35);
-      opacity: 0;
-      transition: opacity .2s;
-    }
-    .menu-list li:hover::before, .menu-list li:focus-within::before,
-    .menu-list:not(:hover):not(:focus-within) li.featured::before { opacity: 1; }
-    .menu-list li:hover a, .menu-list li:focus-within a,
-    .menu-list:not(:hover):not(:focus-within) li.featured a { color: var(--ink); }
-    .menu-list a:focus-visible { outline-offset: 2px; outline-color: var(--ink); }
-    .menu-foot {
-      display: flex; justify-content: center; gap: 1.75rem;
-      margin-top: 2.25rem; padding-top: 1rem;
-      border-top: 1px solid rgba(125,120,128,.45);
-      font-size: .8rem;
-      color: var(--ink-mute);
-    }
-    .menu-foot a:hover { color: var(--ink); }
-    .eyes { /* a pair of watchers in the margin; they blink now and then */
-      position: absolute; left: 1.1rem; bottom: 4.5rem;
-      width: 20px; height: 4px;
-      animation: blink 7s steps(1) infinite;
-    }
-    .eyes::before, .eyes::after {
-      content: '';
-      position: absolute; top: 0;
-      width: 5px; height: 3px;
-      border-radius: 50%;
-      background: rgba(170,40,40,.85);
-    }
-    .eyes::before { left: 0; }
-    .eyes::after { right: 0; }
-    @keyframes blink { 0%, 94%, 100% { opacity: 1; } 95%, 97% { opacity: 0; } }
+    .demo-index a.featured { border-color: rgba(66,220,163,.4); color: var(--accent); }
 
     /* ── Demo cards ── */
     .demo-card {
       position: relative;
       counter-increment: demo;
-      scroll-margin-top: 1.5rem;
+      scroll-margin-top: 5rem;
       background: var(--bg-card);
       -webkit-backdrop-filter: blur(6px);
       backdrop-filter: blur(6px);
@@ -384,8 +407,9 @@
     .alternative-source { display: block; color: var(--text-muted); font-size: .75rem; }
     .score-explanation td, .score-explanation th { white-space: nowrap; }
     @media (max-width: 600px) {
-      body { padding: 1.5rem .75rem; }
-      .menu-list { grid-template-columns: repeat(2, 1fr); gap: .1rem 1rem; }
+      body { padding: 4.75rem .75rem 1.5rem; }
+      .topbar-inner { padding: .7rem 1rem; }
+      .topbar-links { gap: 1rem; }
       .demo-card { padding: 1.5rem 1.25rem; }
       .demo-card h2 { padding-right: 3rem; }
       .demo-card::after { right: 1rem; top: .75rem; font-size: 3rem; }
@@ -398,8 +422,8 @@
     }
     @media (prefers-reduced-motion: reduce) {
       html { scroll-behavior: auto; }
-      .btn, .country-chevron, .demo-card { transition: none; }
-      .orb, .eyes, .status:not(.ready):not(.error)::before { animation: none; }
+      .btn, .country-chevron, .demo-card, .demo-index a { transition: none; }
+      .orb, .hero > *, h1, .demo-index, .status:not(.ready):not(.error)::before { animation: none; }
     }
 
     .output {
@@ -646,47 +670,51 @@
   <div class="orb orb-b"></div>
 </div>
 
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="brand" href="#top">dasmig<span>/</span>generators</a>
+    <ul class="topbar-links">
+      <li><a href="https://dasmig.github.io">Portfolio</a></li>
+      <li><a href="https://github.com/dasmig" target="_blank" rel="noopener">GitHub</a></li>
+    </ul>
+  </div>
+</header>
+
 <div class="container" id="top">
-  <!-- ─── Main menu: dark hand-drawn title screen ─── -->
-  <svg class="rough-defs" width="0" height="0" aria-hidden="true" focusable="false">
-    <filter id="rough" x="-5%" y="-5%" width="110%" height="110%">
-      <feTurbulence id="rough-noise" type="fractalNoise" baseFrequency="0.035" numOctaves="2" seed="3"/>
-      <feDisplacementMap in="SourceGraphic" scale="3.2" xChannelSelector="R" yChannelSelector="G"/>
-    </filter>
-  </svg>
-  <header class="menu">
-    <span class="eyes" aria-hidden="true"></span>
-    <h1>Generator Libraries</h1>
+  <div class="hero">
+    <span class="hero-kicker">C++23 · WebAssembly</span>
+    <h1>Generator Libraries — Live Demos</h1>
     <p class="subtitle">
-      C++23 header-only libraries compiled to WebAssembly. Everything runs in
-      your browser, no server required.
+      C++23 header-only libraries compiled to WebAssembly with Emscripten.
+      Everything runs in your browser — no server required.
       <a href="#traitgen-card">Try personality traits and Big Five scores.</a>
     </p>
-    <nav aria-label="Jump to a demo">
-      <ul class="menu-list">
-        <li class="featured"><a href="#personagen-card">persona</a></li>
-        <li><a href="#namegen-card">name</a></li>
-        <li><a href="#nickgen-card">nickname</a></li>
-        <li><a href="#entitygen-card">entity</a></li>
-        <li><a href="#birthgen-card">birth</a></li>
-        <li><a href="#biodatagen-card">biodata</a></li>
-        <li><a href="#interestgen-card">interest</a></li>
-        <li><a href="#occupationgen-card">occupation</a></li>
-        <li><a href="#phonegen-card">phone</a></li>
-        <li><a href="#addressgen-card">address</a></li>
-        <li><a href="#usergen-card">user</a></li>
-        <li><a href="#relgen-card">relationship</a></li>
-        <li><a href="#emailgen-card">email</a></li>
-        <li><a href="#traitgen-card">trait</a></li>
-        <li><a href="#citygen-card">city</a></li>
-        <li><a href="#countrygen-card">country</a></li>
-      </ul>
-    </nav>
-    <p class="menu-foot">
-      <a href="https://dasmig.github.io">Portfolio</a>
-      <a href="https://github.com/dasmig" target="_blank" rel="noopener">GitHub</a>
-    </p>
-  </header>
+    <ul class="hero-stats" aria-label="At a glance">
+      <li><b>16</b>live demos</li>
+      <li><b>100%</b>client-side</li>
+      <li><b>0</b>servers</li>
+      <li><b>seeded</b>reproducible</li>
+    </ul>
+  </div>
+
+  <ul class="demo-index" aria-label="Jump to a demo">
+    <li><a class="featured" href="#personagen-card">persona</a></li>
+    <li><a href="#namegen-card">name</a></li>
+    <li><a href="#nickgen-card">nickname</a></li>
+    <li><a href="#entitygen-card">entity</a></li>
+    <li><a href="#birthgen-card">birth</a></li>
+    <li><a href="#biodatagen-card">biodata</a></li>
+    <li><a href="#interestgen-card">interest</a></li>
+    <li><a href="#occupationgen-card">occupation</a></li>
+    <li><a href="#phonegen-card">phone</a></li>
+    <li><a href="#addressgen-card">address</a></li>
+    <li><a href="#usergen-card">user</a></li>
+    <li><a href="#relgen-card">relationship</a></li>
+    <li><a href="#emailgen-card">email</a></li>
+    <li><a href="#traitgen-card">trait</a></li>
+    <li><a href="#citygen-card">city</a></li>
+    <li><a href="#countrygen-card">country</a></li>
+  </ul>
 
   <!-- ─── Persona Generator (composite) ─── -->
   <div class="demo-card" id="personagen-card">
@@ -1617,16 +1645,6 @@
 <script src="relgen_demo.js"></script>
 <script src="traitgen_demo.js"></script>
 <script src="personagen_demo.js"></script>
-
-<script>
-  // The menu's hand-drawn wobble redraws a few times a second, like a flipbook.
-  (() => {
-    const noise = document.getElementById('rough-noise');
-    if (!noise || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    let seed = 3;
-    setInterval(() => { seed = seed % 40 + 1; noise.setAttribute('seed', seed); }, 125);
-  })();
-</script>
 
 <script>
   const byId = id => document.getElementById(id);
