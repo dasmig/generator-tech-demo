@@ -811,6 +811,186 @@
       .subnav ul { padding: .45rem 1rem; }
     }
 
+    /* ── Output visuals: avatar, chips, meters, radar, job card, map, family graph ── */
+    .persona-id { display: flex; align-items: center; gap: 1.1rem; }
+    .persona-id-text { min-width: 0; }
+    .avatar {
+      --ring: var(--accent);
+      flex: none;
+      width: 68px; height: 68px;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      background: linear-gradient(135deg, hsl(var(--h1) 62% 46%), hsl(var(--h2) 62% 24%));
+      box-shadow: 0 0 0 3px var(--bg), 0 0 0 5px var(--ring), 0 0 28px color-mix(in srgb, var(--ring) 40%, transparent);
+      font: 700 1.35rem var(--font-mono);
+      letter-spacing: .02em;
+      color: #fff;
+      text-shadow: 0 1px 3px rgba(0,0,0,.45);
+    }
+    .seed-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: .45rem;
+      margin-top: .55rem;
+      padding: .15rem .65rem;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: var(--bg-inset);
+      color: var(--text-muted);
+      font: .7rem var(--font-mono);
+      cursor: pointer;
+      transition: border-color .2s, color .2s;
+    }
+    .seed-chip code { color: var(--text); font: inherit; }
+    .seed-chip .seed-copy { color: var(--accent); }
+    .seed-chip:hover { border-color: var(--accent); }
+
+    .chips { display: flex; flex-wrap: wrap; gap: .35rem; margin-top: .15rem; }
+    .chip {
+      padding: .12rem .6rem;
+      border: 1px solid rgba(66,220,163,.25);
+      border-radius: 999px;
+      background: var(--accent-soft);
+      font-size: .78rem;
+      font-weight: 500;
+      color: var(--text);
+    }
+    .chip.muted { border-color: var(--border); background: transparent; color: var(--text-muted); }
+
+    .meter { position: relative; height: 6px; margin-top: .55rem; }
+    .meter-track {
+      position: absolute; inset: 0;
+      border-radius: 99px;
+      background: linear-gradient(90deg, rgba(139,141,151,.25), rgba(66,220,163,.6));
+      opacity: .85;
+    }
+    .meter-dot {
+      position: absolute; top: 50%;
+      width: 12px; height: 12px;
+      border-radius: 50%;
+      background: #fff;
+      border: 2px solid var(--bg);
+      box-shadow: 0 0 0 2px var(--accent), 0 0 10px var(--accent);
+      transform: translate(-50%, -50%);
+      animation: meter-in .9s var(--ease) both;
+    }
+    @keyframes meter-in { from { left: 0; } }
+    .stage { margin-left: .4rem; font-size: .78rem; font-weight: 400; color: var(--text-muted); }
+
+    .radar { display: block; width: 100%; max-width: 400px; height: auto; margin: 0 auto; }
+    .radar-ring { fill: none; stroke: var(--border); }
+    .radar-ring.zero { stroke: rgba(66,220,163,.45); stroke-dasharray: 3 3; }
+    .radar-spoke { stroke: var(--border); }
+    .radar-data { transform-box: view-box; transform-origin: 200px 122px; animation: radar-in .9s var(--ease) both; }
+    .radar-data polygon { fill: rgba(66,220,163,.22); stroke: var(--accent); stroke-width: 1.6; stroke-linejoin: round; }
+    .radar-data circle { fill: var(--accent); }
+    .radar-name { font: 500 9.5px var(--font-mono); fill: var(--text-muted); text-transform: uppercase; letter-spacing: .06em; }
+    .radar-value { font: 700 11px var(--font-mono); fill: var(--accent); }
+    @keyframes radar-in { from { opacity: 0; transform: scale(.1); } }
+    .radar-note { margin-top: .6rem; font-size: .72rem; color: var(--text-muted); }
+    .persona-split { display: grid; grid-template-columns: 1fr 1.3fr; border-bottom: 1px solid var(--border); }
+    .persona-split .persona-stat { border-bottom: none; }
+    .persona-split .persona-stat:last-child { border-right: none; }
+    .trait-hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+      gap: 1rem;
+      align-items: center;
+      margin-bottom: 1rem;
+      padding: 1rem 1.25rem;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--bg-inset);
+    }
+
+    .job-hero {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 1rem 1.25rem;
+      border-bottom: 1px solid var(--border);
+      background: linear-gradient(90deg, rgba(66,220,163,.07), transparent 70%);
+    }
+    .job-icon {
+      flex: none;
+      width: 48px; height: 48px;
+      display: grid;
+      place-items: center;
+      border: 1px solid rgba(66,220,163,.25);
+      border-radius: 12px;
+      background: var(--accent-soft);
+      font-size: 1.5rem;
+    }
+    .job-title { font-size: 1.1rem; font-weight: 700; color: var(--text); line-height: 1.3; }
+    .job-sub { margin-bottom: .35rem; font: .74rem var(--font-mono); color: var(--text-muted); }
+
+    .map-wrap { position: relative; border-bottom: 1px solid var(--border); }
+    .map-wrap .persona-map { height: 230px; border-top: none; background: #0b0f0e; }
+    /* OSM tiles, darkened to match the page */
+    .map-wrap .leaflet-tile-pane { filter: invert(1) hue-rotate(180deg) brightness(.85) contrast(.9) saturate(.5); }
+    .map-tag {
+      position: absolute; left: .75rem; bottom: .75rem; z-index: 1000;
+      padding: .25rem .7rem;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: rgba(11,15,14,.85);
+      font: .72rem var(--font-mono);
+      color: var(--text);
+    }
+    .map-pin-icon { background: none; border: none; }
+    .map-pin {
+      display: block;
+      width: 14px; height: 14px;
+      border: 2px solid #0b0f0e;
+      border-radius: 50%;
+      background: var(--accent);
+      animation: pin 2s ease-out infinite;
+    }
+    @keyframes pin {
+      0% { box-shadow: 0 0 0 0 rgba(66,220,163,.7); }
+      70%, 100% { box-shadow: 0 0 0 18px rgba(66,220,163,0); }
+    }
+
+    .family-graph { white-space: normal; overflow-x: auto; padding: .5rem 0 .25rem; }
+    .family-svg { display: block; width: 100%; height: auto; margin: 0 auto; }
+    .fg-edge { fill: none; stroke: rgba(66,220,163,.55); stroke-width: 1.5; }
+    .fg-edge.draw { stroke-dasharray: 1; stroke-dashoffset: 1; animation: fg-draw 1s var(--ease) .3s forwards; }
+    .fg-edge.step { stroke: rgba(139,141,151,.8); stroke-dasharray: 4 4; }
+    .fg-edge.partner { stroke: #e68ab8; stroke-width: 1.8; }
+    .fg-edge.partner.ended { stroke-dasharray: 3 4; opacity: .7; }
+    @keyframes fg-draw { to { stroke-dashoffset: 0; } }
+    .fg-card { fill: rgba(22,26,25,.96); stroke: var(--border); }
+    .fg-node.anchor .fg-card { fill: rgba(66,220,163,.12); stroke: var(--accent); }
+    .fg-node.home .fg-card { stroke: var(--accent); stroke-dasharray: 4 3; }
+    .fg-node.dead { opacity: .55; }
+    .fg-name { font: 600 12px var(--font-sans); fill: var(--text); }
+    .fg-meta { font: 10px var(--font-mono); fill: var(--text-muted); }
+    .fg-dot.male { fill: #5aa9e6; }
+    .fg-dot.female { fill: #e68ab8; }
+    .family-legend {
+      display: flex; flex-wrap: wrap; justify-content: center; gap: 1rem;
+      margin: .25rem 0 .75rem;
+      font: .7rem var(--font-mono);
+      color: var(--text-muted);
+    }
+    .family-legend i { display: inline-block; width: 18px; margin-right: .35rem; vertical-align: middle; border-top: 2px solid rgba(66,220,163,.7); }
+    .family-legend i.step { border-top: 2px dashed rgba(139,141,151,.9); }
+    .family-legend i.partner { border-top-color: #e68ab8; }
+    .family-legend i.home { height: 8px; border: 1px dashed var(--accent); border-radius: 3px; }
+    .family-list { margin-top: .25rem; }
+    @media (max-width: 600px) {
+      .avatar { width: 56px; height: 56px; font-size: 1.15rem; }
+      .persona-id { gap: .85rem; }
+      .persona-split, .trait-hero { grid-template-columns: 1fr; }
+      .persona-split .persona-stat { border-right: none; }
+      .map-wrap .persona-map { height: 190px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .meter-dot, .radar-data, .map-pin { animation: none; }
+      .fg-edge.draw { animation: none; stroke-dasharray: none; stroke-dashoffset: 0; }
+    }
+
     footer {
       max-width: 1000px;
       margin: 3rem auto 0;
@@ -1985,6 +2165,9 @@
           data.explanation.traits.map(trait => [trait.label, ...trait.effects.map(value => value.toFixed(3))]),
           'score-explanation')
         + '<p class="note">Totals use full precision; displayed values are rounded. Positive and negative values are model directions, not good/bad ratings. No questionnaire, diagnosis or real-person assessment is involved.</p></details>';
+      byId('tg-output').insertAdjacentHTML('afterbegin', '<div class="trait-hero">' + radarSvg(data.axes)
+        + '<div><div class="persona-stat-label">Traits</div>' + chipsHtml(data.traits)
+        + '<p class="radar-note">Dashed ring = zero; the outer ring is +2.5 and the centre −2.5. Scores are model values, not percentiles.</p></div></div>');
       tgStatus.textContent = 'Generated ' + data.traits.length + ' of ' + count + ' requested traits.';
       tgStatus.className = 'status ready';
     } catch (err) {
@@ -2149,7 +2332,8 @@
   ];
 
   function renderFamily(data) {
-    let html = '<div class="output family-tree">';
+    let html = '<div class="output family-tree"><div class="family-graph">' + familyGraphSvg(data) + '</div>'
+      + '<details class="family-list"><summary>List view</summary>';
     for (const [title, roles] of familyLevels) {
       const people = data.members.filter(member => roles.includes(member.role));
       if (!people.length) continue;
@@ -2167,7 +2351,7 @@
       html += '<h3>Lives with</h3><ul><li><strong>' + esc(data.household.type.replace(/_/g, ' ')) + '</strong> '
         + '<span class="family-detail">' + esc(names.join(', ')) + '</span></li></ul>';
     }
-    byId('rl-output').innerHTML = html + '</div>';
+    byId('rl-output').innerHTML = html + '</details></div>';
   }
 
   byId('rl-generate').addEventListener('click', () => {
@@ -2461,6 +2645,155 @@
   };
   loadDemo('pg', () => createPersonagenModule(), mod => mod.init(), mod => { pgMod = mod; }, 'all eight libraries loaded.');
 
+  // ── Visual helpers shared by the persona card and the single-library demos ──
+  const BIG_FIVE = [['openness', 'Openness'], ['conscientiousness', 'Conscientiousness'],
+    ['extraversion', 'Extraversion'], ['agreeableness', 'Agreeableness'], ['neuroticism', 'Neuroticism']];
+  const signed = value => (value >= 0 ? '+' : '') + value.toFixed(2);
+
+  function chipsHtml(items, className = '') {
+    const labels = (items || []).map(item => typeof item === 'string' ? item : item.label).filter(Boolean);
+    return labels.length
+      ? '<div class="chips">' + labels.map(label => '<span class="chip ' + className + '">' + esc(label) + '</span>').join('') + '</div>'
+      : '-';
+  }
+
+  // Big Five scores are centred on zero; the dashed ring is zero and the outer ring is +/- 2.5.
+  function radarSvg(axes) {
+    const cx = 200, cy = 122, radius = 76, span = 2.5;
+    const count = BIG_FIVE.length;
+    const angle = i => -Math.PI / 2 + i * 2 * Math.PI / count;
+    const point = (i, f) => [cx + Math.cos(angle(i)) * radius * f, cy + Math.sin(angle(i)) * radius * f];
+    const coords = (i, f) => point(i, f).map(n => n.toFixed(1)).join(',');
+    const fraction = value => Math.max(0.04, Math.min(1, 0.5 + value / (2 * span)));
+    let svg = '<svg class="radar" viewBox="0 0 400 240" role="img" aria-label="Big Five scores: '
+      + BIG_FIVE.map(([key, label]) => label + ' ' + signed(axes[key])).join(', ') + '">';
+    for (const f of [0.25, 0.5, 0.75, 1]) {
+      svg += '<polygon class="radar-ring' + (f === 0.5 ? ' zero' : '') + '" points="'
+        + BIG_FIVE.map((_, i) => coords(i, f)).join(' ') + '"/>';
+    }
+    BIG_FIVE.forEach((_, i) => {
+      svg += '<line class="radar-spoke" x1="' + cx + '" y1="' + cy + '" x2="' + point(i, 1)[0].toFixed(1)
+        + '" y2="' + point(i, 1)[1].toFixed(1) + '"/>';
+    });
+    svg += '<g class="radar-data"><polygon points="'
+      + BIG_FIVE.map(([key], i) => coords(i, fraction(axes[key]))).join(' ') + '"/>'
+      + BIG_FIVE.map(([key], i) => '<circle cx="' + point(i, fraction(axes[key]))[0].toFixed(1)
+        + '" cy="' + point(i, fraction(axes[key]))[1].toFixed(1) + '" r="3"/>').join('') + '</g>';
+    BIG_FIVE.forEach(([key, label], i) => {
+      const cos = Math.cos(angle(i));
+      const sin = Math.sin(angle(i));
+      const x = cx + cos * (radius + 14);
+      const y = cy + sin * (radius + 14) + (sin < -0.5 ? -12 : 4);
+      const anchor = cos > 0.3 ? 'start' : cos < -0.3 ? 'end' : 'middle';
+      svg += '<text class="radar-name" x="' + x.toFixed(1) + '" y="' + y.toFixed(1) + '" text-anchor="' + anchor + '">'
+        + esc(label) + '</text><text class="radar-value" x="' + x.toFixed(1) + '" y="' + (y + 12).toFixed(1)
+        + '" text-anchor="' + anchor + '">' + signed(axes[key]) + '</text>';
+    });
+    return svg + '</svg>';
+  }
+
+  // A thin track with a marker; `stops` is [[upTo, colour], ...] for a zoned track.
+  function meter(value, min, max, stops) {
+    const pct = v => Math.max(0, Math.min(100, (v - min) / (max - min) * 100));
+    const track = stops ? 'background:linear-gradient(90deg,' + stops.map(([upTo, colour], i) =>
+      colour + ' ' + (i ? pct(stops[i - 1][0]) : 0).toFixed(1) + '%,' + colour + ' ' + pct(upTo).toFixed(1) + '%').join(',') + ')' : '';
+    return '<div class="meter" aria-hidden="true"><div class="meter-track" style="' + track
+      + '"></div><i class="meter-dot" style="left:' + pct(value).toFixed(1) + '%"></i></div>';
+  }
+
+  function hashString(text) {
+    let hash = 2166136261;
+    for (const ch of text) hash = Math.imul(hash ^ ch.codePointAt(0), 16777619);
+    return hash >>> 0;
+  }
+
+  // Initials on a gradient picked by the persona's seed; the ring takes the eye colour.
+  function avatarHtml(name, seed, ring) {
+    const hash = hashString(seed || name);
+    const hue1 = hash % 360;
+    const hue2 = (hue1 + 40 + (hash >>> 9) % 80) % 360;
+    const words = name.split(/\s+/).filter(Boolean);
+    const initials = (words.length > 1 ? [words[0], words[words.length - 1]] : words)
+      .map(word => Array.from(word)[0]).join('').toUpperCase();
+    return '<div class="avatar" aria-hidden="true" style="--h1:' + hue1 + ';--h2:' + hue2
+      + (ring ? ';--ring:' + ring : '') + '"><span>' + esc(initials) + '</span></div>';
+  }
+
+  document.addEventListener('click', event => {
+    const chip = event.target.closest('.seed-chip');
+    if (!chip) return;
+    const label = chip.querySelector('.seed-copy');
+    navigator.clipboard.writeText(chip.dataset.seed)
+      .then(() => { label.textContent = 'copied'; })
+      .catch(() => { label.textContent = 'copy failed'; })
+      .finally(() => setTimeout(() => { label.textContent = 'copy'; }, 1400));
+  });
+
+  // Schematic family graph from the library's own parent_of / step_parent_of / partner_of edges.
+  function familyGraphSvg(data) {
+    const nodeW = 140, nodeH = 48, gapX = 14, gapY = 54, pad = 8;
+    const rows = familyLevels.map(([, roles]) => data.members.filter(member => roles.includes(member.role))
+      .sort((a, b) => roles.indexOf(a.role) - roles.indexOf(b.role))).filter(row => row.length);
+    const widest = Math.max(...rows.map(row => row.length));
+    const width = widest * (nodeW + gapX) - gapX + pad * 2;
+    const height = rows.length * (nodeH + gapY) - gapY + pad * 2;
+    const spot = new Map();
+    rows.forEach((row, r) => {
+      const x0 = (width - (row.length * (nodeW + gapX) - gapX)) / 2;
+      row.forEach((member, i) => spot.set(member.id, { x: x0 + i * (nodeW + gapX), y: pad + r * (nodeH + gapY), row: r }));
+    });
+    const home = new Set(data.household ? data.household.members : []);
+    const short = { paternal_grandfather: 'grandfather', paternal_grandmother: 'grandmother',
+      maternal_grandfather: 'grandfather', maternal_grandmother: 'grandmother', half_sibling: 'half-sibling',
+      anchor: 'the person' };
+    let edges = '';
+    let nodes = '';
+    for (const edge of data.edges || []) {
+      const from = spot.get(edge.from);
+      const to = spot.get(edge.to);
+      if (!from || !to) continue;
+      if (edge.kind === 'partner_of') {
+        const [left, right] = from.x <= to.x ? [from, to] : [to, from];
+        const ended = edge.end ? ' ended' : '';
+        if (right.x - (left.x + nodeW) <= gapX + 1) {
+          const y = left.y + nodeH / 2;
+          edges += '<path class="fg-edge partner' + ended + (ended ? '' : ' draw') + '" pathLength="1" d="M'
+            + (left.x + nodeW) + ',' + y + ' L' + right.x + ',' + y + '"/>';
+        } else {
+          const y = left.y + nodeH;
+          edges += '<path class="fg-edge partner' + ended + '" d="M' + (left.x + nodeW / 2) + ',' + y + ' C'
+            + (left.x + nodeW / 2) + ',' + (y + 22) + ' ' + (right.x + nodeW / 2) + ',' + (y + 22) + ' '
+            + (right.x + nodeW / 2) + ',' + y + '"/>';
+        }
+      } else if ((edge.kind === 'parent_of' || edge.kind === 'step_parent_of') && from.row < to.row) {
+        const x1 = from.x + nodeW / 2, y1 = from.y + nodeH, x2 = to.x + nodeW / 2, y2 = to.y;
+        const mid = (y1 + y2) / 2;
+        const step = edge.kind === 'step_parent_of' || edge.genetic === false;
+        edges += '<path class="fg-edge' + (step ? ' step' : ' draw') + '" pathLength="1" d="M' + x1 + ',' + y1
+          + ' C' + x1 + ',' + mid + ' ' + x2 + ',' + mid + ' ' + x2 + ',' + y2 + '"/>';
+      }
+    }
+    const clip = (text, n) => text.length > n ? text.slice(0, n - 1) + '…' : text;
+    rows.flat().forEach(member => {
+      const { x, y } = spot.get(member.id);
+      const full = member.name ? member.name.full : '(unnamed)';
+      const role = short[member.role] || member.role.replace(/_/g, ' ');
+      const meta = member.alive ? role + ' · ' + member.age : '† ' + role + ' · ' + member.death_age;
+      nodes += '<g class="fg-node ' + member.role + (home.has(member.id) ? ' home' : '') + (member.alive ? '' : ' dead')
+        + '" transform="translate(' + x + ',' + y + ')"><g class="fg-body"><title>'
+        + esc(full + ' — ' + member.role.replace(/_/g, ' ') + ', ' + (member.alive ? 'age ' + member.age : 'died aged ' + member.death_age))
+        + '</title><rect class="fg-card" width="' + nodeW + '" height="' + nodeH + '" rx="10"/>'
+        + '<circle class="fg-dot ' + esc(member.sex) + '" cx="14" cy="17" r="3.5"/>'
+        + '<text class="fg-name" x="25" y="21">' + esc(clip(full, 16)) + '</text>'
+        + '<text class="fg-meta" x="25" y="37">' + esc(clip(meta, 22)) + '</text></g></g>';
+    });
+    return '<svg class="family-svg" viewBox="0 0 ' + width + ' ' + height + '" style="max-width:' + Math.max(width, 420)
+      + 'px" role="img" aria-label="Family graph of ' + data.members.length + ' people">' + edges + nodes + '</svg>'
+      + '<div class="family-legend"><span><i></i>parent</span><span><i class="step"></i>step-parent</span>'
+      + '<span><i class="partner"></i>partner</span>' + (home.size ? '<span><i class="home"></i>lives with the person</span>' : '')
+      + '</div>';
+  }
+
   function renderPersona() {
     const d = parseResult(pgMod.generatePersona(byId('pg-country').value, byId('pg-sex').value));
     if (personaMap) { personaMap.remove(); personaMap = null; }
@@ -2506,13 +2839,18 @@
     let html = '<div class="persona">';
 
     // ── Header: flag image + name + tagline ──
-    html += '<div class="persona-header"><div class="persona-name">';
+    html += '<div class="persona-header"><div class="persona-id">'
+      + avatarHtml(d.name, d.signature.seed, eyeColors[String(body.eyes).toLowerCase()])
+      + '<div class="persona-id-text"><div class="persona-name">';
     html += '<img class="persona-flag-img" src="' + flagUrl + '" alt="' + esc(country.name_common) + ' flag">';
     html += '<h3>' + esc(d.name) + '</h3></div>';
     html += '<div class="persona-tagline">'
       + 'Fictional persona · ' + d.age + (d.age === 1 ? ' year · ' : ' years · ') + esc(cap(d.sex))
       + ' · ' + esc(body.blood)
-      + '</div></div>';
+      + '</div>'
+      + '<button type="button" class="seed-chip" data-seed="' + esc(d.signature.seed) + '" title="Copy the seed that replays this persona">'
+      + 'seed <code>' + esc(d.signature.seed) + '</code><span class="seed-copy">copy</span></button>'
+      + '</div></div></div>';
 
     // ── Sections ──
     html += '<div class="persona-grid">';
@@ -2537,23 +2875,32 @@
     html += stat('Population', city.population.toLocaleString());
     html += stat('Coordinates', fixed1(city.latitude) + '°, ' + fixed1(city.longitude) + '°');
     html += stat('Elevation', typeof elevation === 'number' ? elevation + ' m' : 'N/A');
-    html += '<div class="persona-map" id="pg-map"></div>';
     html += '</div>';
+    html += '<div class="map-wrap"><div class="persona-map" id="pg-map"></div><div class="map-tag">'
+      + esc(city.name) + ' · ' + fixed1(city.latitude) + '°, ' + fixed1(city.longitude) + '°</div></div>';
 
     // Demographics
     html += section('Demographics · birth-generator');
     html += '<div class="persona-row">';
     html += stat('Birthday', birth.date);
-    html += stat('Age', String(d.age));
+    const stages = [[13, 'Child', '#4a90c2'], [20, 'Teen', '#5fb3b3'], [35, 'Young adult', '#42dca3'],
+      [60, 'Adult', '#a8d96b'], [100, 'Senior', '#e0b04a']];
+    const stage = (stages.find(([upTo]) => d.age < upTo) || stages[stages.length - 1])[1];
+    html += statHtml('Age', esc(String(d.age)) + '<span class="stage">' + stage + '</span>'
+      + meter(d.age, 0, 100, stages.map(([upTo, , colour]) => [upTo, colour])));
     html += stat('Sex', cap(d.sex));
     html += '</div>';
 
     // Physical: drawn for this persona's country, age and sex
     html += section('Physical · biodata-generator');
     html += '<div class="persona-row">';
-    html += stat('Height', fixed1(body.height_cm) + ' cm');
-    html += stat('Weight', fixed1(body.weight_kg) + ' kg');
-    html += stat('BMI (synthetic)', fixed1(body.bmi));
+    const bmiBands = [[18.5, 'Underweight', '#4a90c2'], [25, 'Normal', '#42dca3'], [30, 'Overweight', '#e0b04a'],
+      [40, 'Obese', '#e0674a']];
+    const bmiBand = (bmiBands.find(([upTo]) => body.bmi < upTo) || bmiBands[bmiBands.length - 1])[1];
+    html += statHtml('Height', esc(fixed1(body.height_cm) + ' cm') + meter(body.height_cm, 140, 210));
+    html += statHtml('Weight', esc(fixed1(body.weight_kg) + ' kg') + meter(body.weight_kg, 40, 120));
+    html += statHtml('BMI (synthetic)', esc(fixed1(body.bmi)) + '<span class="stage">' + bmiBand + '</span>'
+      + meter(body.bmi, 14, 40, bmiBands.map(([upTo, , colour]) => [upTo, colour])));
     html += statHtml('Eye Color', colorDot(body.eyes, eyeColors) + esc(cap(body.eyes)));
     html += statHtml('Hair Color', colorDot(body.hair, hairColors) + esc(cap(body.hair)));
     html += stat('Skin Type', fmtSkin(body.skin));
@@ -2561,33 +2908,36 @@
 
     // Personality: independent of the other fields
     html += section('Personality · trait-generator');
-    html += '<div class="persona-row wide">';
-    html += stat('Traits', labels(personality.traits));
-    html += stat('Big Five (centered on zero)', Object.entries(personality.axes)
-      .map(([axis, score]) => cap(axis) + ' ' + (score >= 0 ? '+' : '') + score.toFixed(2)).join(' · '));
+    html += '<div class="persona-split">';
+    html += statHtml('Traits', chipsHtml(personality.traits)
+      + '<p class="radar-note">Dashed ring = zero; the outer ring is +2.5 and the centre −2.5. Scores are model values, not percentiles.</p>');
+    html += statHtml('Big Five (centered on zero)', radarSvg(personality.axes));
     html += '</div>';
 
     // Interests: drawn for this persona's country, age and sex
     html += section('Interests · interest-generator');
     html += '<div class="persona-row wide">';
     html += stat('Religion', interest.religion);
-    html += stat('Hobbies', labels(interest.hobbies));
-    html += stat('Films', labels(interest.films));
-    html += stat('Games', labels(interest.games));
-    html += stat('Books', labels(interest.books));
-    html += stat('Music', labels(interest.music));
+    html += statHtml('Hobbies', chipsHtml(interest.hobbies));
+    html += statHtml('Films', chipsHtml(interest.films));
+    html += statHtml('Games', chipsHtml(interest.games));
+    html += statHtml('Books', chipsHtml(interest.books));
+    html += statHtml('Music', chipsHtml(interest.music));
     html += '</div>';
 
     // Occupation: drawn for this persona's country, age and sex
     const job = occupation.job;
     html += section('Occupation · occupation-generator');
+    const employment = cap(occupation.status.replace(/_/g, ' '));
+    const jobIcon = /student/i.test(occupation.status) ? '🎓' : /retire/i.test(occupation.status) ? '🌴'
+      : /unemploy|seeking/i.test(occupation.status) ? '🔎' : /home|inactive|not_in/i.test(occupation.status) ? '🏠' : '💼';
+    html += '<div class="job-hero"><div class="job-icon" aria-hidden="true">' + jobIcon + '</div><div>'
+      + '<div class="job-title">' + esc(job ? job.label : employment) + '</div>'
+      + '<div class="job-sub">' + esc(job ? job.isco + ' · ' + job.isco_label : 'No occupation drawn') + '</div>'
+      + chipsHtml([employment, (occupation.education || '').replace(/_/g, ' ')].filter(Boolean)) + '</div></div>';
     html += '<div class="persona-row wide">';
-    html += stat('Employment', cap(occupation.status.replace(/_/g, ' ')));
-    html += stat('Education', (occupation.education || '-').replace(/_/g, ' '));
-    html += stat('Occupation', job ? job.label : '-');
-    html += stat('Job group', job ? job.isco + ' ' + job.isco_label : '-');
-    html += stat('Skills', job ? list(job.skills) : '-');
-    html += stat('Gear', job ? list(job.gear) : '-');
+    html += statHtml('Skills', chipsHtml(job ? job.skills : [], 'muted'));
+    html += statHtml('Gear', chipsHtml(job ? job.gear : [], 'muted'));
     html += '</div>';
 
     html += '</div></div>';
@@ -2602,41 +2952,35 @@
         })) + '</details>';
     document.getElementById('pg-output').innerHTML = html;
 
-    // ── Initialize Leaflet map when city panel toggles open ──
-    const lat = city.latitude;
-    const lon = city.longitude;
     document.querySelectorAll('#pg-output .country-toggle').forEach(button => {
       button.addEventListener('click', () => {
         const panel = byId(button.getAttribute('aria-controls'));
         const open = panel.classList.toggle('open');
         button.setAttribute('aria-expanded', String(open));
         button.querySelector('.country-chevron').classList.toggle('open', open);
-        if (panel.id === 'pg-city-details' && open && !personaMap) {
-          if (typeof L === 'undefined') {
-            byId('pg-map').textContent = 'Map unavailable. City coordinates are shown above.';
-            return;
-          }
-          personaMap = L.map('pg-map', {
-            zoomControl: false,
-            dragging: false,
-            scrollWheelZoom: false,
-            doubleClickZoom: false,
-            boxZoom: false,
-            keyboard: false,
-            touchZoom: false
-          }).setView([lat, lon], 8);
-          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; OSM'
-          }).addTo(personaMap);
-          L.circleMarker([lat, lon], {
-            radius: 6, color: '#42dca3', fillColor: '#42dca3',
-            fillOpacity: .8, weight: 2
-          }).addTo(personaMap);
-        } else if (panel.id === 'pg-city-details' && open && personaMap) {
-          personaMap.invalidateSize();
-        }
       });
     });
+    if (typeof L === 'undefined' || typeof city.latitude !== 'number') {
+      byId('pg-map').textContent = 'Map unavailable. City coordinates are shown above.';
+    } else {
+      personaMap = L.map('pg-map', {
+        zoomControl: false,
+        dragging: false,
+        scrollWheelZoom: false,
+        doubleClickZoom: false,
+        boxZoom: false,
+        keyboard: false,
+        touchZoom: false
+      }).setView([city.latitude, city.longitude], 8);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OSM', maxZoom: 19
+      }).addTo(personaMap);
+      L.marker([city.latitude, city.longitude], {
+        icon: L.divIcon({ className: 'map-pin-icon', html: '<span class="map-pin"></span>', iconSize: [14, 14], iconAnchor: [7, 7] }),
+        interactive: false, keyboard: false
+      }).addTo(personaMap);
+      setTimeout(() => personaMap && personaMap.invalidateSize(), 0);
+    }
     return 'Generated a fictional persona. Its seed replays it; expand provenance to see which library supplies each part.';
   }
 
@@ -2649,7 +2993,7 @@
 
   // Output is rebuilt on every generate, so a childList observer is enough to catch it.
   const POP_TARGETS = '.persona-header, .persona-section-title, .persona-stat, .family-tree h3,'
-    + ' .family-tree li, tbody tr, ol.alternatives li, .output:not(.empty):not(.alternatives), .note';
+    + ' .family-tree li, .fg-body, .job-hero, .trait-hero, tbody tr, ol.alternatives li, .output:not(.empty):not(.alternatives), .note';
   function scramble(heading) {
     const target = heading.textContent;
     const real = document.createElement('span');
