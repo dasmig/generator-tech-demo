@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#0b0f0e">
-  <script>document.documentElement.classList.add('js');</script>
+  <script>document.documentElement.classList.add('js');try{if(localStorage.getItem('generator-demo-theme')==='light')document.documentElement.dataset.theme='light';}catch(e){}</script>
   <title>Generator Libraries — Live Demos</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -26,6 +26,36 @@
       --ease: cubic-bezier(.2,.7,.2,1);
       --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
       --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+      --heading: #fff;
+      --on-accent: #0b0f0e;
+      --surface: rgba(22,26,25,.96);
+      --chrome: rgba(11,15,14,.7);
+      --grid-dot: rgba(211,212,217,.07);
+      --aurora: #11231e;
+      --placeholder: #5d6069;
+      --hover-border: #3a4140;
+      --map-bg: #0b0f0e;
+    }
+    :root[data-theme="light"] {
+      color-scheme: light;
+      --bg: #f3f7f5;
+      --bg-card: rgba(255,255,255,.78);
+      --bg-inset: rgba(232,241,237,.85);
+      --text: #1c2623;
+      --text-muted: #59666a;
+      --accent: #0c9a6b;
+      --accent-hover: #0a8460;
+      --accent-soft: rgba(12,154,107,.1);
+      --border: #d0dbd7;
+      --heading: #0b1f18;
+      --on-accent: #fff;
+      --surface: #fff;
+      --chrome: rgba(243,247,245,.78);
+      --grid-dot: rgba(20,40,35,.08);
+      --aurora: #d9efe6;
+      --placeholder: #8a9794;
+      --hover-border: #b4c4bf;
+      --map-bg: #e8eeec;
     }
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     html { scroll-behavior: smooth; }
@@ -48,13 +78,13 @@
       z-index: -1;
       overflow: hidden;
       pointer-events: none;
-      background: radial-gradient(circle at 50% 20%, #11231e, var(--bg) 62%);
+      background: radial-gradient(circle at 50% 20%, var(--aurora), var(--bg) 62%);
     }
     .bg::after { /* faint dot grid, fading out toward the bottom */
       content: '';
       position: absolute;
       inset: 0;
-      background-image: radial-gradient(rgba(211,212,217,.07) 1px, transparent 1px);
+      background-image: radial-gradient(var(--grid-dot) 1px, transparent 1px);
       background-size: 28px 28px;
       -webkit-mask-image: linear-gradient(to bottom, #000, transparent 75%);
       mask-image: linear-gradient(to bottom, #000, transparent 75%);
@@ -81,7 +111,7 @@
       position: fixed;
       top: 0; left: 0; right: 0;
       z-index: 100;
-      background: rgba(11,15,14,.7);
+      background: var(--chrome);
       -webkit-backdrop-filter: blur(12px);
       backdrop-filter: blur(12px);
       border-bottom: 1px solid var(--border);
@@ -147,7 +177,7 @@
       letter-spacing: -.025em;
       line-height: 1.12;
       margin-bottom: 1rem;
-      background: linear-gradient(90deg, #fff, var(--accent), #fff);
+      background: linear-gradient(90deg, var(--heading), var(--accent), var(--heading));
       background-size: 200% 100%;
       -webkit-background-clip: text;
       background-clip: text;
@@ -258,7 +288,7 @@
       font-size: clamp(1.35rem, 3.5vw, 1.8rem);
       font-weight: 700;
       letter-spacing: -.02em;
-      color: #fff;
+      color: var(--heading);
       margin-bottom: .6rem;
       padding-right: 4rem;
     }
@@ -330,12 +360,12 @@
       transition: border-color .2s, box-shadow .2s, background .2s;
     }
     select { cursor: pointer; }
-    select:hover, input[type="text"]:hover, input[type="date"]:hover { border-color: #3a4140; }
+    select:hover, input[type="text"]:hover, input[type="date"]:hover { border-color: var(--hover-border); }
     select:focus, input[type="text"]:focus, input[type="date"]:focus {
       border-color: var(--accent);
       box-shadow: 0 0 0 3px rgba(66,220,163,.15);
     }
-    input::placeholder { color: #5d6069; }
+    input::placeholder { color: var(--placeholder); }
     select option { background: var(--bg); color: var(--text); }
 
     .btn {
@@ -349,7 +379,7 @@
       border: 1px solid var(--accent);
       border-radius: 8px;
       background: var(--accent);
-      color: var(--bg);
+      color: var(--on-accent);
       cursor: pointer;
       transition: background .25s, color .25s, box-shadow .25s, transform .15s;
       position: relative;
@@ -363,7 +393,7 @@
     .btn.secondary:hover { background: var(--accent-soft); box-shadow: 0 0 18px rgba(66,220,163,.2); }
     :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
     .field, select, input { max-width: 100%; min-width: 0; }
-    input[type="date"] { color-scheme: dark; }
+    input[type="date"] { color-scheme: inherit; }
     .note { color: var(--text-muted); font-size: .85rem; margin: .75rem 0; }
     .family-tree h3 {
       font-family: var(--font-mono);
@@ -876,7 +906,7 @@
       animation: meter-in .9s var(--ease) both;
     }
     @keyframes meter-in { from { left: 0; } }
-    .stage { margin-left: .4rem; font-size: .78rem; font-weight: 400; color: var(--text-muted); }
+    .stage { margin-left: .1rem; font-size: .78rem; font-weight: 400; color: var(--text-muted); }
 
     .radar { display: block; width: 100%; max-width: 400px; height: auto; margin: 0 auto; }
     .radar-ring { fill: none; stroke: var(--border); }
@@ -926,7 +956,7 @@
     .job-sub { margin-bottom: .35rem; font: .74rem var(--font-mono); color: var(--text-muted); }
 
     .map-wrap { position: relative; border-bottom: 1px solid var(--border); }
-    .map-wrap .persona-map { height: 230px; border-top: none; background: #0b0f0e; }
+    .map-wrap .persona-map { height: 230px; border-top: none; background: var(--map-bg); }
     /* OSM tiles, darkened to match the page */
     .map-wrap .leaflet-tile-pane { filter: invert(1) hue-rotate(180deg) brightness(.85) contrast(.9) saturate(.5); }
     .map-tag {
@@ -934,7 +964,7 @@
       padding: .25rem .7rem;
       border: 1px solid var(--border);
       border-radius: 999px;
-      background: rgba(11,15,14,.85);
+      background: var(--chrome);
       font: .72rem var(--font-mono);
       color: var(--text);
     }
@@ -942,7 +972,7 @@
     .map-pin {
       display: block;
       width: 14px; height: 14px;
-      border: 2px solid #0b0f0e;
+      border: 2px solid var(--bg);
       border-radius: 50%;
       background: var(--accent);
       animation: pin 2s ease-out infinite;
@@ -960,7 +990,7 @@
     .fg-edge.partner { stroke: #e68ab8; stroke-width: 1.8; }
     .fg-edge.partner.ended { stroke-dasharray: 3 4; opacity: .7; }
     @keyframes fg-draw { to { stroke-dashoffset: 0; } }
-    .fg-card { fill: rgba(22,26,25,.96); stroke: var(--border); }
+    .fg-card { fill: var(--surface); stroke: var(--border); }
     .fg-node.anchor .fg-card { fill: rgba(66,220,163,.12); stroke: var(--accent); }
     .fg-node.home .fg-card { stroke: var(--accent); stroke-dasharray: 4 3; }
     .fg-node.dead { opacity: .55; }
@@ -991,6 +1021,75 @@
       .fg-edge.draw { animation: none; stroke-dasharray: none; stroke-dashoffset: 0; }
     }
 
+    /* ── Light theme, copy button, hero ticker, two-column rows ── */
+    :root[data-theme="light"] .orb { opacity: .45; }
+    :root[data-theme="light"] .map-wrap .leaflet-tile-pane { filter: none; }
+    :root[data-theme="light"] .demo-card:hover, :root[data-theme="light"] .demo-card:focus-within { box-shadow: 0 8px 30px rgba(12,154,107,.12); }
+    .theme-toggle {
+      padding: .1rem .5rem;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: transparent;
+      color: var(--text-muted);
+      font-size: .85rem;
+      line-height: 1.4;
+      cursor: pointer;
+      transition: color .2s, border-color .2s;
+    }
+    .theme-toggle:hover { color: var(--accent); border-color: var(--accent); }
+
+    .out-tools { display: flex; justify-content: flex-end; margin-bottom: .4rem; }
+    .out-tools[hidden] { display: none; }
+    .copy-out {
+      padding: .15rem .7rem;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: transparent;
+      color: var(--accent);
+      font: .7rem var(--font-mono);
+      cursor: pointer;
+      transition: border-color .2s, background .2s;
+    }
+    .copy-out:hover { border-color: var(--accent); background: var(--accent-soft); }
+
+    .ticker {
+      display: inline-flex;
+      align-items: center;
+      gap: .6rem;
+      max-width: 100%;
+      min-height: 2.1rem;
+      margin: -.9rem auto 2rem;
+      padding: .35rem 1rem;
+      border: 1px dashed var(--border);
+      border-radius: 999px;
+      font: .76rem var(--font-mono);
+      color: var(--text-muted);
+      animation-delay: .5s;
+    }
+    .ticker::before {
+      content: '';
+      flex: none;
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 8px var(--accent);
+      animation: pulse 1.4s ease-in-out infinite;
+    }
+    .ticker span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text); transition: opacity .18s; }
+    .ticker span.out { opacity: 0; }
+
+    .persona-row.cols2 { grid-template-columns: repeat(2, 1fr); }
+    .persona-row.cols2 > .persona-stat:nth-child(2n) { border-right: none; }
+    .group-grid.cols-2 { grid-template-columns: repeat(2, 1fr); }
+    @media (max-width: 600px) {
+      .persona-row.cols2, .group-grid.cols-2 { grid-template-columns: 1fr; }
+      .persona-row.cols2 > .persona-stat { border-right: none; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .ticker::before { animation: none; }
+      .ticker span { transition: none; }
+    }
+
     footer {
       max-width: 1000px;
       margin: 3rem auto 0;
@@ -1016,6 +1115,7 @@
     <ul class="topbar-links">
       <li><a href="https://dasmig.github.io">Portfolio</a></li>
       <li><a href="https://github.com/dasmig" target="_blank" rel="noopener">GitHub</a></li>
+      <li><button type="button" class="theme-toggle" id="theme-toggle" aria-label="Switch to light theme">☀</button></li>
     </ul>
   </div>
   <nav class="subnav" id="subnav" aria-label="Jump to a demo"><ul></ul></nav>
@@ -1036,6 +1136,7 @@
       <li><b>0</b>servers</li>
       <li><b>seeded</b>reproducible</li>
     </ul>
+    <p class="ticker" aria-hidden="true"><span id="ticker-text">warming up WebAssembly…</span></p>
   </div>
 
   <ul class="demo-index" aria-label="Jump to a demo">
@@ -1754,7 +1855,7 @@
       <h2 class="group-title" id="group-online-title">Online &amp; contact</h2>
       <p>How you reach them: handles, phone numbers, email and accounts.</p>
     </header>
-    <div class="group-grid">
+    <div class="group-grid cols-2">
 
       <!-- ─── Nickname Generator ─── -->
       <div class="demo-card" id="nickgen-card">
@@ -1928,7 +2029,7 @@
       <h2 class="group-title" id="group-social-title">Relationships &amp; composition</h2>
       <p>Families and friends, and the engine that composes everything else.</p>
     </header>
-    <div class="group-grid">
+    <div class="group-grid cols-2">
 
       <!-- ─── Relationship Generator ─── -->
       <div class="demo-card" id="relgen-card">
@@ -2730,24 +2831,53 @@
   });
 
   // Schematic family graph from the library's own parent_of / step_parent_of / partner_of edges.
+  // A child of two adjacent parents hangs from the point between them, as in a pedigree chart.
   function familyGraphSvg(data) {
     const nodeW = 140, nodeH = 48, gapX = 14, gapY = 54, pad = 8;
     const rows = familyLevels.map(([, roles]) => data.members.filter(member => roles.includes(member.role))
       .sort((a, b) => roles.indexOf(a.role) - roles.indexOf(b.role))).filter(row => row.length);
+    const parentsOf = new Map();
+    for (const edge of data.edges || []) {
+      if (edge.kind !== 'parent_of') continue;
+      if (!parentsOf.has(edge.to)) parentsOf.set(edge.to, []);
+      parentsOf.get(edge.to).push(edge.from);
+    }
     const widest = Math.max(...rows.map(row => row.length));
     const width = widest * (nodeW + gapX) - gapX + pad * 2;
     const height = rows.length * (nodeH + gapY) - gapY + pad * 2;
     const spot = new Map();
     rows.forEach((row, r) => {
-      const x0 = (width - (row.length * (nodeW + gapX) - gapX)) / 2;
+      const rowWidth = row.length * (nodeW + gapX) - gapX;
+      let x0 = (width - rowWidth) / 2;
+      // When every member has a placed parent, centre the row under those parents.
+      if (r > 0 && row.every(member => (parentsOf.get(member.id) || []).some(id => spot.has(id)))) {
+        const centres = row.flatMap(member => parentsOf.get(member.id).filter(id => spot.has(id))
+          .map(id => spot.get(id).x + nodeW / 2));
+        const target = centres.reduce((sum, value) => sum + value, 0) / centres.length - rowWidth / 2;
+        x0 = Math.max(pad, Math.min(width - pad - rowWidth, target));
+      }
       row.forEach((member, i) => spot.set(member.id, { x: x0 + i * (nodeW + gapX), y: pad + r * (nodeH + gapY), row: r }));
     });
     const home = new Set(data.household ? data.household.members : []);
     const short = { paternal_grandfather: 'grandfather', paternal_grandmother: 'grandmother',
-      maternal_grandfather: 'grandfather', maternal_grandmother: 'grandmother', half_sibling: 'half-sibling',
-      anchor: 'the person' };
+      maternal_grandfather: 'grandfather', maternal_grandmother: 'grandmother',
+      half_sibling: 'half-sibling', anchor: 'the person' };
+    const curve = (x1, y1, x2, y2, className) => {
+      const mid = (y1 + y2) / 2;
+      return '<path class="fg-edge ' + className + '" pathLength="1" d="M' + x1 + ',' + y1 + ' C' + x1 + ',' + mid
+        + ' ' + x2 + ',' + mid + ' ' + x2 + ',' + y2 + '"/>';
+    };
     let edges = '';
-    let nodes = '';
+    const joined = new Set();
+    for (const [child, parents] of parentsOf) {
+      const target = spot.get(child);
+      const pair = parents.map(id => spot.get(id)).filter(Boolean);
+      if (!target || pair.length !== 2 || pair[0].row !== pair[1].row || pair[0].row >= target.row) continue;
+      const [left, right] = pair[0].x <= pair[1].x ? pair : [pair[1], pair[0]];
+      if (right.x - (left.x + nodeW) > gapX + 1) continue;
+      edges += curve((left.x + nodeW + right.x) / 2, left.y + nodeH / 2, target.x + nodeW / 2, target.y, 'draw');
+      parents.forEach(id => joined.add(id + '>' + child));
+    }
     for (const edge of data.edges || []) {
       const from = spot.get(edge.from);
       const to = spot.get(edge.to);
@@ -2765,14 +2895,13 @@
             + (left.x + nodeW / 2) + ',' + (y + 22) + ' ' + (right.x + nodeW / 2) + ',' + (y + 22) + ' '
             + (right.x + nodeW / 2) + ',' + y + '"/>';
         }
-      } else if ((edge.kind === 'parent_of' || edge.kind === 'step_parent_of') && from.row < to.row) {
-        const x1 = from.x + nodeW / 2, y1 = from.y + nodeH, x2 = to.x + nodeW / 2, y2 = to.y;
-        const mid = (y1 + y2) / 2;
+      } else if ((edge.kind === 'parent_of' || edge.kind === 'step_parent_of') && from.row < to.row
+          && !joined.has(edge.from + '>' + edge.to)) {
         const step = edge.kind === 'step_parent_of' || edge.genetic === false;
-        edges += '<path class="fg-edge' + (step ? ' step' : ' draw') + '" pathLength="1" d="M' + x1 + ',' + y1
-          + ' C' + x1 + ',' + mid + ' ' + x2 + ',' + mid + ' ' + x2 + ',' + y2 + '"/>';
+        edges += curve(from.x + nodeW / 2, from.y + nodeH, to.x + nodeW / 2, to.y, step ? 'step' : 'draw');
       }
     }
+    let nodes = '';
     const clip = (text, n) => text.length > n ? text.slice(0, n - 1) + '…' : text;
     rows.flat().forEach(member => {
       const { x, y } = spot.get(member.id);
@@ -2886,7 +3015,7 @@
     const stages = [[13, 'Child', '#4a90c2'], [20, 'Teen', '#5fb3b3'], [35, 'Young adult', '#42dca3'],
       [60, 'Adult', '#a8d96b'], [100, 'Senior', '#e0b04a']];
     const stage = (stages.find(([upTo]) => d.age < upTo) || stages[stages.length - 1])[1];
-    html += statHtml('Age', esc(String(d.age)) + '<span class="stage">' + stage + '</span>'
+    html += statHtml('Age', esc(String(d.age)) + '<span class="stage"> ' + stage + '</span>'
       + meter(d.age, 0, 100, stages.map(([upTo, , colour]) => [upTo, colour])));
     html += stat('Sex', cap(d.sex));
     html += '</div>';
@@ -2899,7 +3028,7 @@
     const bmiBand = (bmiBands.find(([upTo]) => body.bmi < upTo) || bmiBands[bmiBands.length - 1])[1];
     html += statHtml('Height', esc(fixed1(body.height_cm) + ' cm') + meter(body.height_cm, 140, 210));
     html += statHtml('Weight', esc(fixed1(body.weight_kg) + ' kg') + meter(body.weight_kg, 40, 120));
-    html += statHtml('BMI (synthetic)', esc(fixed1(body.bmi)) + '<span class="stage">' + bmiBand + '</span>'
+    html += statHtml('BMI (synthetic)', esc(fixed1(body.bmi)) + '<span class="stage"> ' + bmiBand + '</span>'
       + meter(body.bmi, 14, 40, bmiBands.map(([upTo, , colour]) => [upTo, colour])));
     html += statHtml('Eye Color', colorDot(body.eyes, eyeColors) + esc(cap(body.eyes)));
     html += statHtml('Hair Color', colorDot(body.hair, hairColors) + esc(cap(body.hair)));
@@ -2916,7 +3045,7 @@
 
     // Interests: drawn for this persona's country, age and sex
     html += section('Interests · interest-generator');
-    html += '<div class="persona-row wide">';
+    html += '<div class="persona-row cols2">';
     html += stat('Religion', interest.religion);
     html += statHtml('Hobbies', chipsHtml(interest.hobbies));
     html += statHtml('Films', chipsHtml(interest.films));
@@ -2935,7 +3064,7 @@
       + '<div class="job-title">' + esc(job ? job.label : employment) + '</div>'
       + '<div class="job-sub">' + esc(job ? job.isco + ' · ' + job.isco_label : 'No occupation drawn') + '</div>'
       + chipsHtml([employment, (occupation.education || '').replace(/_/g, ' ')].filter(Boolean)) + '</div></div>';
-    html += '<div class="persona-row wide">';
+    html += '<div class="persona-row cols2">';
     html += statHtml('Skills', chipsHtml(job ? job.skills : [], 'muted'));
     html += statHtml('Gear', chipsHtml(job ? job.gear : [], 'muted'));
     html += '</div>';
@@ -3007,6 +3136,7 @@
     const glyphs = 'abcdefghijklmnopqrstuvwxyz0123456789';
     const start = performance.now();
     const duration = 700;
+    setTimeout(() => { heading.textContent = target; }, duration + 150);
     (function frame(now) {
       const t = Math.min(1, (now - start) / duration);
       const settled = Math.floor(t * target.length);
@@ -3026,7 +3156,11 @@
     const name = out.querySelector('.persona-name h3');
     if (name) scramble(name);
   }
-  const outputObserver = new MutationObserver(mutations => mutations.forEach(m => animateOutput(m.target)));
+  const outputObserver = new MutationObserver(mutations => mutations.forEach(m => {
+    const tools = m.target.previousElementSibling;
+    if (tools && tools.classList.contains('out-tools')) tools.hidden = !hasResult(m.target);
+    animateOutput(m.target);
+  }));
   document.querySelectorAll('[id$="-output"]').forEach(out => outputObserver.observe(out, { childList: true }));
 
   document.addEventListener('click', event => {
@@ -3134,6 +3268,103 @@
     }, { rootMargin: '-25% 0px -65% 0px' });
     cards.forEach(card => spy.observe(card));
   }
+  // ── Theme toggle ──
+  const themeToggle = byId('theme-toggle');
+  function applyTheme(theme) {
+    if (theme === 'light') document.documentElement.dataset.theme = 'light';
+    else delete document.documentElement.dataset.theme;
+    themeToggle.textContent = theme === 'light' ? '☾' : '☀';
+    themeToggle.setAttribute('aria-label', theme === 'light' ? 'Switch to dark theme' : 'Switch to light theme');
+    document.querySelector('meta[name="theme-color"]').content = theme === 'light' ? '#f3f7f5' : '#0b0f0e';
+  }
+  applyTheme(document.documentElement.dataset.theme === 'light' ? 'light' : 'dark');
+  themeToggle.addEventListener('click', () => {
+    const next = document.documentElement.dataset.theme === 'light' ? 'dark' : 'light';
+    applyTheme(next);
+    try { localStorage.setItem('generator-demo-theme', next); } catch (error) { /* storage can be blocked */ }
+  });
+
+  // ── Copy result: tables as tab-separated text, the persona as "label: value" lines ──
+  function outputText(out) {
+    const lines = [];
+    const persona = out.querySelector('.persona');
+    if (persona) {
+      const name = persona.querySelector('.persona-name h3');
+      lines.push((name.querySelector('.scramble-real') || name).textContent.trim());
+      persona.querySelectorAll('.persona-section-title, .persona-stat, .job-title, .job-sub').forEach(el => {
+        if (el.classList.contains('persona-stat')) {
+          const value = el.querySelector('.persona-stat-value');
+          const svg = el.querySelector('svg');
+          const chips = [...el.querySelectorAll('.chip')].map(chip => chip.textContent);
+          lines.push(el.querySelector('.persona-stat-label').textContent.trim() + ': '
+            + (svg ? svg.getAttribute('aria-label').replace(/^Big Five scores: /, '')
+              : chips.length ? chips.join(', ') : value.textContent.replace(/\s+/g, ' ').trim()));
+        } else {
+          lines.push((el.classList.contains('persona-section-title') ? '\n' : '') + el.textContent.trim());
+        }
+      });
+      return lines.join('\n').trim();
+    }
+    out.querySelectorAll('table').forEach(table => {
+      const caption = table.querySelector('caption');
+      if (caption) lines.push(caption.textContent.trim());
+      table.querySelectorAll('tr').forEach(row => lines.push([...row.cells].map(cell => cell.textContent.trim()).join('\t')));
+      lines.push('');
+    });
+    if (lines.some(Boolean)) return lines.join('\n').trim();
+    const items = [...out.querySelectorAll('h3, li')];
+    return (items.length ? items.map(el => el.textContent.replace(/\s+/g, ' ').trim()).join('\n') : out.textContent.trim());
+  }
+  const hasResult = out => !!out.firstElementChild
+    && !out.firstElementChild.classList.contains('empty') && !out.firstElementChild.classList.contains('skeleton');
+  document.querySelectorAll('[id$="-output"]').forEach(out => {
+    const tools = document.createElement('div');
+    tools.className = 'out-tools';
+    tools.hidden = true;
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'copy-out';
+    button.textContent = 'Copy result';
+    button.addEventListener('click', () => {
+      navigator.clipboard.writeText(outputText(out))
+        .then(() => { button.textContent = 'Copied ✓'; })
+        .catch(() => { button.textContent = 'Copy failed'; })
+        .finally(() => setTimeout(() => { button.textContent = 'Copy result'; }, 1400));
+    });
+    tools.append(button);
+    out.before(tools);
+  });
+
+  // ── Hero ticker: a random persona every few seconds, drawn by the page's own WebAssembly ──
+  const tickerText = byId('ticker-text');
+  const flagEmoji = code => String.fromCodePoint(...[...code.toUpperCase()].map(ch => 0x1F1E6 + ch.charCodeAt(0) - 65));
+  function tickOnce() {
+    if (!pgMod) return false;
+    try {
+      const p = JSON.parse(pgMod.generatePersona('', ''));
+      if (p.error) return false;
+      const job = p.occupation.job ? p.occupation.job.label : p.occupation.status.replace(/_/g, ' ');
+      const line = flagEmoji(p.country.cca2) + ' ' + p.name + ' · ' + p.city.name + ' · ' + job;
+      if (reduceMotion.matches) { tickerText.textContent = line; return true; }
+      tickerText.classList.add('out');
+      setTimeout(() => { tickerText.textContent = line; tickerText.classList.remove('out'); }, 180);
+      return true;
+    } catch (error) {
+      return false;
+    }
+  }
+  let heroVisible = true;
+  if ('IntersectionObserver' in window) {
+    new IntersectionObserver(([entry]) => { heroVisible = entry.isIntersecting; }).observe(document.querySelector('.hero'));
+  }
+  (function schedule(delay) {
+    setTimeout(() => {
+      if (document.hidden || !heroVisible) return schedule(1000);
+      const ok = tickOnce();
+      if (ok && reduceMotion.matches) return;
+      schedule(ok ? 2800 : 500);
+    }, delay);
+  })(600);
 </script>
 
 </body>
