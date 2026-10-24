@@ -2093,7 +2093,7 @@
           </div>
           <button class="btn" id="rl-generate" disabled>Generate</button>
         </div>
-        <p class="note">The person is the one the inputs describe; what is left out is drawn. Ages are as of 1 July 2023, the date of the UN estimates. The same seed and inputs give the same family. Relatives who have died are listed with the age they died at. Stepparents (a parent's new partner) and the household (who the person lives with) are off unless chosen.</p>
+        <p class="note">The person is the one the inputs describe; what is left out is drawn. Ages are as of 1 July 2023, the date of the UN estimates. The same seed and inputs give the same family. Relatives who have died are listed with the age they died at. Stepparents (a parent's new partner, the children they had with the parent and their own children, the stepsiblings) and the household (who the person lives with) are off unless chosen.</p>
         <div id="rl-output">
           <div class="output empty">Waiting for module to load…</div>
         </div>
@@ -2427,7 +2427,7 @@
   const familyLevels = [
     ['Grandparents', ['paternal_grandfather', 'paternal_grandmother', 'maternal_grandfather', 'maternal_grandmother']],
     ['Parents and stepparents', ['father', 'mother', 'stepfather', 'stepmother']],
-    ['The person, partners and siblings', ['anchor', 'partner', 'sibling', 'half_sibling']],
+    ['The person, partners and siblings', ['anchor', 'partner', 'sibling', 'half_sibling', 'stepsibling']],
     ['Children', ['child', 'stepchild']],
     ['Grandchildren', ['grandchild']],
   ];
