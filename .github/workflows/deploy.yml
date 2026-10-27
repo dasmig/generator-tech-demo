@@ -129,6 +129,13 @@ jobs:
           ref: v2.0.0
           path: user-generator
 
+      - name: Checkout device-generator
+        uses: actions/checkout@v4
+        with:
+          repository: dasmig/device-generator
+          ref: v1.0.1
+          path: device-generator
+
       - name: Checkout relationship-generator
         uses: actions/checkout@v4
         with:
@@ -158,6 +165,7 @@ jobs:
           -DEMAIL_GEN_DIR=${{ github.workspace }}/email-generator
           -DADDRESS_GEN_DIR=${{ github.workspace }}/address-generator
           -DUSER_GEN_DIR=${{ github.workspace }}/user-generator
+          -DDEVICE_GEN_DIR=${{ github.workspace }}/device-generator
           -DRELGEN_GEN_DIR=${{ github.workspace }}/relationship-generator
           -DPERSONA_GEN_DIR=${{ github.workspace }}/persona-generator
 
