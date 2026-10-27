@@ -133,7 +133,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: dasmig/device-generator
-          ref: v1.0.1
+          ref: v1.0.2
           path: device-generator
 
       - name: Checkout relationship-generator
