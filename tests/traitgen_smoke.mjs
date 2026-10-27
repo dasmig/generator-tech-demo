@@ -329,6 +329,45 @@ try {
     "phMod.generatePhone('US', 'cell', false)", "emMod.generateEmail('XX', '', '', '', 0, false)"]) {
     assert.ok(await evaluate(`JSON.parse(${expression}).error`), 'Invalid phone or email input must report an error');
   }
+  // device-generator: the lists are the library's, the parts agree, safe gives documentation addresses.
+  const deviceCountries = await evaluate('JSON.parse(dvMod.supportedCountries())');
+  assert.ok(deviceCountries.length >= 190, 'The device module lists the countries it has data for');
+  assert.deepEqual(await evaluate(`Array.from(byId('dv-country').options, option => option.value).filter(Boolean).sort()`),
+    [...deviceCountries].sort(), "The device country list must be the library's own");
+  const devicePlatforms = await evaluate('JSON.parse(dvMod.supportedPlatforms())');
+  assert.deepEqual(await evaluate(`Array.from(byId('dv-platform').options, option => option.value).filter(Boolean)`), devicePlatforms);
+  const device = args => evaluate(`JSON.parse(dvMod.generateDevice(${args}))`);
+  for (const platform of devicePlatforms) {
+    const result = await device(`'DE', '${platform}', '', '', '', '2025-06-01', false`);
+    assert.equal(result.error, undefined, result.error);
+    assert.equal(result.Country, 'DE');
+    if (platform === 'other') assert.equal(result['User-Agent'], '-');
+    else assert.match(result['User-Agent'], /^Mozilla\/5\.0 \(/, 'A browser platform sends a user agent: ' + platform);
+  }
+  const hinted = await device(`'BR', 'windows-desktop', 'chrome', 'v4', 'pt-BR', '2024-06-01', false`);
+  assert.match(hinted['Sec-CH-UA'], /"Google Chrome";v="\d+"/);
+  assert.equal(hinted['Sec-CH-UA-Platform'], '"Windows"');
+  assert.equal(hinted['Accept-Language'], 'pt-BR,pt;q=0.9,en;q=0.8');
+  assert.match(hinted['IP address'], /^\d+\.\d+\.\d+\.\d+$/);
+  const iphone = await device(`'US', 'ios-phone', '', '', '', '2024-06-01', false`);
+  assert.equal(iphone.Engine, 'WebKit', 'Every iOS browser is WebKit');
+  assert.equal(iphone['Sec-CH-UA'], '-', 'No client hints on iOS');
+  for (const ip of ['v4', 'v6']) {
+    const safe = await device(`'US', '', '', '${ip}', '', '', true`);
+    assert.equal(safe['Documentation address'], true);
+    assert.match(safe['IP address'], ip === 'v4' ? /^(192\.0\.2|198\.51\.100|203\.0\.113)\./ : /^2001:db8:/);
+  }
+  assert.equal(JSON.parse(await evaluate("dvMod.generateDeviceSeeded('DE', '', '', '', '', '2023-07-01', false, '1')")).os_version, '16.5',
+    "A seed replays the library's known answer");
+  const dated = await evaluate("JSON.parse(dvMod.compareDates('', '', ''))");
+  assert.equal(dated.length, 5);
+  assert.equal(new Set(dated.map(item => item.device.signature.seed)).size, 1);
+  assert.equal(new Set(dated.map(item => item.device.ip)).size, 1, 'Only the date varies');
+  assert.equal(new Set(dated.map(item => item.device.platform)).size, 1);
+  for (const args of ["'XX', '', '', '', '', '', false", "'', 'toaster', '', '', '', '', false", "'', '', 'netscape', '', '', '', false",
+    "'', '', '', 'v5', '', '', false", "'', '', '', '', 'pt-', '', false", "'', '', '', '', '', '2019-01-01', false"]) {
+    assert.ok((await device(args)).error, 'Invalid device input must report an error: ' + args);
+  }
   // The address data pack: tables at start, a country's streets on demand.
   const addressCountries = await evaluate('JSON.parse(adMod.supportedCountries())');
   assert.ok(addressCountries.length >= 200, 'The address module lists the countries it has data for');
@@ -427,6 +466,14 @@ try {
   await evaluate(`byId('em-year').value = ''; byId('em-generate').click(); byId('ph-generate').click()`);
   assert.match(await evaluate('byId("em-output").textContent'), /Local part/);
   assert.match(await evaluate('byId("ph-output").textContent'), /RFC 3966/);
+  await evaluate(`byId('dv-country').value = 'JP'; byId('dv-compare').click()`);
+  assert.match(await evaluate('byId("dv-output").textContent'), /in JP · only the date varies/);
+  await evaluate(`byId('dv-locale').value = 'ja'; byId('dv-generate').click()`);
+  assert.match(await evaluate('byId("dv-output").textContent'), /User-Agent/);
+  assert.match(await evaluate('byId("dv-status").textContent'), /Generated a device in JP/);
+  await evaluate(`byId('dv-locale').value = 'not a tag'; byId('dv-generate').click()`);
+  assert.match(await evaluate('byId("dv-status").textContent'), /Generation failed:.*BCP 47/);
+  await evaluate(`byId('dv-locale').value = ''`);
   for (const expression of ["bdMod.compareBiodata('XX')", "igMod.compareAges('XX', '')", "ogMod.compareEducation('XX', '')",
     "ctgMod.sampleCountry('invalid-region', true, 1)", "cgMod.sampleCity('XX', false, 1)"]) {
     assert.ok(await evaluate(`JSON.parse(${expression}).error`), 'Invalid filter must report an error');

@@ -26,6 +26,7 @@ set(PHONE_GEN_DIR "${CMAKE_SOURCE_DIR}/../phone-generator" CACHE PATH "Path to p
 set(EMAIL_GEN_DIR "${CMAKE_SOURCE_DIR}/../email-generator" CACHE PATH "Path to email-generator repo")
 set(ADDRESS_GEN_DIR "${CMAKE_SOURCE_DIR}/../address-generator" CACHE PATH "Path to address-generator repo")
 set(USER_GEN_DIR "${CMAKE_SOURCE_DIR}/../user-generator" CACHE PATH "Path to user-generator repo")
+set(DEVICE_GEN_DIR "${CMAKE_SOURCE_DIR}/../device-generator" CACHE PATH "Path to device-generator repo")
 set(RELGEN_GEN_DIR "${CMAKE_SOURCE_DIR}/../relationship-generator" CACHE PATH "Path to relationship-generator repo")
 set(PERSONA_GEN_DIR "${CMAKE_SOURCE_DIR}/../persona-generator" CACHE PATH "Path to persona-generator repo")
 
@@ -170,6 +171,20 @@ target_link_options(emailgen_demo PRIVATE
   -sEXPORTED_RUNTIME_METHODS=['UTF8ToString','stringToUTF8']
   -sMODULARIZE=1
   -sEXPORT_NAME=createEmailgenModule
+  -sENVIRONMENT=web
+)
+
+# device-generator demo
+add_executable(devicegen_demo src/devicegen_demo.cpp)
+target_include_directories(devicegen_demo PRIVATE "${DEVICE_GEN_DIR}")
+target_compile_definitions(devicegen_demo PRIVATE DASMIG_DEVICE_EMBED)
+target_link_options(devicegen_demo PRIVATE
+  --bind
+  -sWASM=1
+  -sALLOW_MEMORY_GROWTH=1
+  -sEXPORTED_RUNTIME_METHODS=['UTF8ToString','stringToUTF8']
+  -sMODULARIZE=1
+  -sEXPORT_NAME=createDevicegenModule
   -sENVIRONMENT=web
 )
 

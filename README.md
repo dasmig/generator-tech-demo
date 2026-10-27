@@ -1,25 +1,29 @@
 # generator-tech-demo
 
-Live WebAssembly demos for the [name-generator](https://github.com/dasmig/name-generator), [nickname-generator](https://github.com/dasmig/nickname-generator), [entity-generator](https://github.com/dasmig/entity-generator), [birth-generator](https://github.com/dasmig/birth-generator), [biodata-generator](https://github.com/dasmig/biodata-generator), [city-generator](https://github.com/dasmig/city-generator), [country-generator](https://github.com/dasmig/country-generator), [interest-generator](https://github.com/dasmig/interest-generator), and [trait-generator](https://github.com/dasmig/trait-generator), [occupation-generator](https://github.com/dasmig/occupation-generator), [phone-generator](https://github.com/dasmig/phone-generator), [email-generator](https://github.com/dasmig/email-generator), [relationship-generator](https://github.com/dasmig/relationship-generator) (v1.0.0, with name-generator v4.5.0; the family page) and [persona-generator](https://github.com/dasmig/persona-generator) C++23 libraries.
+Live WebAssembly demos for the [name-generator](https://github.com/dasmig/name-generator), [nickname-generator](https://github.com/dasmig/nickname-generator), [entity-generator](https://github.com/dasmig/entity-generator), [birth-generator](https://github.com/dasmig/birth-generator), [biodata-generator](https://github.com/dasmig/biodata-generator), [city-generator](https://github.com/dasmig/city-generator), [country-generator](https://github.com/dasmig/country-generator), [interest-generator](https://github.com/dasmig/interest-generator), [trait-generator](https://github.com/dasmig/trait-generator), [occupation-generator](https://github.com/dasmig/occupation-generator), [phone-generator](https://github.com/dasmig/phone-generator), [email-generator](https://github.com/dasmig/email-generator), [address-generator](https://github.com/dasmig/address-generator), [device-generator](https://github.com/dasmig/device-generator), [user-generator](https://github.com/dasmig/user-generator), [relationship-generator](https://github.com/dasmig/relationship-generator) and [persona-generator](https://github.com/dasmig/persona-generator) C++23 libraries.
 
 Everything runs client-side in the browser — no server required.
 
-The demos use the libraries' releases on [dasmig-core 1.2](https://github.com/dasmig/dasmig-core): name-generator v4.2.2, city-generator v4.2.0, entity-generator v4.2.0, nickname-generator v5.2.0, country-generator and birth-generator v3.1.2, biodata-generator v5.0.0, interest-generator and occupation-generator v3.0.1, trait-generator v2.1.2, phone-generator and email-generator v2.1.1, and persona-generator v3.0.1, all with the **request-first API**. Every generation call supplies the library's request struct; deterministic calls supply the request followed by a call seed, without generator-wide seed or option controls. Their `lite` data is compiled into the modules (`DASMIG_*_EMBED`), so the same seed, inputs, date and data give the same result here as in a native build. The standalone birth demo accepts an **Age as of** reference date (1900–2100), defaulting to today's local date. Each draw generates a birthday and its completed-year age relative to that date; changing the reference does not age a previously generated birthday. The persona demo passes today's date (`src/today.hpp`) as its request's reference date. The libraries never read the clock themselves.
+The demos use the libraries' releases on [dasmig-core 1.2](https://github.com/dasmig/dasmig-core) listed below, all with the **request-first API**. Every generation call supplies the library's request struct; deterministic calls supply the request followed by a call seed, without generator-wide seed or option controls. Their `lite` data is compiled into the modules (`DASMIG_*_EMBED`), so the same seed, inputs, date and data give the same result here as in a native build. The standalone birth demo accepts an **Age as of** reference date (1900–2100), defaulting to today's local date. Each draw generates a birthday and its completed-year age relative to that date; changing the reference does not age a previously generated birthday. The persona demo passes today's date (`src/today.hpp`) as its request's reference date. The libraries never read the clock themselves.
 
 `.github/workflows/deploy.yml` checks out these release tags, so the site changes only when a tag moves. Advance the tags and smoke expectations together when adopting a newer API or dataset:
 
 | Library | Tag |
 |---|---|
-| name-generator | v4.2.2 |
-| city-generator | v4.2.0 |
-| entity-generator | v4.2.0 |
+| name-generator | v4.5.0 |
 | nickname-generator | v5.2.0 |
-| country-generator, birth-generator | v3.1.2 |
+| entity-generator | v4.2.1 |
+| country-generator, birth-generator | v3.2.0 |
+| city-generator | v4.2.0 |
 | biodata-generator | v5.0.0 |
 | interest-generator, occupation-generator | v3.0.1 |
 | trait-generator | v2.1.2 |
 | phone-generator, email-generator | v2.1.1 |
-| persona-generator | v3.0.1 |
+| address-generator | v2.1.0 |
+| device-generator | v1.0.2 |
+| user-generator | v2.0.1 |
+| relationship-generator | v1.2.0 |
+| persona-generator | v4.1.1 |
 
 ## Prerequisites
 
@@ -56,6 +60,10 @@ Repo/
 ├── occupation-generator/
 ├── phone-generator/
 ├── email-generator/
+├── address-generator/
+├── device-generator/
+├── user-generator/
+├── relationship-generator/
 ├── persona-generator/
 └── generator-tech-demo/    ← this repo
 ```
@@ -66,7 +74,7 @@ emcmake cmake -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build
 ```
 
-This produces in `build/` a `.js` and a `.wasm` file per demo (`namegen_demo`, `nickgen_demo`, `entitygen_demo`, `birthgen_demo`, `biodatagen_demo`, `citygen_demo`, `countrygen_demo`, `interestgen_demo`, `occupationgen_demo`, `traitgen_demo`, `personagen_demo`), plus `personagen_demo.data`, which holds city-generator's admin1 names (the only file not compiled in).
+This produces in `build/` a `.js` and a `.wasm` file per demo (`namegen_demo`, `nickgen_demo`, `entitygen_demo`, `birthgen_demo`, `biodatagen_demo`, `citygen_demo`, `countrygen_demo`, `interestgen_demo`, `occupationgen_demo`, `phonegen_demo`, `emailgen_demo`, `addressgen_demo`, `devicegen_demo`, `usergen_demo`, `relgen_demo`, `traitgen_demo`, `personagen_demo`), plus `personagen_demo.data`, which holds city-generator's admin1 names. The address and user demos read address-generator's data pack (`scripts/make_web_pack.py` in that repository) instead of compiled-in data.
 
 ## The persona npm package
 
@@ -87,6 +95,8 @@ The **occupation** comparison varies only the education input (the four levels),
 The **name** demo offers 1, 5 or 10 alternatives with first-name, surname or first-name-plus-surname modes. Culture applies to all parts; gender filters first names only. The **nickname** demo offers the same alternative counts with an optional name input. Blank input uses wordlists; with a name, the library derives from it in one in four draws on average and otherwise still uses wordlists. There is no forced derivation/style control. The output shows each nickname's pre-transform source. Alternatives may repeat.
 
 The standalone **trait** demo generates fictional traits and all five resolved Big Five scores. Choose a trait count and optionally enter a 64-bit seed as 1–16 hexadecimal digits (without `0x`). The output includes the replay seed; use it with the same count to reproduce a result. The explanation shows the actual random base, summed trait effects and resolved score, plus each selected trait's catalogue loadings. Each base is drawn from a normal distribution with mean 0 and standard deviation 1; base values also influence trait selection, alongside weights, exclusive groups, conflicts and synergies. Resolved scores add trait loadings and are unbounded model values, not percentages, percentiles or a personality assessment. Individual effects are obtained through the library's include-only requests with the same seed, not a duplicated score formula. The catalogue is embedded (`DASMIG_TRAIT_EMBED`), with no additional data file.
+
+The **device** demo draws a device from the chosen country, platform, browser, IP family, locale and date (today by default; a date after the data's newest release is seen as that date). Its comparison sees one call seed in June 2021, 2022, 2023 and 2024 and today, with the country and platform fixed: the address stays, while the model, OS and browser versions, user agent and client hints are those of each date. The safe option gives documentation addresses only (RFC 5737, RFC 3849).
 
 The **persona** demo calls [persona-generator](https://github.com/dasmig/persona-generator): one `psg::get_persona(request, seed)` runs the eight libraries as entity-generator fields in dependency order, and the module returns the persona's `to_json()`. The page sends a `persona_request` with the chosen country and sex and today's date; the country list is persona-generator's `supported_countries()` (79 countries; South Korea needs name-generator's `full` tier). Body, interests and occupation are drawn for the persona's country, age and sex. Each field draws from its own stream split from the persona's seed, so the seed replays the whole persona, and forcing the sex changes only the parts that depend on it. All eight libraries' `lite` data is compiled in.
 
@@ -110,7 +120,7 @@ node tests/traitgen_smoke.mjs .
 ```
 
 Set `CHROME_PATH` if Chrome is not in its usual Windows location or on `PATH`. The test checks embedded data, trait counts, Big Five scores, 64-bit seed replay, input errors, module-load errors, keyboard generation and mobile layout. Pull requests run the Emscripten build and this test without deploying; only `master` deploys to Pages.
-The same test also covers all other demos: distributions against the pinned country/city TSV data, exact trait loadings against the catalogue, comparison invariants, complete component provenance, name/nickname modes and counts, leap/reference-date boundaries, accessible labels, keyboard expansion and 320/375/640px layouts. Additional `*Seeded` bindings return library JSON (persona returns persona-generator's JSON) and accept 1–16 hexadecimal seed digits as strings, preserving all 64 bits across JavaScript/Wasm. They exercise deterministic replay in all ten libraries and the full persona, interleaved request filters and weighting, birth year/age ranges, optional biodata age effects, interest list counts, occupation status/education, and entity component selection. These bindings do not change the UI defaults. It reads pinned library fixtures from sibling directories by default; pass their parent directory as the third argument for another layout:
+The same test also covers all other demos: distributions against the pinned country/city TSV data, exact trait loadings against the catalogue, comparison invariants, complete component provenance, name/nickname modes and counts, leap/reference-date boundaries, accessible labels, keyboard expansion and 320/375/640px layouts. Additional `*Seeded` bindings return library JSON (persona returns persona-generator's JSON) and accept 1–16 hexadecimal seed digits as strings, preserving all 64 bits across JavaScript/Wasm. They exercise deterministic replay in every library and the full persona, interleaved request filters and weighting, birth year/age ranges, optional biodata age effects, interest list counts, occupation status/education, and entity component selection. These bindings do not change the UI defaults. It reads pinned library fixtures from sibling directories by default; pass their parent directory as the third argument for another layout:
 
 ```bash
 node tests/traitgen_smoke.mjs . path/to/library-parent

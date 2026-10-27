@@ -97,7 +97,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: dasmig/persona-generator
-          ref: v4.1.0
+          ref: v4.1.1
           path: persona-generator
 
       - name: Checkout phone-generator
@@ -126,8 +126,15 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: dasmig/user-generator
-          ref: v2.0.0
+          ref: v2.0.1
           path: user-generator
+
+      - name: Checkout device-generator
+        uses: actions/checkout@v4
+        with:
+          repository: dasmig/device-generator
+          ref: v1.0.2
+          path: device-generator
 
       - name: Checkout relationship-generator
         uses: actions/checkout@v4
@@ -158,6 +165,7 @@ jobs:
           -DEMAIL_GEN_DIR=${{ github.workspace }}/email-generator
           -DADDRESS_GEN_DIR=${{ github.workspace }}/address-generator
           -DUSER_GEN_DIR=${{ github.workspace }}/user-generator
+          -DDEVICE_GEN_DIR=${{ github.workspace }}/device-generator
           -DRELGEN_GEN_DIR=${{ github.workspace }}/relationship-generator
           -DPERSONA_GEN_DIR=${{ github.workspace }}/persona-generator
 
