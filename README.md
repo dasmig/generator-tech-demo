@@ -21,9 +21,9 @@ The demos use the libraries' releases on [dasmig-core 1.2](https://github.com/da
 | phone-generator, email-generator | v2.1.1 |
 | address-generator | v2.1.0 |
 | device-generator | v1.0.1 |
-| user-generator | v2.0.0 |
+| user-generator | v2.0.1 |
 | relationship-generator | v1.2.0 |
-| persona-generator | v4.1.0 |
+| persona-generator | v4.1.1 |
 
 ## Prerequisites
 

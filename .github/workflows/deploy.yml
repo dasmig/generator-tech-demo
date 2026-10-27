@@ -97,7 +97,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: dasmig/persona-generator
-          ref: v4.1.0
+          ref: v4.1.1
           path: persona-generator
 
       - name: Checkout phone-generator
@@ -126,7 +126,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: dasmig/user-generator
-          ref: v2.0.0
+          ref: v2.0.1
           path: user-generator
 
       - name: Checkout device-generator
