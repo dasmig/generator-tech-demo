@@ -147,7 +147,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: dasmig/weather-generator
-          ref: v1.1.0
+          ref: v2.0.0
           path: weather-generator
 
       - name: Checkout vehicle-generator

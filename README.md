@@ -24,7 +24,7 @@ The demos use the libraries' releases on [dasmig-core 1.3](https://github.com/da
 | user-generator | v2.1.1 |
 | relationship-generator | v1.2.1 |
 | persona-generator | v4.1.2 |
-| weather-generator | v1.1.0 |
+| weather-generator | v2.0.0 |
 | vehicle-generator | v1.0.0 |
 
 ## Prerequisites
@@ -90,7 +90,7 @@ All modules, demos included, use native WebAssembly exceptions (`-fwasm-exceptio
 
 The **country and city** demos retain population-weighted single draws and add side-by-side batches of 100, 500 or 2,000 draws per mode. Both modes use the same filter and paired 32-bit random call seeds. Sampling is with replacement: counts include repeats, and shares divide each count by that mode's draw total. Weighted selection uses `max(population, 1)`; uniform selection gives each eligible catalogue row equal probability. All observed rows are shown, sorted by combined count; unobserved rows are omitted. Unique counts and the full loaded catalogue size are labeled separately. City rows use GeoNames IDs so namesakes are not merged. These are samples from embedded lite data, not exact population proportions or exhaustive world coverage.
 
-The **weather** demo draws a year of daily weather (weather-generator's `get_weather_series`, one call seed per year) at the point clicked on the map or typed in, in metric or imperial units, and charts the highs and lows against the cell's normal mean, with the precipitation below. Picking a day shows its 24 hours (`weather_request::hourly`), the same day as in the year since a day depends only on the seed, the place and the date. The map tiles come from OpenStreetMap; the weather does not need them. The historical mode (`historical`) is left out: its 23 MB table is not compiled in.
+The **weather** demo draws a year of daily weather (weather-generator's `get_weather_series`, one call seed per year) at the point clicked on the map or typed in, in metric or imperial units, and charts the highs and lows against the cell's normal mean, with the precipitation below; the year's numbers include snow on the ground, fog days, the strongest gust and the solar radiation. Picking a day shows its 24 hours (`weather_request::hourly`), the same day as in the year since a day depends only on the seed, the place and the date. The map tiles come from OpenStreetMap; the weather does not need them. The historical mode (`historical`) is left out: its 23 MB table is not compiled in.
 
 The **entity** demo identifies each field's `choice_component`, `range_component` or `weighted_choice_component` supplier. The **persona** demo shows a profile with expandable location panels and a provenance table: for each key of the persona's JSON, the library and the persona-generator pipeline field that supply it and what that field reads.
 

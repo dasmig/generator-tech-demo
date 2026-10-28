@@ -3551,6 +3551,8 @@
     const hottest = days.reduce((a, d) => d.tmax > a.tmax ? d : a);
     const coldest = days.reduce((a, d) => d.tmin < a.tmin ? d : a);
     const wettest = days.reduce((a, d) => d.precipitation > a.precipitation ? d : a);
+    const deepest = days.reduce((a, d) => d.snow_depth > a.snow_depth ? d : a);
+    const gustiest = days.reduce((a, d) => d.gust > a.gust ? d : a);
     let longestDry = 0;
     let run = 0;
     for (const d of days) { run = d.precipitation ? 0 : run + 1; longestDry = Math.max(longestDry, run); }
@@ -3564,8 +3566,14 @@
       ['Longest dry spell', longestDry + ' days'],
       ['Frost days', days.filter(d => d.frost).length],
       ['Snow days', days.filter(d => d.type === 'snow' || d.type === 'sleet').length],
+      ['Days with snow on the ground', days.filter(d => d.snow_depth > 0).length],
+      ['Deepest snow', deepest.snow_depth
+        ? fmt(deepest.snow_depth) + (imperial ? ' in' : ' cm') + ' (' + deepest.date + ')' : '—'],
       ['Thunder days', days.filter(d => d.thunder).length],
-      ['Sunshine', Math.round(sum('sunshine_hours')).toLocaleString() + ' hours']
+      ['Fog days', days.filter(d => d.fog).length],
+      ['Strongest gust', fmt(gustiest.gust) + (imperial ? ' mph' : ' m/s') + ' (' + gustiest.date + ')'],
+      ['Sunshine', Math.round(sum('sunshine_hours')).toLocaleString() + ' hours'],
+      ['Solar radiation', Math.round(sum('solar_radiation')).toLocaleString() + ' MJ/m²']
     ]);
   }
 
@@ -3574,7 +3582,10 @@
     const day = parseResult(wtMod.daySeeded(year.lat, year.lon, date, year.units, year.seed));
     const imperial = year.units === 'imperial';
     return '<h3 class="weather-sub">' + esc(date) + ': ' + esc(day.condition.replace(/_/g, ' ')) + ', '
-      + fmt(day.tmin) + ' to ' + fmt(day.tmax) + (imperial ? ' °F' : ' °C') + '</h3>'
+      + fmt(day.tmin) + ' to ' + fmt(day.tmax) + (imperial ? ' °F' : ' °C')
+      + ', gusts ' + fmt(day.gust) + (imperial ? ' mph' : ' m/s')
+      + (day.snow_depth ? ', ' + fmt(day.snow_depth) + (imperial ? ' in' : ' cm') + ' of snow on the ground' : '')
+      + (day.fog ? ', fog' : '') + '</h3>'
       + comparisonTable('Hours of ' + date + ' (local mean solar time)',
         ['Hour', 'UTC', 'Temperature', 'Precipitation', 'Cloud', 'Humidity', 'Wind', 'Sunshine', 'Condition'],
         day.hours.map(h => [String(h.hour).padStart(2, '0') + ':00', h.time.slice(11, 16),

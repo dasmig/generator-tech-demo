@@ -209,7 +209,8 @@ try {
     assert.equal(day.hours.length, 24);
     const { hours, ...rest } = day;
     assert.deepEqual(rest, year.days[69]);
-    if (units === 'imperial') assert.equal(day.units, 'imperial');
+    assert.equal(day.units, units);
+    assert.ok(year.days.every(d => d.gust >= d.wind && d.snow_depth >= 0 && d.solar_radiation >= 0));
   }
   assert.match((await weather('yearSeeded', [40, -40, 2024, 'metric', '1'])).error, /from land/);
   assert.match((await weather('yearSeeded', [48.85, 2.35, 2024, 'kelvin', '1'])).error, /Units/);
