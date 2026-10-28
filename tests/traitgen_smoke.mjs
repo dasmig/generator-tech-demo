@@ -221,6 +221,70 @@ try {
   await waitFor(() => evaluate('byId("wt-hours").querySelectorAll("tbody tr").length === 24'), 'weather hours');
   assert.match(await evaluate('byId("wt-status").className'), /ready/);
 
+  // vehicle-generator: the lists are the library's, seeds replay its known answers, VINs carry valid check digits,
+  // regions are honoured and safe gives unheld WMIs.
+  const vehicle = (method, args) => evaluate(`JSON.parse(vhMod.${method}(...${JSON.stringify(args)}))`);
+  const vehicleCountries = await evaluate('JSON.parse(vhMod.supportedCountries())');
+  assert.ok(vehicleCountries.length >= 190, 'The vehicle module lists the countries it has data for');
+  assert.deepEqual(await evaluate(`Array.from(byId('vh-country').options, option => option.value).filter(Boolean).sort()`),
+    [...vehicleCountries].sort(), "The vehicle country list must be the library's own");
+  assert.equal((await vehicle('plateRegions', ['US'])).length, 51, 'Fifty states and DC');
+  assert.ok((await vehicle('makes', ['DE'])).includes('Volkswagen'));
+  assert.equal(JSON.stringify(await vehicle('generateVehicleSeeded', ['DE', '', '', '', '', '2023-07-01', 'country', false, '1'])),
+    '{"country_code":"DE","make":"Mercedes-Benz","model":"GLC","model_key":"mercedes-glc","trim":"GLC 200","body":"suv","fuel":"petrol","model_year":2018,"first_registration":"2018-12-10","engine_cc":1991,"power_kw":150,"transmission":"automatic","drive":"rwd","doors":5,"seats":5,"colour":"Polar White","colour_family":"white","odometer":31790,"odometer_unit":"km","plate":"EU-RI 23","plate_region":"EU","plate_format":"de","vin":"WDCJGRDP4JR152138","wmi":"WDC","reserved":false,"signature":{"seed":"0000000000000001","data":"cae52f3d38d59d5d"}}',
+    "A seed replays the library's known answer");
+  const usSafe = await vehicle('generateVehicleSeeded', ['US', '', '', '', '', '2015-03-01', 'country', true, '2']);
+  assert.equal(usSafe.plate, 'RIB 3891');
+  assert.equal(usSafe.vin, 'GZ9JAAYF250743579');
+  const vinLetters = { A: 1, B: 2, C: 3, D: 4, E: 5, F: 6, G: 7, H: 8, J: 1, K: 2, L: 3, M: 4, N: 5, P: 7, R: 9,
+    S: 2, T: 3, U: 4, V: 5, W: 6, X: 7, Y: 8, Z: 9 };
+  const vinValue = c => /\d/.test(c) ? Number(c) : vinLetters[c];
+  const vinValid = vin => {
+    const weights = [8, 7, 6, 5, 4, 3, 2, 10, 0, 9, 8, 7, 6, 5, 4, 3, 2];
+    const sum = [...vin].reduce((total, c, i) => total + vinValue(c) * weights[i], 0) % 11;
+    return /^[0-9A-HJ-NPR-Z]{17}$/.test(vin) && vin[8] === (sum === 10 ? 'X' : String(sum));
+  };
+  const reservedWmis = (await readFile(path.join(libraries, 'vehicle-generator', 'resources', 'lite', 'wmis.tsv'), 'utf8'))
+    .split('\n').filter(line => /^[0-9A-Z]{3}\t1/.test(line)).map(line => line.slice(0, 3));
+  assert.ok(reservedWmis.length > 0);
+  for (const country of ['DE', 'GB', 'ES', 'US', 'JP', 'BR']) {
+    for (const safe of [false, true]) {
+      const v = await vehicle('generateVehicleSeeded', [country, '', '', '', '', '2024-06-01', 'country', safe, '7f']);
+      assert.equal(v.error, undefined, v.error);
+      assert.equal(v.country_code, country);
+      assert.ok(vinValid(v.vin), 'A valid VIN: ' + v.vin);
+      assert.ok(v.plate.length > 0);
+      if (safe) assert.ok(reservedWmis.includes(v.wmi), 'A safe VIN has a reserved WMI: ' + v.wmi);
+    }
+  }
+  const munich = await vehicle('generateVehicleSeeded', ['DE', 'M', '', '', 'electric', '2024-06-01', 'country', false, '3']);
+  assert.match(munich.plate, /^M-[A-Z]{1,2} [1-9]\d{0,3}E?$/, 'A Munich plate, with E for some electric cars');
+  const california = await vehicle('generateVehicleSeeded', ['', 'CA', '', '', '', '2024-06-01', 'country', false, '4']);
+  assert.ok((await vehicle('plateRegions', [california.country_code])).includes('CA'), 'Without a country, one with the region is drawn');
+  const imperial = await vehicle('generateVehicleSeeded', ['DE', '', '', '', '', '2024-06-01', 'imperial', false, '5']);
+  assert.equal(imperial.odometer_unit, 'mi');
+  const vehicleSeedCountries = await vehicle('compareCountries', ['', '', '2024-06-01', false]);
+  assert.deepEqual(vehicleSeedCountries.map(v => v.country_code), ['DE', 'GB', 'ES', 'US', 'JP']);
+  assert.equal(new Set(vehicleSeedCountries.map(v => v.signature.seed)).size, 1, 'One seed in every country');
+  for (const args of [['XX', '', '', '', '', '', 'country', false], ['DE', 'ZZZ', '', '', '', '', 'country', false],
+    ['', '', 'Trabant', '', '', '', 'country', false], ['', '', '', 'tank', '', '', 'country', false],
+    ['', '', '', '', 'steam', '', 'country', false], ['', '', '', '', '', '1999-12-31', 'country', false],
+    ['', '', '', '', '', '', 'leagues', false]]) {
+    assert.ok((await vehicle('generateVehicle', args)).error, 'Invalid vehicle input must report an error: ' + JSON.stringify(args));
+  }
+  await evaluate("byId('vh-country').value = 'JP'; byId('vh-country').dispatchEvent(new Event('change'))");
+  assert.ok(await evaluate("byId('vh-region').options.length > 1 && !byId('vh-region').disabled"), 'Japan lists its offices');
+  assert.ok(await evaluate("Array.from(byId('vh-make').options, option => option.value).includes('Toyota')"));
+  await evaluate("byId('vh-generate').click()");
+  assert.match(await evaluate('byId("vh-status").textContent'), /Generated a vehicle in JP/);
+  assert.match(await evaluate('byId("vh-output").textContent'), /VIN/);
+  await evaluate("byId('vh-compare').click()");
+  assert.match(await evaluate('byId("vh-output").textContent'), /one seed in five countries/);
+  await evaluate("byId('vh-date').value = '1999-01-01'; byId('vh-generate').click()");
+  assert.match(await evaluate('byId("vh-status").textContent'), /Generation failed:.*2000-01-01/);
+  await evaluate("byId('vh-date').value = byId('bg-reference').value; byId('vh-country').value = ''; byId('vh-country').dispatchEvent(new Event('change'))");
+  assert.ok(await evaluate("byId('vh-region').disabled"), 'No regions without a country');
+
   for (const mode of ['full', 'first', 'surname']) {
     const names = await evaluate(`JSON.parse(ngMod.generateNameOptions('female', 'br', '${mode}', 10))`);
     assert.equal(names.length, 10);
