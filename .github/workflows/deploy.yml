@@ -150,6 +150,13 @@ jobs:
           ref: v1.1.0
           path: weather-generator
 
+      - name: Checkout vehicle-generator
+        uses: actions/checkout@v4
+        with:
+          repository: dasmig/vehicle-generator
+          ref: v1.0.0
+          path: vehicle-generator
+
       - name: Setup Emscripten
         uses: mymindstorm/setup-emsdk@v14
         with:
@@ -176,6 +183,7 @@ jobs:
           -DRELGEN_GEN_DIR=${{ github.workspace }}/relationship-generator
           -DPERSONA_GEN_DIR=${{ github.workspace }}/persona-generator
           -DWEATHER_GEN_DIR=${{ github.workspace }}/weather-generator
+          -DVEHICLE_GEN_DIR=${{ github.workspace }}/vehicle-generator
 
       - name: Build
         run: cmake --build build

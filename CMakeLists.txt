@@ -30,6 +30,7 @@ set(DEVICE_GEN_DIR "${CMAKE_SOURCE_DIR}/../device-generator" CACHE PATH "Path to
 set(RELGEN_GEN_DIR "${CMAKE_SOURCE_DIR}/../relationship-generator" CACHE PATH "Path to relationship-generator repo")
 set(PERSONA_GEN_DIR "${CMAKE_SOURCE_DIR}/../persona-generator" CACHE PATH "Path to persona-generator repo")
 set(WEATHER_GEN_DIR "${CMAKE_SOURCE_DIR}/../weather-generator" CACHE PATH "Path to weather-generator repo")
+set(VEHICLE_GEN_DIR "${CMAKE_SOURCE_DIR}/../vehicle-generator" CACHE PATH "Path to vehicle-generator repo")
 
 # ── Wasm modules ──
 #
@@ -116,6 +117,20 @@ target_link_options(weathergen_demo PRIVATE
   -sEXPORTED_RUNTIME_METHODS=['UTF8ToString','stringToUTF8']
   -sMODULARIZE=1
   -sEXPORT_NAME=createWeathergenModule
+  -sENVIRONMENT=web
+)
+
+# vehicle-generator demo
+add_executable(vehiclegen_demo src/vehiclegen_demo.cpp)
+target_include_directories(vehiclegen_demo PRIVATE "${VEHICLE_GEN_DIR}")
+target_compile_definitions(vehiclegen_demo PRIVATE DASMIG_VEHICLE_EMBED)
+target_link_options(vehiclegen_demo PRIVATE
+  --bind
+  -sWASM=1
+  -sALLOW_MEMORY_GROWTH=1
+  -sEXPORTED_RUNTIME_METHODS=['UTF8ToString','stringToUTF8']
+  -sMODULARIZE=1
+  -sEXPORT_NAME=createVehiclegenModule
   -sENVIRONMENT=web
 )
 
