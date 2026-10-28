@@ -203,7 +203,8 @@ target_link_options(addressgen_demo PRIVATE
   -sENVIRONMENT=web
 )
 
-# user-generator demo: six libraries' lite data is compiled in; address-generator's
+# user-generator demo: seven libraries' lite data is compiled in (device-generator's
+# for the device of the last sign-in); address-generator's
 # is a pack the page writes into /pack, as for the address demo
 set(USER_INCLUDE_DIRS
   "${USER_GEN_DIR}"
@@ -214,9 +215,10 @@ set(USER_INCLUDE_DIRS
   "${ADDRESS_GEN_DIR}"
   "${PHONE_GEN_DIR}"
   "${EMAIL_GEN_DIR}"
+  "${DEVICE_GEN_DIR}"
 )
 set(USER_EMBED DASMIG_COUNTRY_EMBED DASMIG_BIRTH_EMBED DASMIG_NAME_EMBED DASMIG_NICKNAME_EMBED
-  DASMIG_PHONE_EMBED DASMIG_EMAIL_EMBED DASMIG_USER_EMBED)
+  DASMIG_PHONE_EMBED DASMIG_EMAIL_EMBED DASMIG_DEVICE_EMBED DASMIG_USER_EMBED)
 add_executable(usergen_demo src/usergen_demo.cpp)
 target_include_directories(usergen_demo PRIVATE ${USER_INCLUDE_DIRS})
 target_compile_definitions(usergen_demo PRIVATE ${USER_EMBED})

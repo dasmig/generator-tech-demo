@@ -126,7 +126,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: dasmig/user-generator
-          ref: v2.0.1
+          ref: v2.1.0
           path: user-generator
 
       - name: Checkout device-generator
