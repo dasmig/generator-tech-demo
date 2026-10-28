@@ -1,7 +1,8 @@
-// User Generator — user-generator composes seven libraries; this module turns
-// the page's inputs into a user_request and returns the result as JSON.
+// User Generator — user-generator composes seven libraries, and device-generator
+// for the device of the last sign-in; this module turns the page's inputs into a
+// user_request and returns the result as JSON.
 //
-// Six of the libraries have their lite data compiled in (DASMIG_*_EMBED).
+// Seven of the libraries have their lite data compiled in (DASMIG_*_EMBED).
 // address-generator's street data is a pack the page writes into /pack: the
 // shared tables at start, and a country's street file before that country is
 // asked for (see addressgen_demo.cpp), so the page names the country first.
@@ -41,9 +42,10 @@ bool init()
 }
 
 // country: alpha-2 code (the page draws one when the user chooses "Any");
-// sex: "male", "female" or empty (drawn); status: a status key or empty (drawn).
+// sex: "male", "female" or empty (drawn); status: a status key or empty (drawn);
+// device: also the device of the last sign-in.
 dasmig::user_request make_request(const std::string& country, const std::string& sex, bool safe,
-                                  const std::string& status)
+                                  const std::string& status, bool device)
 {
     if (country.empty()) throw std::invalid_argument("Choose a country.");
     dasmig::user_request request;
@@ -54,6 +56,7 @@ dasmig::user_request make_request(const std::string& country, const std::string&
     request.reference_date = today();
     request.safe = safe;
     if (!status.empty()) request.status = status;
+    request.device = device;
     return request;
 }
 
@@ -78,46 +81,53 @@ std::string describe(const dasmig::user& user)
         .field("Platform", account.platform_label)
         .field("Locale", account.locale)
         .field("Time zone", account.timezone)
-        .field("Currency", account.currency.empty() ? "-" : account.currency)
-        .field("Seed (hex)", std::format("{:016x}", user.signature().seed))
-        .end_object();
+        .field("Currency", account.currency.empty() ? "-" : account.currency);
+    if (user.client)
+    {
+        const auto& d = *user.client;
+        writer.field("Device", d.to_string())
+            .field("User-Agent", d.user_agent.empty() ? "-" : d.user_agent)
+            .field("Accept-Language", d.accept_language.empty() ? "-" : d.accept_language);
+    }
+    writer.field("Seed (hex)", std::format("{:016x}", user.signature().seed)).end_object();
     return writer.str();
 }
 
-std::string generate_user(const std::string& country, const std::string& sex, bool safe, const std::string& status)
+std::string generate_user(const std::string& country, const std::string& sex, bool safe, const std::string& status,
+                          bool device)
 {
     try
     {
-        return describe(generator().get_user(make_request(country, sex, safe, status)));
+        return describe(generator().get_user(make_request(country, sex, safe, status, device)));
     }
     catch (const std::invalid_argument& error) { return demo_error(error.what()); }
     catch (const std::runtime_error& error) { return demo_error(error.what()); }
 }
 
 std::string generate_user_seeded(const std::string& country, const std::string& sex, bool safe,
-                                 const std::string& status, const std::string& seed)
+                                 const std::string& status, bool device, const std::string& seed)
 {
     try
     {
-        return generator().get_user(make_request(country, sex, safe, status), parse_demo_seed(seed)).to_json();
+        return generator().get_user(make_request(country, sex, safe, status, device), parse_demo_seed(seed)).to_json();
     }
     catch (const std::invalid_argument& error) { return demo_error(error.what()); }
     catch (const std::runtime_error& error) { return demo_error(error.what()); }
 }
 
 // The same call seed with and without the safe option.
-std::string compare_safe(const std::string& country, const std::string& sex, const std::string& status)
+std::string compare_safe(const std::string& country, const std::string& sex, const std::string& status, bool device)
 {
     try
     {
         auto& gen = generator();
-        const auto anchor = gen.get_user(make_request(country, sex, false, status));
+        const auto anchor = gen.get_user(make_request(country, sex, false, status, device));
         dasmig::core::json_writer writer;
         writer.begin_array();
         for (const bool safe : {false, true})
         {
             writer.begin_object().field("safe", safe).key("user");
-            gen.get_user(make_request(country, sex, safe, status), anchor.seed()).to_json(writer);
+            gen.get_user(make_request(country, sex, safe, status, device), anchor.seed()).to_json(writer);
             writer.end_object();
         }
         writer.end_array();

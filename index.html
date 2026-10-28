@@ -2044,8 +2044,8 @@
       <div class="demo-card" id="usergen-card">
         <h2>user-generator</h2>
         <p class="desc">
-          Generate fictional user accounts for apps and test data: a person with a username, email, phone number and postal address that agree on the country, plus a password, sign-up and last-login times, a platform, a locale and a time zone.
-          The safe option uses reserved example domains and, where a country has one, a phone number from the range set aside for fiction. Outputs are synthetic; the passwords are test data, never real credentials.
+          Generate fictional user accounts for apps and test data: a person with a username, email, phone number and postal address that agree on the country, plus a password, sign-up and last-login times, a platform, a locale and a time zone, and, if asked, the device of the last sign-in (from device-generator) with its user agent and IP address.
+          The safe option uses reserved example domains, where a country has one a phone number from the range set aside for fiction, and a documentation IP address for the device. Outputs are synthetic; the passwords are test data, never real credentials.
           <a class="repo-link" href="https://github.com/dasmig/user-generator" target="_blank" rel="noopener">GitHub →</a>
         </p>
         <div class="controls">
@@ -2080,10 +2080,17 @@
               <option value="no">No (any valid contacts)</option>
             </select>
           </div>
+          <div class="field">
+            <label for="us-device">Device</label>
+            <select id="us-device">
+              <option value="yes">Yes (last sign-in)</option>
+              <option value="no">No</option>
+            </select>
+          </div>
           <button class="btn" id="us-generate" disabled>Generate</button>
           <button class="btn secondary" id="us-compare" disabled>Compare safe</button>
         </div>
-        <p class="note">The 100 countries listed are the ones every part has data for. “Any” picks one uniformly in this demo, so its streets can be fetched first; the library itself draws by population. Ages are as of today. Compare safe draws one call seed and shows the same person with and without the safe option.</p>
+        <p class="note">The 100 countries listed are the ones every part has data for. “Any” picks one uniformly in this demo, so its streets can be fetched first; the library itself draws by population. Ages are as of today. The device is the one of the last login (the sign-up for an account that never logged in), on the account's platform and locale; asking for it changes nothing else. Compare safe draws one call seed and shows the same person with and without the safe option.</p>
         <div id="us-output">
           <div class="output empty">Waiting for module to load…</div>
         </div>
@@ -2705,18 +2712,20 @@
 
   byId('us-generate').addEventListener('click', () => usRun(code => {
     renderTable('us-output', parseResult(usMod.generateUser(code, byId('us-sex').value,
-      byId('us-safe').value === 'yes', byId('us-account').value)));
+      byId('us-safe').value === 'yes', byId('us-account').value, byId('us-device').value === 'yes')));
     return 'Generated a user in ' + code + '.';
   }));
 
   byId('us-compare').addEventListener('click', () => usRun(code => {
-    const data = parseResult(usMod.compareSafe(code, byId('us-sex').value, byId('us-account').value));
+    const device = byId('us-device').value === 'yes';
+    const data = parseResult(usMod.compareSafe(code, byId('us-sex').value, byId('us-account').value, device));
     const fields = [['Name', u => u.name], ['Username', u => u.account.username], ['Email', u => u.email.address],
       ['Phone', u => u.phone.international], ['Address', u => u.address.formatted]];
+    if (device) fields.push(['Device IP', u => u.device.ip]);
     byId('us-output').innerHTML = comparisonTable('Fictional user in ' + code + ' · only the safe option varies',
       ['Field', ...data.map(item => item.safe ? 'Safe' : 'Any valid contacts')], fields.map(([label, value]) =>
         [label, ...data.map(item => value(item.user) || '-')]))
-      + '<p class="note">Shared draw seed (hex): ' + esc(data[0].user.signature.seed) + '. Only the email domain and the phone number change; the person, username and address stay.</p>';
+      + '<p class="note">Shared draw seed (hex): ' + esc(data[0].user.signature.seed) + '. Only ' + (device ? 'the email domain, the phone number and the device\'s IP address' : 'the email domain and the phone number') + ' change; the person, username and address stay.</p>';
     return 'Compared the safe option in ' + code + ' with the same seed.';
   }));
 

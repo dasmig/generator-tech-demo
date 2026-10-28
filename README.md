@@ -21,7 +21,7 @@ The demos use the libraries' releases on [dasmig-core 1.2](https://github.com/da
 | phone-generator, email-generator | v2.1.1 |
 | address-generator | v2.1.0 |
 | device-generator | v1.0.2 |
-| user-generator | v2.0.1 |
+| user-generator | v2.1.0 |
 | relationship-generator | v1.2.0 |
 | persona-generator | v4.1.1 |
 
@@ -97,6 +97,8 @@ The **name** demo offers 1, 5 or 10 alternatives with first-name, surname or fir
 The standalone **trait** demo generates fictional traits and all five resolved Big Five scores. Choose a trait count and optionally enter a 64-bit seed as 1–16 hexadecimal digits (without `0x`). The output includes the replay seed; use it with the same count to reproduce a result. The explanation shows the actual random base, summed trait effects and resolved score, plus each selected trait's catalogue loadings. Each base is drawn from a normal distribution with mean 0 and standard deviation 1; base values also influence trait selection, alongside weights, exclusive groups, conflicts and synergies. Resolved scores add trait loadings and are unbounded model values, not percentages, percentiles or a personality assessment. Individual effects are obtained through the library's include-only requests with the same seed, not a duplicated score formula. The catalogue is embedded (`DASMIG_TRAIT_EMBED`), with no additional data file.
 
 The **device** demo draws a device from the chosen country, platform, browser, IP family, locale and date (today by default; a date after the data's newest release is seen as that date). Its comparison sees one call seed in June 2021, 2022, 2023 and 2024 and today, with the country and platform fixed: the address stays, while the model, OS and browser versions, user agent and client hints are those of each date. The safe option gives documentation addresses only (RFC 5737, RFC 3849).
+
+The **user** demo generates a user in the chosen country, with ages and account times as of today. With *Device* (on by default) it also shows the device of the last sign-in (user-generator's `user_request::device`): the account's platform and locale on a model, OS and browser of the last login's date, with its user agent and `Accept-Language` header; asking for it changes nothing else. *Compare safe* shows one call seed with and without the safe option: the email domain, the phone number and the device's IP address change, the person, username and address stay.
 
 The **persona** demo calls [persona-generator](https://github.com/dasmig/persona-generator): one `psg::get_persona(request, seed)` runs the eight libraries as entity-generator fields in dependency order, and the module returns the persona's `to_json()`. The page sends a `persona_request` with the chosen country and sex and today's date; the country list is persona-generator's `supported_countries()` (79 countries; South Korea needs name-generator's `full` tier). Body, interests and occupation are drawn for the persona's country, age and sex. Each field draws from its own stream split from the persona's seed, so the seed replays the whole persona, and forcing the sex changes only the parts that depend on it. All eight libraries' `lite` data is compiled in.
 
