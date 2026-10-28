@@ -300,20 +300,6 @@ try {
   assert.match(await evaluate('byId("vh-output").textContent'), /one seed in five countries/);
   await evaluate("byId('vh-date').value = '1999-01-01'; byId('vh-generate').click()");
   assert.match(await evaluate('byId("vh-status").textContent'), /Generation failed:.*2000-01-01/);
-
-  // One person, everywhere: seven libraries in one country on one seed, replayed exactly.
-  const everywhere = async () => {
-    await evaluate("byId('ev-output').textContent = ''; byId('ev-status').className = 'status'; byId('ev-country').value = 'DE'; byId('ev-seed').value = '1'; byId('ev-generate').click()");
-    await waitFor(() => evaluate('byId("ev-status").classList.contains("ready") && byId("ev-output").textContent.length > 0'), 'one person, everywhere');
-    return evaluate('byId("ev-output").textContent');
-  };
-  const firstPerson = await everywhere();
-  assert.match(await evaluate('byId("ev-status").textContent'), /Generated a person in Germany/);
-  for (const row of ['Address · Address', 'Phone · Number', 'Email · Address', 'Device · Device', 'Vehicle · Vehicle', 'Weather · Today at home'])
-    assert.ok(firstPerson.includes(row), 'The row ' + row + ' is present');
-  assert.ok(!firstPerson.includes('not available'), 'Germany has data for every part');
-  assert.ok(firstPerson.includes('Call seed (hex): 1.'));
-  assert.equal(await everywhere(), firstPerson, 'The same seed and country replay every part');
   await evaluate("byId('vh-date').value = byId('bg-reference').value; byId('vh-country').value = ''; byId('vh-country').dispatchEvent(new Event('change'))");
   assert.ok(await evaluate("byId('vh-region').disabled"), 'No regions without a country');
 
@@ -531,6 +517,20 @@ try {
   assert.equal((await evaluate(`JSON.parse(usMod.generateUser('PT', '', true, '', false))`)).Device, undefined,
     'No device unless asked for');
   assert.equal(await evaluate('usFetched.size'), 4, 'Only the countries asked for were fetched');
+
+  // One person, everywhere (after the street-file counts above: it fetches Germany's): seven libraries in one country on one seed, replayed exactly.
+  const everywhere = async () => {
+    await evaluate("byId('ev-output').textContent = ''; byId('ev-status').className = 'status'; byId('ev-country').value = 'DE'; byId('ev-seed').value = '1'; byId('ev-generate').click()");
+    await waitFor(() => evaluate('byId("ev-status").classList.contains("ready") && byId("ev-output").textContent.length > 0'), 'one person, everywhere');
+    return evaluate('byId("ev-output").textContent');
+  };
+  const firstPerson = await everywhere();
+  assert.match(await evaluate('byId("ev-status").textContent'), /Generated a person in Germany/);
+  for (const row of ['Address · Address', 'Phone · Number', 'Email · Address', 'Device · Device', 'Vehicle · Vehicle', 'Weather · Today at home'])
+    assert.ok(firstPerson.includes(row), 'The row ' + row + ' is present');
+  assert.ok(!firstPerson.includes('not available'), 'Germany has data for every part');
+  assert.ok(firstPerson.includes('Call seed (hex): 1.'));
+  assert.equal(await everywhere(), firstPerson, 'The same seed and country replay every part');
   const seededUser = device => evaluate(`JSON.parse(usMod.generateUserSeeded('PT', 'female', true, 'active', ${device}, '2a'))`);
   const first = await seededUser(false);
   assert.deepEqual(await seededUser(false), first, 'A seed replays the same user');
