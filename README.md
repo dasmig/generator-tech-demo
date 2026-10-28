@@ -1,29 +1,30 @@
 # generator-tech-demo
 
-Live WebAssembly demos for the [name-generator](https://github.com/dasmig/name-generator), [nickname-generator](https://github.com/dasmig/nickname-generator), [entity-generator](https://github.com/dasmig/entity-generator), [birth-generator](https://github.com/dasmig/birth-generator), [biodata-generator](https://github.com/dasmig/biodata-generator), [city-generator](https://github.com/dasmig/city-generator), [country-generator](https://github.com/dasmig/country-generator), [interest-generator](https://github.com/dasmig/interest-generator), [trait-generator](https://github.com/dasmig/trait-generator), [occupation-generator](https://github.com/dasmig/occupation-generator), [phone-generator](https://github.com/dasmig/phone-generator), [email-generator](https://github.com/dasmig/email-generator), [address-generator](https://github.com/dasmig/address-generator), [device-generator](https://github.com/dasmig/device-generator), [user-generator](https://github.com/dasmig/user-generator), [relationship-generator](https://github.com/dasmig/relationship-generator) and [persona-generator](https://github.com/dasmig/persona-generator) C++23 libraries.
+Live WebAssembly demos for the [name-generator](https://github.com/dasmig/name-generator), [nickname-generator](https://github.com/dasmig/nickname-generator), [entity-generator](https://github.com/dasmig/entity-generator), [birth-generator](https://github.com/dasmig/birth-generator), [biodata-generator](https://github.com/dasmig/biodata-generator), [city-generator](https://github.com/dasmig/city-generator), [country-generator](https://github.com/dasmig/country-generator), [interest-generator](https://github.com/dasmig/interest-generator), [trait-generator](https://github.com/dasmig/trait-generator), [occupation-generator](https://github.com/dasmig/occupation-generator), [phone-generator](https://github.com/dasmig/phone-generator), [email-generator](https://github.com/dasmig/email-generator), [address-generator](https://github.com/dasmig/address-generator), [device-generator](https://github.com/dasmig/device-generator), [user-generator](https://github.com/dasmig/user-generator), [relationship-generator](https://github.com/dasmig/relationship-generator), [weather-generator](https://github.com/dasmig/weather-generator) and [persona-generator](https://github.com/dasmig/persona-generator) C++23 libraries.
 
 Everything runs client-side in the browser — no server required.
 
-The demos use the libraries' releases on [dasmig-core 1.2](https://github.com/dasmig/dasmig-core) listed below, all with the **request-first API**. Every generation call supplies the library's request struct; deterministic calls supply the request followed by a call seed, without generator-wide seed or option controls. Their `lite` data is compiled into the modules (`DASMIG_*_EMBED`), so the same seed, inputs, date and data give the same result here as in a native build. The standalone birth demo accepts an **Age as of** reference date (1900–2100), defaulting to today's local date. Each draw generates a birthday and its completed-year age relative to that date; changing the reference does not age a previously generated birthday. The persona demo passes today's date (`src/today.hpp`) as its request's reference date. The libraries never read the clock themselves.
+The demos use the libraries' releases on [dasmig-core 1.3](https://github.com/dasmig/dasmig-core) listed below, all with the **request-first API**. Every generation call supplies the library's request struct; deterministic calls supply the request followed by a call seed, without generator-wide seed or option controls. Their `lite` data is compiled into the modules (`DASMIG_*_EMBED`), so the same seed, inputs, date and data give the same result here as in a native build. The standalone birth demo accepts an **Age as of** reference date (1900–2100), defaulting to today's local date. Each draw generates a birthday and its completed-year age relative to that date; changing the reference does not age a previously generated birthday. The persona demo passes today's date (`src/today.hpp`) as its request's reference date. The libraries never read the clock themselves.
 
 `.github/workflows/deploy.yml` checks out these release tags, so the site changes only when a tag moves. Advance the tags and smoke expectations together when adopting a newer API or dataset:
 
 | Library | Tag |
 |---|---|
-| name-generator | v4.5.0 |
-| nickname-generator | v5.2.0 |
-| entity-generator | v4.2.1 |
-| country-generator, birth-generator | v3.2.0 |
-| city-generator | v4.2.0 |
-| biodata-generator | v5.0.0 |
-| interest-generator, occupation-generator | v3.0.1 |
-| trait-generator | v2.1.2 |
-| phone-generator, email-generator | v2.1.1 |
-| address-generator | v2.1.0 |
-| device-generator | v1.0.2 |
-| user-generator | v2.1.0 |
-| relationship-generator | v1.2.0 |
-| persona-generator | v4.1.1 |
+| name-generator | v4.5.1 |
+| nickname-generator | v5.2.1 |
+| entity-generator | v4.2.2 |
+| country-generator, birth-generator | v3.2.1 |
+| city-generator | v4.2.1 |
+| biodata-generator | v5.0.1 |
+| interest-generator, occupation-generator | v3.0.2 |
+| trait-generator | v2.1.3 |
+| phone-generator, email-generator | v2.1.2 |
+| address-generator | v2.1.1 |
+| device-generator | v1.0.3 |
+| user-generator | v2.1.1 |
+| relationship-generator | v1.2.1 |
+| persona-generator | v4.1.2 |
+| weather-generator | v1.1.0 |
 
 ## Prerequisites
 
@@ -65,6 +66,7 @@ Repo/
 ├── user-generator/
 ├── relationship-generator/
 ├── persona-generator/
+├── weather-generator/
 └── generator-tech-demo/    ← this repo
 ```
 
@@ -85,6 +87,8 @@ All modules, demos included, use native WebAssembly exceptions (`-fwasm-exceptio
 ## What the demos show
 
 The **country and city** demos retain population-weighted single draws and add side-by-side batches of 100, 500 or 2,000 draws per mode. Both modes use the same filter and paired 32-bit random call seeds. Sampling is with replacement: counts include repeats, and shares divide each count by that mode's draw total. Weighted selection uses `max(population, 1)`; uniform selection gives each eligible catalogue row equal probability. All observed rows are shown, sorted by combined count; unobserved rows are omitted. Unique counts and the full loaded catalogue size are labeled separately. City rows use GeoNames IDs so namesakes are not merged. These are samples from embedded lite data, not exact population proportions or exhaustive world coverage.
+
+The **weather** demo draws a year of daily weather (weather-generator's `get_weather_series`, one call seed per year) at the point clicked on the map or typed in, in metric or imperial units, and charts the highs and lows against the cell's normal mean, with the precipitation below. Picking a day shows its 24 hours (`weather_request::hourly`), the same day as in the year since a day depends only on the seed, the place and the date. The map tiles come from OpenStreetMap; the weather does not need them. The historical mode (`historical`) is left out: its 23 MB table is not compiled in.
 
 The **entity** demo identifies each field's `choice_component`, `range_component` or `weighted_choice_component` supplier. The **persona** demo shows a profile with expandable location panels and a provenance table: for each key of the persona's JSON, the library and the persona-generator pipeline field that supply it and what that field reads.
 

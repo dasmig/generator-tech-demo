@@ -35,6 +35,7 @@
       --placeholder: #5d6069;
       --hover-border: #3a4140;
       --map-bg: #0b0f0e;
+      --rain: #5aa9e6;
     }
     :root[data-theme="light"] {
       color-scheme: light;
@@ -56,6 +57,7 @@
       --placeholder: #8a9794;
       --hover-border: #b4c4bf;
       --map-bg: #e8eeec;
+      --rain: #2a78b8;
     }
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     html { scroll-behavior: smooth; }
@@ -1024,6 +1026,34 @@
     /* ── Light theme, copy button, hero ticker, two-column rows ── */
     :root[data-theme="light"] .orb { opacity: .45; }
     :root[data-theme="light"] .map-wrap .leaflet-tile-pane { filter: none; }
+
+    /* Weather: a map to pick the place, a year's chart, a day's hours */
+    .weather-map {
+      height: 240px;
+      margin: 0 0 1rem;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: var(--map-bg);
+      cursor: crosshair;
+    }
+    .weather-map .leaflet-tile-pane { filter: invert(1) hue-rotate(180deg) brightness(.85) contrast(.9) saturate(.5); }
+    :root[data-theme="light"] .weather-map .leaflet-tile-pane { filter: none; }
+    .weather-map .leaflet-control-attribution { font-size: .6rem; }
+    .weather-chart { display: block; width: 100%; height: auto; margin: .25rem 0 .5rem; }
+    .weather-chart .band { fill: var(--accent-soft); stroke: none; }
+    .weather-chart .tmax { fill: none; stroke: var(--accent); stroke-width: 1.2; }
+    .weather-chart .tmin { fill: none; stroke: var(--text-muted); stroke-width: 1; }
+    .weather-chart .normal { fill: none; stroke: var(--text); stroke-width: 1; stroke-dasharray: 3 3; opacity: .55; }
+    .weather-chart .rain { fill: var(--rain); }
+    .weather-chart .snow { fill: var(--text); opacity: .75; }
+    .weather-chart .grid { stroke: var(--border); stroke-width: 1; }
+    .weather-chart text { fill: var(--text-muted); font: 10px var(--font-sans); }
+    .weather-chart .pick { fill: transparent; cursor: pointer; }
+    .weather-chart .pick:hover { fill: var(--accent-soft); }
+    .weather-chart .picked { fill: var(--accent); opacity: .22; pointer-events: none; }
+    .weather-legend { display: flex; flex-wrap: wrap; gap: .4rem 1rem; font-size: .78rem; color: var(--text-muted); margin-bottom: .75rem; }
+    .weather-legend i { display: inline-block; width: 14px; height: 3px; margin-right: .35rem; vertical-align: middle; border-radius: 2px; }
+    .weather-sub { margin: 1rem 0 .4rem; font-size: .95rem; color: var(--heading); }
     :root[data-theme="light"] .demo-card:hover, :root[data-theme="light"] .demo-card:focus-within { box-shadow: 0 8px 30px rgba(12,154,107,.12); }
     .theme-toggle {
       padding: .1rem .5rem;
@@ -1149,6 +1179,7 @@
     <li><a href="#occupationgen-card">occupation</a></li>
     <li><a href="#countrygen-card">country</a></li>
     <li><a href="#citygen-card">city</a></li>
+    <li><a href="#weathergen-card">weather</a></li>
     <li><a href="#addressgen-card">address</a></li>
     <li><a href="#nickgen-card">nickname</a></li>
     <li><a href="#phonegen-card">phone</a></li>
@@ -1816,6 +1847,41 @@
       </div>
 
 
+      <!-- ─── Weather Generator ─── -->
+      <div class="demo-card" id="weathergen-card">
+        <h2>weather-generator</h2>
+        <p class="desc">
+          A year of daily weather for any point on land, drawn around the CRU TS 1991-2020 normals of the nearest cell: wet and dry spells, warm and cold runs, rain, snow, thunder, cloud, wind and the sun. Click the map to choose a place, then pick a day on the chart for its 24 hours.
+          <a class="repo-link" href="https://github.com/dasmig/weather-generator" target="_blank" rel="noopener">GitHub →</a>
+        </p>
+        <div class="weather-map" id="wt-map" role="application" aria-label="World map: click a place to generate its weather"></div>
+        <div class="controls">
+          <div class="field">
+            <label for="wt-lat">Latitude</label>
+            <input id="wt-lat" type="number" min="-90" max="90" step="0.01" value="48.85">
+          </div>
+          <div class="field">
+            <label for="wt-lon">Longitude</label>
+            <input id="wt-lon" type="number" min="-180" max="180" step="0.01" value="2.35">
+          </div>
+          <div class="field">
+            <label for="wt-year">Year</label>
+            <input id="wt-year" type="number" min="1900" max="2100" step="1" value="2024">
+          </div>
+          <div class="field">
+            <label for="wt-units">Units</label>
+            <select id="wt-units"><option value="metric">°C, mm</option><option value="imperial">°F, in</option></select>
+          </div>
+          <button class="btn" id="wt-generate" disabled>Generate year</button>
+        </div>
+        <p class="note">Each year is one seeded series: a day depends only on the seed, the place and the date, so the day's hours below are that day of the year above. The dashed line is the cell's normal mean temperature. Points more than 100 km from land have no weather. The library can also draw 1991-2020 as it was, from a 23 MB table this page does not load.</p>
+        <div id="wt-output">
+          <div class="output empty">Waiting for module to load…</div>
+        </div>
+        <div class="status" id="wt-status">Loading WebAssembly…</div>
+      </div>
+
+
       <!-- ─── Address Generator ─── -->
       <div class="demo-card" id="addressgen-card">
         <h2>address-generator</h2>
@@ -2208,6 +2274,7 @@
 <script src="entitygen_demo.js"></script>
 <script src="countrygen_demo.js"></script>
 <script src="citygen_demo.js"></script>
+<script src="weathergen_demo.js"></script>
 <script src="birthgen_demo.js"></script>
 <script src="biodatagen_demo.js"></script>
 <script src="interestgen_demo.js"></script>
@@ -2223,7 +2290,7 @@
 
 <script>
   const byId = id => document.getElementById(id);
-  for (const prefix of ['pg', 'ng', 'nng', 'eg', 'bg', 'bd', 'ig', 'og', 'ph', 'em', 'dv', 'ad', 'us', 'rl', 'tg', 'cg', 'ctg']) {
+  for (const prefix of ['pg', 'ng', 'nng', 'eg', 'bg', 'bd', 'ig', 'og', 'ph', 'em', 'dv', 'ad', 'us', 'rl', 'tg', 'cg', 'ctg', 'wt']) {
     byId(prefix + '-status').setAttribute('role', 'status');
     byId(prefix + '-output').setAttribute('aria-live', 'polite');
     byId(prefix + '-output').setAttribute('aria-atomic', 'true');
@@ -3230,6 +3297,195 @@
 
   byId('pg-generate').addEventListener('click', () => {
     if (pgMod) runDemo('pg', renderPersona);
+  });
+
+  // ─── Weather Generator ───
+  let wtMod = null;
+  let wtMap = null;
+  let wtMarker = null;
+  let wtYear = null; // {lat, lon, units, seed, data}
+  loadDemo('wt', () => createWeathergenModule(), mod => mod.init(), mod => { wtMod = mod; }, 'climate normals loaded.');
+
+  const randomSeed = () => {
+    const words = new Uint32Array(2);
+    crypto.getRandomValues(words);
+    return words[0].toString(16).padStart(8, '0') + words[1].toString(16).padStart(8, '0');
+  };
+  const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const fmt = (value, digits = 1) => Number(value).toFixed(digits);
+
+  function weatherMap() {
+    if (wtMap || typeof L === 'undefined') return;
+    wtMap = L.map('wt-map', { worldCopyJump: true, scrollWheelZoom: false }).setView([25, 10], 1);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OSM', maxZoom: 10
+    }).addTo(wtMap);
+    wtMarker = L.marker([+byId('wt-lat').value, +byId('wt-lon').value], {
+      icon: L.divIcon({ className: 'map-pin-icon', html: '<span class="map-pin"></span>', iconSize: [14, 14], iconAnchor: [7, 7] }),
+      interactive: false, keyboard: false
+    }).addTo(wtMap);
+    wtMap.on('click', event => {
+      const { lat } = event.latlng;
+      const lon = ((event.latlng.lng + 540) % 360) - 180;
+      byId('wt-lat').value = lat.toFixed(2);
+      byId('wt-lon').value = lon.toFixed(2);
+      if (wtMod) byId('wt-generate').click();
+    });
+  }
+  // The card starts collapsed; Leaflet needs its size once it is open.
+  window.addEventListener('resize', () => {
+    if (!byId('weathergen-card').classList.contains('expanded')) return;
+    weatherMap();
+    if (wtMap) setTimeout(() => wtMap.invalidateSize(), 0);
+  });
+
+  function yearChart(year) {
+    const days = year.data.days;
+    const imperial = year.units === 'imperial';
+    const W = 730, top = 8, tempH = 160, gap = 18, rainH = 52, left = 30, right = 4;
+    const H = top + tempH + gap + rainH + 16;
+    const plotW = W - left - right;
+    const step = plotW / days.length;
+    const toUnit = c => imperial ? c * 1.8 + 32 : c;
+    const normals = year.data.normals.tmean.map(toUnit);
+    let lo = Math.min(...days.map(d => d.tmin), ...normals);
+    let hi = Math.max(...days.map(d => d.tmax), ...normals);
+    const span = Math.max(hi - lo, 1);
+    lo -= span * .05; hi += span * .05;
+    const y = t => top + tempH * (hi - t) / (hi - lo);
+    const x = i => left + step * (i + .5);
+    const rainMax = Math.max(...days.map(d => d.precipitation), imperial ? .4 : 10);
+    const rainY = v => top + tempH + gap + rainH * (1 - v / rainMax);
+    let svg = '<svg class="weather-chart" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Daily highs, lows and precipitation for the year">';
+    // Temperature grid: about five round values.
+    const tick = [1, 2, 5, 10, 20].map(u => u * (imperial ? 2 : 1)).find(u => (hi - lo) / u <= 6) || 50;
+    for (let t = Math.ceil(lo / tick) * tick; t <= hi; t += tick) {
+      svg += '<line class="grid" x1="' + left + '" x2="' + (W - right) + '" y1="' + y(t).toFixed(1) + '" y2="' + y(t).toFixed(1) + '"/>'
+        + '<text x="' + (left - 4) + '" y="' + (y(t) + 3).toFixed(1) + '" text-anchor="end">' + t + '°</text>';
+    }
+    // Months
+    let first = 0;
+    days.forEach((d, i) => {
+      if (d.date.endsWith('-01')) {
+        first = i;
+        const m = +d.date.slice(5, 7) - 1;
+        svg += '<line class="grid" x1="' + (left + step * i).toFixed(1) + '" x2="' + (left + step * i).toFixed(1) + '" y1="' + top + '" y2="' + (H - 14) + '"/>'
+          + '<text x="' + (left + step * i + 3).toFixed(1) + '" y="' + (H - 3) + '">' + MONTHS[m] + '</text>';
+      }
+    });
+    const line = key => days.map((d, i) => (i ? 'L' : 'M') + x(i).toFixed(1) + ' ' + y(d[key]).toFixed(1)).join('');
+    const band = days.map((d, i) => (i ? 'L' : 'M') + x(i).toFixed(1) + ' ' + y(d.tmax).toFixed(1)).join('')
+      + days.map((d, i) => 'L' + x(days.length - 1 - i).toFixed(1) + ' ' + y(days[days.length - 1 - i].tmin).toFixed(1)).join('') + 'Z';
+    svg += '<path class="band" d="' + band + '"/><path class="tmax" d="' + line('tmax') + '"/><path class="tmin" d="' + line('tmin') + '"/>';
+    // The normal mean: mid-month points, wrapped round the year.
+    const mid = days.map((d, i) => +d.date.slice(8, 10) === 15 ? i : -1).filter(i => i >= 0);
+    const points = [[mid[0] - (days.length - mid[11]), normals[11]], ...mid.map((i, m) => [i, normals[m]]),
+      [mid[11] + (days.length - mid[11]) + mid[0], normals[0]]];
+    svg += '<path class="normal" d="' + points.map(([i, t], k) => (k ? 'L' : 'M')
+      + Math.min(Math.max(x(i), left), W - right).toFixed(1) + ' ' + y(t).toFixed(1)).join('') + '"/>';
+    // Precipitation
+    svg += '<line class="grid" x1="' + left + '" x2="' + (W - right) + '" y1="' + rainY(0) + '" y2="' + rainY(0) + '"/>'
+      + '<text x="' + (left - 4) + '" y="' + (rainY(rainMax) + 8).toFixed(1) + '" text-anchor="end">' + fmt(rainMax, imperial ? 1 : 0) + '</text>'
+      + '<text x="' + (left - 4) + '" y="' + (rainY(rainMax) + 19).toFixed(1) + '" text-anchor="end">' + (imperial ? 'in' : 'mm') + '</text>';
+    days.forEach((d, i) => {
+      if (!d.precipitation) return;
+      const cls = d.type === 'snow' || d.type === 'sleet' ? 'snow' : 'rain';
+      svg += '<rect class="' + cls + '" x="' + (left + step * i).toFixed(1) + '" width="' + Math.max(step - .4, .8).toFixed(1)
+        + '" y="' + rainY(d.precipitation).toFixed(1) + '" height="' + (rainY(0) - rainY(d.precipitation)).toFixed(1) + '"/>';
+    });
+    // Day pickers
+    if (year.picked !== undefined) {
+      svg += '<rect class="picked" x="' + (left + step * year.picked).toFixed(1) + '" width="' + Math.max(step, 2).toFixed(1)
+        + '" y="' + top + '" height="' + (H - 14 - top) + '"/>';
+    }
+    days.forEach((d, i) => {
+      svg += '<rect class="pick" data-day="' + i + '" x="' + (left + step * i).toFixed(1) + '" width="' + step.toFixed(2)
+        + '" y="' + top + '" height="' + (H - 14 - top) + '"><title>' + d.date + ': ' + d.condition.replace(/_/g, ' ')
+        + ', ' + fmt(d.tmin) + ' to ' + fmt(d.tmax) + '°' + (d.precipitation ? ', ' + d.precipitation + (imperial ? ' in' : ' mm') : '') + '</title></rect>';
+    });
+    return svg + '</svg>';
+  }
+
+  function yearSummary(year) {
+    const days = year.data.days;
+    const imperial = year.units === 'imperial';
+    const deg = imperial ? ' °F' : ' °C';
+    const sum = key => days.reduce((total, d) => total + d[key], 0);
+    const hottest = days.reduce((a, d) => d.tmax > a.tmax ? d : a);
+    const coldest = days.reduce((a, d) => d.tmin < a.tmin ? d : a);
+    const wettest = days.reduce((a, d) => d.precipitation > a.precipitation ? d : a);
+    let longestDry = 0;
+    let run = 0;
+    for (const d of days) { run = d.precipitation ? 0 : run + 1; longestDry = Math.max(longestDry, run); }
+    return comparisonTable('The year in numbers', ['', 'Value'], [
+      ['Mean temperature', fmt(sum('tmean') / days.length) + deg],
+      ['Hottest day', fmt(hottest.tmax) + deg + ' (' + hottest.date + ')'],
+      ['Coldest night', fmt(coldest.tmin) + deg + ' (' + coldest.date + ')'],
+      ['Precipitation', fmt(sum('precipitation'), imperial ? 2 : 0) + (imperial ? ' in' : ' mm')],
+      ['Wettest day', fmt(wettest.precipitation, imperial ? 2 : 1) + (imperial ? ' in' : ' mm') + ' (' + wettest.date + ')'],
+      ['Wet days', days.filter(d => d.precipitation).length],
+      ['Longest dry spell', longestDry + ' days'],
+      ['Frost days', days.filter(d => d.frost).length],
+      ['Snow days', days.filter(d => d.type === 'snow' || d.type === 'sleet').length],
+      ['Thunder days', days.filter(d => d.thunder).length],
+      ['Sunshine', Math.round(sum('sunshine_hours')).toLocaleString() + ' hours']
+    ]);
+  }
+
+  function dayHours(year) {
+    const date = year.data.days[year.picked].date;
+    const day = parseResult(wtMod.daySeeded(year.lat, year.lon, date, year.units, year.seed));
+    const imperial = year.units === 'imperial';
+    return '<h3 class="weather-sub">' + esc(date) + ': ' + esc(day.condition.replace(/_/g, ' ')) + ', '
+      + fmt(day.tmin) + ' to ' + fmt(day.tmax) + (imperial ? ' °F' : ' °C') + '</h3>'
+      + comparisonTable('Hours of ' + date + ' (local mean solar time)',
+        ['Hour', 'UTC', 'Temperature', 'Precipitation', 'Cloud', 'Humidity', 'Wind', 'Sunshine', 'Condition'],
+        day.hours.map(h => [String(h.hour).padStart(2, '0') + ':00', h.time.slice(11, 16),
+          fmt(h.temperature) + (imperial ? ' °F' : ' °C'), h.precipitation ? h.precipitation + (imperial ? ' in' : ' mm') : '—',
+          Math.round(h.cloud_cover * 100) + '%', h.humidity + '%', fmt(h.wind) + (imperial ? ' mph' : ' m/s'),
+          Math.round(h.sunshine_hours * 60) + ' min', h.condition.replace(/_/g, ' ')]));
+  }
+
+  function renderWeather() {
+    const days = wtYear.data.days;
+    const place = days[0].place;
+    const imperial = wtYear.units === 'imperial';
+    byId('wt-output').innerHTML = '<div class="weather-legend">'
+      + '<span><i style="background:var(--accent)"></i>High</span><span><i style="background:var(--text-muted)"></i>Low</span>'
+      + '<span><i style="background:var(--text);opacity:.55"></i>Normal mean</span>'
+      + '<span><i style="background:var(--rain)"></i>Rain (' + (imperial ? 'in' : 'mm') + ')</span>'
+      + '<span><i style="background:var(--text);opacity:.75"></i>Snow and sleet</span></div>'
+      + yearChart(wtYear) + yearSummary(wtYear)
+      + '<p class="note">Cell ' + esc(place.cell) + ', ' + place.elevation.toLocaleString() + ' m'
+      + (place.distance_km ? ', ' + place.distance_km + ' km from land' : '') + '. Seed ' + esc(wtYear.seed)
+      + ' replays this year.</p>'
+      + '<div id="wt-hours">' + (wtYear.picked === undefined
+        ? '<p class="note">Pick a day on the chart for its hours.</p>' : dayHours(wtYear)) + '</div>';
+  }
+
+  byId('wt-generate').addEventListener('click', () => {
+    if (!wtMod) return;
+    runDemo('wt', () => {
+      const lat = parseFloat(byId('wt-lat').value);
+      const lon = parseFloat(byId('wt-lon').value);
+      const year = parseInt(byId('wt-year').value, 10);
+      if (!(lat >= -90 && lat <= 90) || !(lon >= -180 && lon <= 180)) throw new Error('Latitude must be -90 to 90 and longitude -180 to 180.');
+      const units = byId('wt-units').value;
+      const seed = randomSeed();
+      wtYear = { lat, lon, units, seed, data: parseResult(wtMod.yearSeeded(lat, lon, year, units, seed)) };
+      if (wtMarker) wtMarker.setLatLng([lat, lon]);
+      renderWeather();
+      return 'Generated ' + year + ' at ' + lat.toFixed(2) + ', ' + lon.toFixed(2) + ' (synthetic weather around real normals).';
+    });
+  });
+  byId('wt-output').addEventListener('click', event => {
+    const pick = event.target.closest('.pick');
+    if (!pick || !wtYear) return;
+    wtYear.picked = +pick.dataset.day;
+    runDemo('wt', () => {
+      renderWeather();
+      return 'Showing the hours of ' + wtYear.data.days[wtYear.picked].date + '.';
+    });
   });
 
   // ── Polish: generate animation, scroll reveal, collapsible gallery, sticky jump bar ──
