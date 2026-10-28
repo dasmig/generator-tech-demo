@@ -154,7 +154,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: dasmig/vehicle-generator
-          ref: v1.0.0
+          ref: v2.0.0
           path: vehicle-generator
 
       - name: Setup Emscripten
