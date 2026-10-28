@@ -29,6 +29,7 @@ set(USER_GEN_DIR "${CMAKE_SOURCE_DIR}/../user-generator" CACHE PATH "Path to use
 set(DEVICE_GEN_DIR "${CMAKE_SOURCE_DIR}/../device-generator" CACHE PATH "Path to device-generator repo")
 set(RELGEN_GEN_DIR "${CMAKE_SOURCE_DIR}/../relationship-generator" CACHE PATH "Path to relationship-generator repo")
 set(PERSONA_GEN_DIR "${CMAKE_SOURCE_DIR}/../persona-generator" CACHE PATH "Path to persona-generator repo")
+set(WEATHER_GEN_DIR "${CMAKE_SOURCE_DIR}/../weather-generator" CACHE PATH "Path to weather-generator repo")
 
 # ── Wasm modules ──
 #
@@ -101,6 +102,20 @@ target_link_options(citygen_demo PRIVATE
   -sEXPORTED_RUNTIME_METHODS=['UTF8ToString','stringToUTF8']
   -sMODULARIZE=1
   -sEXPORT_NAME=createCitygenModule
+  -sENVIRONMENT=web
+)
+
+# weather-generator demo
+add_executable(weathergen_demo src/weathergen_demo.cpp)
+target_include_directories(weathergen_demo PRIVATE "${WEATHER_GEN_DIR}")
+target_compile_definitions(weathergen_demo PRIVATE DASMIG_WEATHER_EMBED)
+target_link_options(weathergen_demo PRIVATE
+  --bind
+  -sWASM=1
+  -sALLOW_MEMORY_GROWTH=1
+  -sEXPORTED_RUNTIME_METHODS=['UTF8ToString','stringToUTF8']
+  -sMODULARIZE=1
+  -sEXPORT_NAME=createWeathergenModule
   -sENVIRONMENT=web
 )
 

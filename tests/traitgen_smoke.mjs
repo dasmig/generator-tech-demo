@@ -197,6 +197,30 @@ try {
   await verifyRequestApis((module, method, args) =>
     evaluate(`JSON.parse(${module}.${method}(...${JSON.stringify(args)}))`));
 
+  // Weather: a year replays from its seed, a day's hours belong to that day of the year, and errors are reported.
+  const weather = (method, args) => evaluate(`JSON.parse(wtMod.${method}(...${JSON.stringify(args)}))`);
+  for (const units of ['metric', 'imperial']) {
+    const year = await weather('yearSeeded', [48.85, 2.35, 2024, units, '1f']);
+    assert.equal(year.days.length, 366);
+    assert.equal(year.days[0].date, '2024-01-01');
+    assert.equal(year.normals.cell, '49.00,3.00');
+    assert.deepEqual(await weather('yearSeeded', [48.85, 2.35, 2024, units, '1f']), year);
+    const day = await weather('daySeeded', [48.85, 2.35, '2024-03-10', units, '1f']);
+    assert.equal(day.hours.length, 24);
+    const { hours, ...rest } = day;
+    assert.deepEqual(rest, year.days[69]);
+    if (units === 'imperial') assert.equal(day.units, 'imperial');
+  }
+  assert.match((await weather('yearSeeded', [40, -40, 2024, 'metric', '1'])).error, /from land/);
+  assert.match((await weather('yearSeeded', [48.85, 2.35, 2024, 'kelvin', '1'])).error, /Units/);
+  assert.match((await weather('daySeeded', [48.85, 2.35, '2024-02-30', 'metric', '1'])).error, /date/);
+  assert.match((await weather('yearSeeded', [48.85, 2.35, 2024, 'metric', 'xyz'])).error, /hexadecimal/);
+  await evaluate("byId('wt-lat').value = '-33.87'; byId('wt-lon').value = '151.21'; byId('wt-year').value = '2023'; byId('wt-generate').click()");
+  await waitFor(() => evaluate('byId("wt-output").querySelectorAll(".weather-chart .pick").length === 365'), 'weather chart');
+  await evaluate("byId('wt-output').querySelector('.pick[data-day=\"200\"]').dispatchEvent(new MouseEvent('click', { bubbles: true }))");
+  await waitFor(() => evaluate('byId("wt-hours").querySelectorAll("tbody tr").length === 24'), 'weather hours');
+  assert.match(await evaluate('byId("wt-status").className'), /ready/);
+
   for (const mode of ['full', 'first', 'surname']) {
     const names = await evaluate(`JSON.parse(ngMod.generateNameOptions('female', 'br', '${mode}', 10))`);
     assert.equal(names.length, 10);
