@@ -1920,7 +1920,7 @@
       <div class="demo-card" id="vehiclegen-card">
         <h2>vehicle-generator</h2>
         <p class="desc">
-          Generate a car someone owns in a country at a date, with parts that agree: a make sold there and a model built in its model year, a fuel as common as it was among that year's new cars, a trim, gearbox and drive the model was offered with, a colour of its era, an odometer that fits its age, a licence plate in the format the country issued on the registration date, and a VIN with the maker's prefix, check digit and model-year code.
+          Generate a car or motorcycle someone owns in a country at a date, with parts that agree: a make sold there and a model built in its model year, a fuel as common as it was among that year's new vehicles, a trim, gearbox and drive (a motorcycle's final drive is a chain, belt, shaft or hub) the model was offered with, a colour of its era, an odometer that fits its age, a licence plate in the format the country issued on the registration date, and a VIN with the maker's prefix, check digit and model-year code.
           The safe option gives plates no authority issues and VINs whose maker prefix NHTSA has no record of. Outputs are synthetic; nothing is looked up in a register.
           <a class="repo-link" href="https://github.com/dasmig/vehicle-generator" target="_blank" rel="noopener">GitHub →</a>
         </p>
@@ -1944,17 +1944,37 @@
             </select>
           </div>
           <div class="field">
+            <label for="vh-kind">Kind</label>
+            <select id="vh-kind">
+              <option value="">Any</option>
+              <option value="car">Car</option>
+              <option value="motorcycle">Motorcycle</option>
+            </select>
+          </div>
+          <div class="field">
             <label for="vh-body">Body</label>
             <select id="vh-body">
               <option value="">Any</option>
-              <option value="hatchback">Hatchback</option>
-              <option value="sedan">Sedan</option>
-              <option value="wagon">Wagon</option>
-              <option value="suv">SUV</option>
-              <option value="pickup">Pickup</option>
-              <option value="van">Van</option>
-              <option value="coupe">Coupe</option>
-              <option value="convertible">Convertible</option>
+              <optgroup label="Cars" data-kind="car">
+                <option value="hatchback">Hatchback</option>
+                <option value="sedan">Sedan</option>
+                <option value="wagon">Wagon</option>
+                <option value="suv">SUV</option>
+                <option value="pickup">Pickup</option>
+                <option value="van">Van</option>
+                <option value="coupe">Coupe</option>
+                <option value="convertible">Convertible</option>
+              </optgroup>
+              <optgroup label="Motorcycles" data-kind="motorcycle">
+                <option value="scooter">Scooter</option>
+                <option value="underbone">Underbone</option>
+                <option value="standard">Standard</option>
+                <option value="sport">Sport</option>
+                <option value="touring">Touring</option>
+                <option value="cruiser">Cruiser</option>
+                <option value="adventure">Adventure</option>
+                <option value="offroad">Off-road</option>
+              </optgroup>
             </select>
           </div>
           <div class="field">
@@ -1993,7 +2013,7 @@
           <button class="btn" id="vh-generate" disabled>Generate</button>
           <button class="btn secondary" id="vh-compare" disabled>Compare countries</button>
         </div>
-        <p class="note">“Any” country is drawn by passenger cars in use. The plate regions are the country's: US states, Canadian provinces and Australian states pick that jurisdiction's plates, and German districts, Swiss cantons or Japanese offices the code the plate carries; without a country, one that has the region is drawn. The date (today by default, 2000 to 2050) sets the fleet's age, the fuels and the plate format of each registration. Compare countries draws one call seed in Germany, the United Kingdom, Spain, the United States and Japan.</p>
+        <p class="note">“Any” country is drawn by the vehicles in use of the chosen kind, and “Any” kind by the country's mix of cars and motorcycles. A body belongs to a kind, so picking a kind limits the body list. The plate regions are the country's: US states, Canadian provinces and Australian states pick that jurisdiction's plates, and German districts, Swiss cantons or Japanese offices the code the plate carries; without a country, one that has the region is drawn. A motorcycle has no doors, and petrol mopeds of 50 cc and under are not drawn. The date (today by default, 2000 to 2050) sets the fleet's age, the fuels and the plate format of each registration. Compare countries draws one call seed in Germany, the United Kingdom, Spain, the United States and Japan.</p>
         <div id="vh-output">
           <div class="output empty">Waiting for module to load…</div>
         </div>
@@ -2771,7 +2791,14 @@
   function vhRefill() {
     const country = byId('vh-country').value;
     fillChoices('vh-region', country ? [...JSON.parse(vhMod.plateRegions(country))].sort() : []);
-    fillChoices('vh-make', JSON.parse(vhMod.makes(country)));
+    fillChoices('vh-make', JSON.parse(vhMod.makes(country, byId('vh-kind').value)));
+  }
+  // A body belongs to a kind: only the chosen kind's bodies can be picked.
+  function vhKindBodies() {
+    const kind = byId('vh-kind').value;
+    for (const group of byId('vh-body').querySelectorAll('optgroup')) group.disabled = kind !== '' && group.dataset.kind !== kind;
+    const chosen = byId('vh-body').selectedOptions[0];
+    if (chosen.parentElement.disabled) byId('vh-body').value = '';
   }
   loadDemo('vh', () => createVehiclegenModule(), mod => mod.init(), mod => {
     vhMod = mod;
@@ -2780,22 +2807,23 @@
   }, 'fleets, models, plates and makers loaded.');
   byId('vh-date').value = byId('bg-reference').value;
   byId('vh-country').addEventListener('change', () => { if (vhMod) vhRefill(); });
+  byId('vh-kind').addEventListener('change', () => { vhKindBodies(); if (vhMod) vhRefill(); });
 
   byId('vh-generate').addEventListener('click', () => {
     if (!vhMod) return;
     runDemo('vh', () => {
       const data = parseResult(vhMod.generateVehicle(byId('vh-country').value, byId('vh-region').value,
-        byId('vh-make').value, byId('vh-body').value, byId('vh-fuel').value, byId('vh-date').value,
-        byId('vh-units').value, byId('vh-safe').value === 'yes'));
+        byId('vh-make').value, byId('vh-kind').value, byId('vh-body').value, byId('vh-fuel').value,
+        byId('vh-date').value, byId('vh-units').value, byId('vh-safe').value === 'yes'));
       renderTable('vh-output', data);
-      return 'Generated a vehicle in ' + data.Country + '.';
+      return 'Generated a ' + data.Kind + ' in ' + data.Country + '.';
     });
   });
 
   byId('vh-compare').addEventListener('click', () => runDemo('vh', () => {
-    const data = parseResult(vhMod.compareCountries(byId('vh-body').value, byId('vh-fuel').value, byId('vh-date').value,
+    const data = parseResult(vhMod.compareCountries(byId('vh-kind').value, byId('vh-body').value, byId('vh-fuel').value, byId('vh-date').value,
       byId('vh-safe').value === 'yes'));
-    const fields = [['Vehicle', v => v.model_year + ' ' + v.make + ' ' + v.model + (v.trim ? ' ' + v.trim : '')],
+    const fields = [['Kind', v => v.kind], ['Vehicle', v => v.model_year + ' ' + v.make + ' ' + v.model + (v.trim ? ' ' + v.trim : '')],
       ['Fuel', v => v.fuel], ['Colour', v => v.colour || '-'], ['First registration', v => v.first_registration],
       ['Odometer', v => v.odometer.toLocaleString() + ' ' + v.odometer_unit], ['Plate', v => v.plate || '-'],
       ['Plate region', v => v.plate_region || '-'], ['VIN', v => v.vin || '-']];

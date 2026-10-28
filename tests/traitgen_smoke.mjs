@@ -230,11 +230,13 @@ try {
   assert.deepEqual(await evaluate(`Array.from(byId('vh-country').options, option => option.value).filter(Boolean).sort()`),
     [...vehicleCountries].sort(), "The vehicle country list must be the library's own");
   assert.equal((await vehicle('plateRegions', ['US'])).length, 51, 'Fifty states and DC');
-  assert.ok((await vehicle('makes', ['DE'])).includes('Volkswagen'));
-  assert.equal(JSON.stringify(await vehicle('generateVehicleSeeded', ['DE', '', '', '', '', '2023-07-01', 'country', false, '1'])),
-    '{"country_code":"DE","make":"Mercedes-Benz","model":"GLC","model_key":"mercedes-glc","trim":"GLC 200","body":"suv","fuel":"petrol","model_year":2018,"first_registration":"2018-12-10","engine_cc":1991,"power_kw":150,"transmission":"automatic","drive":"rwd","doors":5,"seats":5,"colour":"Polar White","colour_family":"white","odometer":31790,"odometer_unit":"km","plate":"EU-RI 23","plate_region":"EU","plate_format":"de","vin":"WDCJGRDP4JR152138","wmi":"WDC","reserved":false,"signature":{"seed":"0000000000000001","data":"cae52f3d38d59d5d"}}',
+  assert.ok((await vehicle('makes', ['DE', ''])).includes('Volkswagen'));
+  assert.ok((await vehicle('makes', ['JP', 'motorcycle'])).includes('Honda'));
+  assert.ok(!(await vehicle('makes', ['DE', 'motorcycle'])).includes('Volkswagen'), 'A make list is of one kind');
+  assert.equal(JSON.stringify(await vehicle('generateVehicleSeeded', ['DE', '', '', '', '', '', '2023-07-01', 'country', false, '1'])),
+    '{"country_code":"DE","kind":"car","make":"Mercedes-Benz","model":"GLC","model_key":"mercedes-glc","trim":"GLC 200","body":"suv","fuel":"petrol","model_year":2018,"first_registration":"2018-12-10","engine_cc":1991,"power_kw":150,"transmission":"automatic","drive":"rwd","doors":5,"seats":5,"colour":"Polar White","colour_family":"white","odometer":31790,"odometer_unit":"km","plate":"EU-RI 23","plate_region":"EU","plate_format":"de","vin":"WDCJGRDP4JR152138","wmi":"WDC","reserved":false,"signature":{"seed":"0000000000000001","data":"7e53b64e7b4b9c2c"}}',
     "A seed replays the library's known answer");
-  const usSafe = await vehicle('generateVehicleSeeded', ['US', '', '', '', '', '2015-03-01', 'country', true, '2']);
+  const usSafe = await vehicle('generateVehicleSeeded', ['US', '', '', '', '', '', '2015-03-01', 'country', true, '2']);
   assert.equal(usSafe.plate, 'RIB 3891');
   assert.equal(usSafe.vin, 'GZ9JAAYF250743579');
   const vinLetters = { A: 1, B: 2, C: 3, D: 4, E: 5, F: 6, G: 7, H: 8, J: 1, K: 2, L: 3, M: 4, N: 5, P: 7, R: 9,
@@ -250,7 +252,7 @@ try {
   assert.ok(reservedWmis.length > 0);
   for (const country of ['DE', 'GB', 'ES', 'US', 'JP', 'BR']) {
     for (const safe of [false, true]) {
-      const v = await vehicle('generateVehicleSeeded', [country, '', '', '', '', '2024-06-01', 'country', safe, '7f']);
+      const v = await vehicle('generateVehicleSeeded', [country, '', '', '', '', '', '2024-06-01', 'country', safe, '7f']);
       assert.equal(v.error, undefined, v.error);
       assert.equal(v.country_code, country);
       assert.ok(vinValid(v.vin), 'A valid VIN: ' + v.vin);
@@ -258,26 +260,41 @@ try {
       if (safe) assert.ok(reservedWmis.includes(v.wmi), 'A safe VIN has a reserved WMI: ' + v.wmi);
     }
   }
-  const munich = await vehicle('generateVehicleSeeded', ['DE', 'M', '', '', 'electric', '2024-06-01', 'country', false, '3']);
+  const munich = await vehicle('generateVehicleSeeded', ['DE', 'M', '', '', '', 'electric', '2024-06-01', 'country', false, '3']);
   assert.match(munich.plate, /^M-[A-Z]{1,2} [1-9]\d{0,3}E?$/, 'A Munich plate, with E for some electric cars');
-  const california = await vehicle('generateVehicleSeeded', ['', 'CA', '', '', '', '2024-06-01', 'country', false, '4']);
+  const california = await vehicle('generateVehicleSeeded', ['', 'CA', '', '', '', '', '2024-06-01', 'country', false, '4']);
   assert.ok((await vehicle('plateRegions', [california.country_code])).includes('CA'), 'Without a country, one with the region is drawn');
-  const imperial = await vehicle('generateVehicleSeeded', ['DE', '', '', '', '', '2024-06-01', 'imperial', false, '5']);
+  const imperial = await vehicle('generateVehicleSeeded', ['DE', '', '', '', '', '', '2024-06-01', 'imperial', false, '5']);
   assert.equal(imperial.odometer_unit, 'mi');
-  const vehicleSeedCountries = await vehicle('compareCountries', ['', '', '2024-06-01', false]);
+  // Motorcycles: the kind is honoured, has no doors, and a body implies its kind.
+  const bike = await vehicle('generateVehicleSeeded', ['JP', '', '', 'motorcycle', '', '', '2024-06-01', 'country', false, '8']);
+  assert.equal(JSON.stringify(bike),
+    '{"country_code":"JP","kind":"motorcycle","make":"Honda","model":"CBR","model_key":"honda-cbr","trim":"CBR600F","body":"sport","fuel":"petrol","model_year":2001,"first_registration":"2001-04-06","engine_cc":599,"power_kw":74,"transmission":"manual","drive":"chain","doors":0,"seats":2,"colour":"Grand Prix Red","colour_family":"red","odometer":80290,"odometer_unit":"km","plate":"京都 め 60-05","plate_region":"京都","plate_format":"jp-moto","vin":"MLHDFJY7910636745","wmi":"MLH","reserved":false,"signature":{"seed":"0000000000000008","data":"7e53b64e7b4b9c2c"}}',
+    "A motorcycle replays the library's known answer");
+  const cruiser = await vehicle('generateVehicleSeeded', ['US', '', '', '', 'cruiser', '', '2024-06-01', 'country', false, '9']);
+  assert.equal(cruiser.kind, 'motorcycle', 'A motorcycle body implies the kind');
+  assert.equal(cruiser.doors, 0);
+  const vehicleSeedCountries = await vehicle('compareCountries', ['', '', '', '2024-06-01', false]);
   assert.deepEqual(vehicleSeedCountries.map(v => v.country_code), ['DE', 'GB', 'ES', 'US', 'JP']);
   assert.equal(new Set(vehicleSeedCountries.map(v => v.signature.seed)).size, 1, 'One seed in every country');
-  for (const args of [['XX', '', '', '', '', '', 'country', false], ['DE', 'ZZZ', '', '', '', '', 'country', false],
-    ['', '', 'Trabant', '', '', '', 'country', false], ['', '', '', 'tank', '', '', 'country', false],
-    ['', '', '', '', 'steam', '', 'country', false], ['', '', '', '', '', '1999-12-31', 'country', false],
-    ['', '', '', '', '', '', 'leagues', false]]) {
+  for (const args of [['XX', '', '', '', '', '', '', 'country', false], ['DE', 'ZZZ', '', '', '', '', '', 'country', false],
+    ['', '', 'Trabant', '', '', '', '', 'country', false], ['', '', '', '', 'tank', '', '', 'country', false],
+    ['', '', '', '', '', 'steam', '', 'country', false], ['', '', '', '', '', '', '1999-12-31', 'country', false],
+    ['', '', '', '', '', '', '', 'leagues', false], ['', '', '', 'boat', '', '', '', 'country', false],
+    ['', '', '', 'car', 'sport', '', '', 'country', false]]) {
     assert.ok((await vehicle('generateVehicle', args)).error, 'Invalid vehicle input must report an error: ' + JSON.stringify(args));
   }
   await evaluate("byId('vh-country').value = 'JP'; byId('vh-country').dispatchEvent(new Event('change'))");
   assert.ok(await evaluate("byId('vh-region').options.length > 1 && !byId('vh-region').disabled"), 'Japan lists its offices');
   assert.ok(await evaluate("Array.from(byId('vh-make').options, option => option.value).includes('Toyota')"));
   await evaluate("byId('vh-generate').click()");
-  assert.match(await evaluate('byId("vh-status").textContent'), /Generated a vehicle in JP/);
+  assert.match(await evaluate('byId("vh-status").textContent'), /Generated a (car|motorcycle) in JP/);
+  await evaluate("byId('vh-body').value = 'suv'; byId('vh-kind').value = 'motorcycle'; byId('vh-kind').dispatchEvent(new Event('change'))");
+  assert.equal(await evaluate("byId('vh-body').value"), '', 'Changing the kind clears a body of the other kind');
+  assert.ok(await evaluate("byId('vh-make').options.length > 1 && !Array.from(byId('vh-make').options, option => option.value).includes('Volkswagen')"));
+  await evaluate("byId('vh-generate').click()");
+  assert.match(await evaluate('byId("vh-status").textContent'), /Generated a motorcycle in JP/);
+  await evaluate("byId('vh-kind').value = ''; byId('vh-kind').dispatchEvent(new Event('change'))");
   assert.match(await evaluate('byId("vh-output").textContent'), /VIN/);
   await evaluate("byId('vh-compare').click()");
   assert.match(await evaluate('byId("vh-output").textContent'), /one seed in five countries/);
