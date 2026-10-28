@@ -23,6 +23,10 @@ jobs:
       - name: Checkout generator-tech-demo
         uses: actions/checkout@v4
 
+      # The pins, the README, the CMake targets and the page's cards list the same libraries.
+      - name: Check the library lists agree
+        run: node tests/consistency.mjs
+
       - name: Checkout name-generator
         uses: actions/checkout@v4
         with:

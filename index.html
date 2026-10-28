@@ -1171,6 +1171,7 @@
 
   <ul class="demo-index" aria-label="Jump to a demo">
     <li><a class="featured" href="#personagen-card">persona</a></li>
+    <li><a class="featured" href="#everywhere-card">one person</a></li>
     <li><a href="#namegen-card">name</a></li>
     <li><a href="#birthgen-card">birth</a></li>
     <li><a href="#biodatagen-card">biodata</a></li>
@@ -1203,6 +1204,7 @@
       job; the age and sex set the rest), and the persona's seed replays all of
       it. This is fictional sample data, not a description or prediction of a
       real person.
+      <a class="repo-link" href="https://github.com/dasmig/persona-generator" target="_blank" rel="noopener">GitHub →</a>
     </p>
     <div class="controls">
       <div class="field">
@@ -1304,6 +1306,45 @@
       <div class="output empty">Waiting for module to load…</div>
     </div>
     <div class="status" id="pg-status">Loading WebAssembly…</div>
+  </div>
+
+  <div class="demo-card" id="everywhere-card">
+    <h2>One person, everywhere</h2>
+    <p class="desc">
+      Runs the persona, address, phone, email, device, vehicle and weather
+      libraries for one country with one call seed. The persona sets the
+      country, name, age and city; the rest follow from it (the email is built
+      from the persona's name and birth year, the weather is the persona's city
+      today). It is the demos below composed in the page, not a pipeline: the
+      vehicle-generator and weather-generator are not part of persona-generator
+      yet. A part the country has no data for is marked, not hidden. Fictional
+      sample data only.
+    </p>
+    <div class="controls">
+      <div class="field">
+        <label for="ev-country">Country</label>
+        <select id="ev-country">
+          <option value="">Any (random)</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="ev-sex">Sex</label>
+        <select id="ev-sex">
+          <option value="">Any</option>
+          <option value="male">Male</option>
+          <option value="female">Female</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="ev-seed">Call seed (hex)</label>
+        <input type="text" id="ev-seed" maxlength="16" placeholder="random" autocomplete="off" spellcheck="false">
+      </div>
+      <button class="btn" id="ev-generate" disabled>Generate everything</button>
+    </div>
+    <div id="ev-output">
+      <div class="output empty">Waiting for modules to load…</div>
+    </div>
+    <div class="status" id="ev-status">Loading WebAssembly…</div>
   </div>
 
   <div class="gallery-bar">
@@ -3662,6 +3703,83 @@
       renderWeather();
       return 'Showing the hours of ' + wtYear.data.days[wtYear.picked].date + '.';
     });
+  });
+
+  // ─── One person, everywhere ───
+  // The single-library modules composed in the page: one call seed, one country, the persona's city and name.
+  const evModules = () => [pgMod, phMod, emMod, dvMod, vhMod, wtMod, adMod];
+  (function evWhenReady() {
+    if (!evModules().every(Boolean)) return setTimeout(evWhenReady, 300);
+    fillCountries('ev-country', pgMod);
+    byId('ev-generate').disabled = false;
+    byId('ev-status').textContent = 'Ready — seven libraries loaded.';
+    byId('ev-status').className = 'status ready';
+    byId('ev-output').innerHTML = '<div class="output empty">Choose a country and seed, then generate.</div>';
+  })();
+
+  // One part: its rows, or a row saying the country has none, so a gap is visible.
+  function evPart(label, source, make) {
+    try {
+      return make().map(([field, value]) => [label + ' · ' + field, value || '-', source]);
+    } catch (error) {
+      return [[label, 'not available: ' + error.message, source]];
+    }
+  }
+
+  byId('ev-generate').addEventListener('click', async () => {
+    if (!evModules().every(Boolean)) return;
+    const seed = byId('ev-seed').value.trim() || randomSeed();
+    const date = byId('bg-reference').value;
+    byId('ev-status').textContent = 'Generating…';
+    byId('ev-status').className = 'status';
+    try {
+      const persona = parseResult(pgMod.generatePersonaSeeded(byId('ev-country').value, byId('ev-sex').value, date, seed));
+      const code = persona.country.cca2;
+      const words = persona.name.split(/\s+/).filter(Boolean);
+      const birthYear = Number(date.slice(0, 4)) - persona.age;
+      let addressReady = true;
+      try { await adEnsure(code); } catch (error) { addressReady = false; }
+      const rows = [
+        ['Person', persona.name + ', ' + persona.age + ', ' + persona.sex, 'persona-generator'],
+        ['Home', persona.city.name + (persona.admin1 ? ', ' + persona.admin1 : '') + ', ' + persona.country.name_common,
+          'country-generator + city-generator'],
+        ...evPart('Address', 'address-generator', () => {
+          if (!addressReady) throw new Error('the street data could not be loaded');
+          return [['Address', parseResult(adMod.generateAddressSeeded(code, 'local', seed)).formatted]];
+        }),
+        ...evPart('Phone', 'phone-generator', () => {
+          const phone = parseResult(phMod.generatePhoneSeeded(code, '', false, seed));
+          return [['Number', phone.international]];
+        }),
+        ...evPart('Email', 'email-generator', () => {
+          const email = parseResult(emMod.generateEmailSeeded(code, words[0], words[words.length - 1], '', birthYear, false, seed));
+          return [['Address', email.address]];
+        }),
+        ...evPart('Device', 'device-generator', () => {
+          const device = parseResult(dvMod.generateDeviceSeeded(code, '', '', '', '', date, false, seed));
+          return [['Device', [device.maker, device.model].filter(Boolean).join(' ')],
+            ['Software', [device.os, device.os_version, device.browser].filter(Boolean).join(' ')], ['IP address', device.ip]];
+        }),
+        ...evPart('Vehicle', 'vehicle-generator', () => {
+          const vehicle = parseResult(vhMod.generateVehicleSeeded(code, '', '', '', '', '', date, 'country', false, seed));
+          return [['Vehicle', vehicle.kind + ': ' + vehicle.model_year + ' ' + vehicle.make + ' ' + vehicle.model],
+            ['Plate', vehicle.plate]];
+        }),
+        ...evPart('Weather', 'weather-generator', () => {
+          const day = parseResult(wtMod.daySeeded(persona.city.latitude, persona.city.longitude, date, 'metric', seed));
+          return [['Today at home', day.condition.replace(/_/g, ' ') + ', ' + day.tmin.toFixed(1) + ' to ' + day.tmax.toFixed(1) + ' °C']];
+        })
+      ];
+      byId('ev-output').innerHTML = comparisonTable('One call seed in ' + persona.country.name_common,
+        ['Part', 'Value', 'Library'], rows)
+        + '<p class="note">Call seed (hex): ' + esc(seed) + '. The same seed and country replay every part. Each library draws from its own stream, so the parts agree on the country and date, not on each other beyond the name, age and city.</p>';
+      byId('ev-status').textContent = 'Generated a person in ' + persona.country.name_common + '.';
+      byId('ev-status').className = 'status ready';
+    } catch (error) {
+      byId('ev-output').innerHTML = '<div class="output empty">No result generated.</div>';
+      byId('ev-status').textContent = 'Generation failed: ' + error.message + ' Check the inputs and try again.';
+      byId('ev-status').className = 'status error';
+    }
   });
 
   // ── Polish: generate animation, scroll reveal, collapsible gallery, sticky jump bar ──
