@@ -25,7 +25,7 @@ The demos use the libraries' releases on [dasmig-core 1.3](https://github.com/da
 | relationship-generator | v1.2.1 |
 | persona-generator | v4.1.2 |
 | weather-generator | v2.0.0 |
-| vehicle-generator | v2.0.0 |
+| vehicle-generator | v2.0.1 |
 
 ## Prerequisites
 
