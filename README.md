@@ -10,22 +10,22 @@ The demos use the libraries' releases on [dasmig-core 1.3](https://github.com/da
 
 | Library | Tag |
 |---|---|
-| name-generator | v4.5.1 |
-| nickname-generator | v5.2.1 |
-| entity-generator | v4.2.2 |
-| country-generator, birth-generator | v3.2.1 |
-| city-generator | v4.2.1 |
-| biodata-generator | v5.0.1 |
-| interest-generator, occupation-generator | v3.0.2 |
-| trait-generator | v2.1.3 |
-| phone-generator, email-generator | v2.1.2 |
-| address-generator | v2.1.1 |
-| device-generator | v1.0.3 |
-| user-generator | v2.1.1 |
-| relationship-generator | v1.2.1 |
-| persona-generator | v4.1.2 |
-| weather-generator | v2.0.0 |
-| vehicle-generator | v2.0.1 |
+| name-generator | v4.5.2 |
+| nickname-generator | v5.2.2 |
+| entity-generator | v4.2.3 |
+| country-generator, birth-generator | v3.2.2 |
+| city-generator | v4.2.2 |
+| biodata-generator | v5.0.2 |
+| interest-generator, occupation-generator | v3.0.3 |
+| trait-generator | v2.1.4 |
+| phone-generator, email-generator | v2.1.3 |
+| address-generator | v2.1.2 |
+| device-generator | v1.0.4 |
+| user-generator | v2.1.2 |
+| relationship-generator | v1.2.2 |
+| persona-generator | v4.1.3 |
+| weather-generator | v2.0.1 |
+| vehicle-generator | v2.0.2 |
 
 ## Prerequisites
 
