@@ -13,12 +13,12 @@ The demos use the libraries' releases on [dasmig-core 1.3](https://github.com/da
 | name-generator | v4.5.2 |
 | nickname-generator | v5.2.2 |
 | entity-generator | v4.2.3 |
-| country-generator | v3.3.1 |
+| country-generator | v3.3.2 |
 | birth-generator | v3.2.2 |
 | city-generator | v4.2.2 |
 | biodata-generator | v5.0.2 |
 | interest-generator | v3.0.3 |
-| occupation-generator | v3.1.0 |
+| occupation-generator | v3.1.1 |
 | trait-generator | v2.1.4 |
 | phone-generator, email-generator | v2.1.3 |
 | address-generator | v2.1.2 |

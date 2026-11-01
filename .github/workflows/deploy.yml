@@ -52,7 +52,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: dasmig/country-generator
-          ref: v3.3.1
+          ref: v3.3.2
           path: country-generator
 
       - name: Checkout city-generator
@@ -94,7 +94,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: dasmig/occupation-generator
-          ref: v3.1.0
+          ref: v3.1.1
           path: occupation-generator
 
       - name: Checkout persona-generator
