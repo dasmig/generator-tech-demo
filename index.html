@@ -1810,7 +1810,7 @@
       <div class="demo-card" id="countrygen-card">
         <h2>country-generator</h2>
         <p class="desc">
-          Sample countries with geography, politics, culture and telecom metadata. Compare population-weighted and uniform selection within the same region filter.
+          Sample countries with geography, politics, culture and telecom metadata. Compare population-weighted and uniform selection within the same region filter. See a country's locales, time zones and public holidays.
           <a class="repo-link" href="https://github.com/dasmig/country-generator" target="_blank" rel="noopener">GitHub →</a>
         </p>
         <div class="controls">
@@ -1833,6 +1833,25 @@
           <button class="btn secondary" id="ctg-compare" disabled>Compare batches</button>
         </div>
         <p class="note">Single draw is population-weighted. Batches draw with replacement: repeated countries count again. Each pair uses the same random seed. Uniform gives every eligible catalogue row equal probability; weighted uses max(population, 1). Observed shares are samples, not exact population proportions.</p>
+        <div class="controls">
+          <div class="field">
+            <label for="ctg-locale-country">Country</label>
+            <select id="ctg-locale-country"></select>
+          </div>
+          <div class="field">
+            <label for="ctg-year">Holiday year</label>
+            <input id="ctg-year" type="number" min="1970" max="2050" step="1">
+          </div>
+          <div class="field">
+            <label for="ctg-optional">Holidays</label>
+            <select id="ctg-optional">
+              <option value="no">Days off for all</option>
+              <option value="yes">Also days off for some</option>
+            </select>
+          </div>
+          <button class="btn secondary" id="ctg-locale" disabled>Locales, zones and holidays</button>
+        </div>
+        <p class="note">Each locale formats today's date, 15:04, 1234567.891 and 1,234.50 of its currency with its own CLDR patterns. Zone offsets and local times are for now, from the tzdata rules built into the library, not the browser's. Holidays are national days from rules fitted to python-holidays. Generate picks the drawn country here.</p>
         <div id="ctg-output">
           <div class="output empty">Waiting for module to load…</div>
         </div>
@@ -3064,13 +3083,58 @@
 
   // ─── Country Generator ───
   let ctgMod = null;
-  loadDemo('ctg', () => createCountrygenModule(), mod => mod.init(), mod => { ctgMod = mod; }, 'country data loaded.');
+  byId('ctg-year').value = currentDate.getFullYear();
+  loadDemo('ctg', () => createCountrygenModule(), mod => mod.init(), mod => {
+    ctgMod = mod;
+    fillCountries('ctg-locale-country', mod);
+    byId('ctg-locale-country').value = 'BR';
+    byId('ctg-locale').disabled = false;
+  }, 'country, locale, time-zone and holiday data loaded.');
 
   document.getElementById('ctg-generate').addEventListener('click', () => {
     if (!ctgMod) return;
     const region = document.getElementById('ctg-region').value;
-    runDemo('ctg', () => renderTable('ctg-output', parseResult(ctgMod.generateCountry(region))));
+    runDemo('ctg', () => {
+      const country = parseResult(ctgMod.generateCountry(region));
+      renderTable('ctg-output', country);
+      if ([...byId('ctg-locale-country').options].some(option => option.value === country.CCA2))
+        byId('ctg-locale-country').value = country.CCA2;
+    });
   });
+
+  byId('ctg-locale').addEventListener('click', () => runDemo('ctg', () => {
+    const year = Number(byId('ctg-year').value);
+    if (!Number.isInteger(year) || year < 1970 || year > 2050) throw new Error('Choose a holiday year from 1970 to 2050.');
+    const now = new Date();
+    const today = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-'
+      + String(now.getDate()).padStart(2, '0');
+    const data = parseResult(ctgMod.countryLocale(byId('ctg-locale-country').value, year,
+      byId('ctg-optional').value === 'yes', today, Math.floor(now.getTime() / 1000)));
+    const percent = n => (n >= 10 ? n.toFixed(0) : n.toFixed(1)) + '%';
+    let html = '<p class="note">' + esc(data.flag + ' ' + data.name + ' (' + data.country + ')') + ' · '
+      + data.locales.length + ' locale' + (data.locales.length === 1 ? '' : 's') + ' · '
+      + data.zones.length + ' time zone' + (data.zones.length === 1 ? '' : 's') + ' · holidays served '
+      + data.years[0] + '–' + data.years[1] + '.</p>';
+    html += comparisonTable('Locales · by share of speakers (CLDR)',
+      ['Tag', 'Language', 'Speakers', 'Today', 'Short date', '15:04', 'Number', 'Price', 'Week starts', 'Units'],
+      data.locales.map(l => [l.tag, l.language + (l.basis === 'cldr' ? '' : ' (' + l.basis + ')'), percent(l.share),
+        l.date, l.date_short, l.time, l.number, l.money, l.first_day, l.measurement]));
+    html += comparisonTable('Time zones · by share of population (tzdata 2026f, GeoNames)',
+      ['Zone', 'Population', 'UTC offset', 'Abbreviation', 'Daylight time', 'Local time now'],
+      data.zones.map(z => [z.name, percent(z.share), z.utc_offset, z.abbreviation,
+        z.dst ? 'in effect' : z.observes_dst ? 'observed, not now' : 'none', z.local_time]));
+    if (data.holidays_error) {
+      html += '<p class="note">' + esc(data.holidays_error) + '</p>';
+    } else {
+      html += comparisonTable('Holidays in ' + year + ' · national days, by date',
+        ['Date', 'Name', 'In English', 'Kind', 'Observed on'],
+        data.holidays.map(h => [h.date, h.name + (h.day > 1 ? ' (day ' + h.day + ')' : ''), h.name_en, h.kind,
+          h.observed || '—']));
+      if (data.holidays.length === 0) html += '<p class="note">No national holidays in the data for this year.</p>';
+    }
+    byId('ctg-output').innerHTML = html;
+    return 'Showed ' + data.name + '’s locales, time zones and ' + year + ' holidays.';
+  }));
 
   function compareSampling(prefix, mod, filter, sample, key) {
     return runDemo(prefix, () => {

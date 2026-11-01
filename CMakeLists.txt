@@ -81,7 +81,7 @@ target_link_options(entitygen_demo PRIVATE
 # country-generator demo
 add_executable(countrygen_demo src/countrygen_demo.cpp)
 target_include_directories(countrygen_demo PRIVATE "${COUNTRY_GEN_DIR}")
-target_compile_definitions(countrygen_demo PRIVATE DASMIG_COUNTRY_EMBED)
+target_compile_definitions(countrygen_demo PRIVATE DASMIG_COUNTRY_EMBED DASMIG_COUNTRY_EMBED_LOCALE)
 target_link_options(countrygen_demo PRIVATE
   --bind
   -sWASM=1

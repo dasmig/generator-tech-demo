@@ -13,7 +13,8 @@ The demos use the libraries' releases on [dasmig-core 1.3](https://github.com/da
 | name-generator | v4.5.2 |
 | nickname-generator | v5.2.2 |
 | entity-generator | v4.2.3 |
-| country-generator, birth-generator | v3.2.2 |
+| country-generator | v3.3.1 |
+| birth-generator | v3.2.2 |
 | city-generator | v4.2.2 |
 | biodata-generator | v5.0.2 |
 | interest-generator, occupation-generator | v3.0.3 |
@@ -89,6 +90,8 @@ All modules, demos included, use native WebAssembly exceptions (`-fwasm-exceptio
 ## What the demos show
 
 The **country and city** demos retain population-weighted single draws and add side-by-side batches of 100, 500 or 2,000 draws per mode. Both modes use the same filter and paired 32-bit random call seeds. Sampling is with replacement: counts include repeats, and shares divide each count by that mode's draw total. Weighted selection uses `max(population, 1)`; uniform selection gives each eligible catalogue row equal probability. All observed rows are shown, sorted by combined count; unobserved rows are omitted. Unique counts and the full loaded catalogue size are labeled separately. City rows use GeoNames IDs so namesakes are not merged. These are samples from embedded lite data, not exact population proportions or exhaustive world coverage.
+
+The **country** card also shows a chosen country's locales, time zones and holidays, from country-generator 3.3's compiled-in locale tables (`DASMIG_COUNTRY_EMBED_LOCALE`). Each locale formats today's date, 15:04, 1234567.891 and 1,234.50 of its currency with its own CLDR patterns. Each zone shows its UTC offset, abbreviation and local time at the current instant, from the tzdata rules built into the library, not the browser's. The year's national holidays show their names in the country's language and in English, with any observed day, and optionally the days off for some. The page passes today's date and the current instant, because the library never reads the clock. Generate picks the drawn country in the picker.
 
 The **weather** demo draws a year of daily weather (weather-generator's `get_weather_series`, one call seed per year) at the point clicked on the map or typed in, in metric or imperial units, and charts the highs and lows against the cell's normal mean, with the precipitation below; the year's numbers include snow on the ground, fog days, the strongest gust and the solar radiation. Picking a day shows its 24 hours (`weather_request::hourly`), the same day as in the year since a day depends only on the seed, the place and the date. The map tiles come from OpenStreetMap; the weather does not need them. The historical mode (`historical`) is left out: its 23 MB table is not compiled in.
 
