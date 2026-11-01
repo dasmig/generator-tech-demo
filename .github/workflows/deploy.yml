@@ -94,7 +94,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: dasmig/occupation-generator
-          ref: v3.0.3
+          ref: v3.1.0
           path: occupation-generator
 
       - name: Checkout persona-generator
