@@ -222,6 +222,40 @@ try {
   await waitFor(() => evaluate('byId("wt-hours").querySelectorAll("tbody tr").length === 24'), 'weather hours');
   assert.match(await evaluate('byId("wt-status").className'), /ready/);
 
+  // country-generator 3.3: locales, time zones and holidays, compiled in (DASMIG_COUNTRY_EMBED_LOCALE). The answers
+  // are the library's: its docs and known answers have them.
+  const countryLocale = args => evaluate(`JSON.parse(ctgMod.countryLocale(...${JSON.stringify(args)}))`);
+  const localeCountries = await evaluate('JSON.parse(ctgMod.supportedCountries())');
+  assert.equal(localeCountries.length, 195, 'The lite tier has the 195 sovereign states');
+  assert.deepEqual(await evaluate(`Array.from(byId('ctg-locale-country').options, option => option.value).sort()`),
+    [...localeCountries].sort(), "The locale country list must be the library's own");
+  const brazil = await countryLocale(['BR', 2025, false, '2024-12-31', 1735653600]); // 2024-12-31 14:00 UTC
+  assert.equal(brazil.error, undefined, brazil.error);
+  const ptBR = brazil.locales.find(l => l.tag === 'pt-BR');
+  assert.equal(ptBR.date, '31 de dezembro de 2024');
+  assert.equal(ptBR.date_short, '31/12/2024');
+  assert.equal(ptBR.time, '15:04');
+  assert.equal(ptBR.number, '1.234.567,891');
+  assert.equal(ptBR.money.replace(/ /g, ' '), 'R$ 1.234,50');
+  const saoPaulo = brazil.zones.find(z => z.name === 'America/Sao_Paulo');
+  assert.equal(saoPaulo.utc_offset, '-03:00');
+  assert.equal(saoPaulo.local_time, '2024-12-31 11:00');
+  assert.equal(brazil.holidays[0].name, 'Confraternização Universal');
+  assert.equal(brazil.holidays.at(-1).name_en, 'Christmas Day');
+  assert.ok(!brazil.holidays.some(h => h.kind === 'optional'), 'Optional days only when asked');
+  assert.ok((await countryLocale(['BR', 2025, true, '2024-12-31', 1735653600])).holidays.some(h => h.name_en === 'Carnival'));
+  const us2022 = await countryLocale(['US', 2022, false, '2024-01-15', 1705320000]);
+  assert.equal(us2022.holidays[0].observed, '2021-12-31', "New Year's Day 2022 is observed on Friday");
+  assert.equal(us2022.locales[0].tag, 'en-US');
+  const berlin = (await countryLocale(['DE', 2024, false, '2024-01-15', 1705320000])).zones[0];
+  assert.deepEqual([berlin.name, berlin.abbreviation, berlin.dst], ['Europe/Berlin', 'CET', false]);
+  assert.match((await countryLocale(['BR', 1960, false, '2024-01-15', 1705320000])).holidays_error, /1970 to 2050/);
+  assert.ok((await countryLocale(['XX', 2025, false, '2024-01-15', 1705320000])).error, 'An unknown country is an error');
+  await evaluate("byId('ctg-locale-country').value = 'JP'; byId('ctg-year').value = '2024'; byId('ctg-locale').click()");
+  assert.match(await evaluate('byId("ctg-status").textContent'), /Japan.*2024 holidays/);
+  assert.ok(await evaluate('byId("ctg-output").querySelectorAll("table").length === 3'), 'Locales, zones and holidays tables');
+  assert.ok(await evaluate('byId("ctg-output").textContent.includes("Asia/Tokyo")'));
+
   // vehicle-generator: the lists are the library's, seeds replay its known answers, VINs carry valid check digits,
   // regions are honoured and safe gives unheld WMIs.
   const vehicle = (method, args) => evaluate(`JSON.parse(vhMod.${method}(...${JSON.stringify(args)}))`);
