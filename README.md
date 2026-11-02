@@ -13,11 +13,12 @@ The demos use the libraries' releases on [dasmig-core 1.3](https://github.com/da
 | name-generator | v4.5.2 |
 | nickname-generator | v5.2.2 |
 | entity-generator | v4.2.3 |
-| country-generator | v3.3.1 |
+| country-generator | v3.3.2 |
 | birth-generator | v3.2.2 |
 | city-generator | v4.2.2 |
 | biodata-generator | v5.0.2 |
-| interest-generator, occupation-generator | v3.0.3 |
+| interest-generator | v3.0.3 |
+| occupation-generator | v3.1.2 |
 | trait-generator | v2.1.4 |
 | phone-generator, email-generator | v2.1.3 |
 | address-generator | v2.1.2 |
@@ -99,7 +100,7 @@ The **entity** demo identifies each field's `choice_component`, `range_component
 
 The **biodata** comparison varies only sex, keeping country and call seed fixed. The pinned API accepts optional age, but this demo leaves it unset to preserve the unadjusted comparison. The **interest** comparison varies only ages 8, 30 and 72, keeping country, sex input and call seed fixed. An unspecified interest age/sex applies no corresponding factor; it is not a randomly chosen demographic input. “Any” country is resolved once per comparison. Interest religion is country-weighted; age factors and limits apply to hobbies and genres. Matching outputs are possible. All profiles and comparisons are fictional model outputs, not measurements, medical advice or predictions about real people or groups.
 
-The **occupation** comparison varies only the education input (the four levels), keeping country, sex, call seed, age 35 and an employed status fixed. “Any” country and sex are resolved once. Under 15 a person is always a student with no job. Status, education and the occupation groups are measured (ILO labour force statistics; countries without a survey use a regional mean), while the job catalogue with its skills and gear is curated, so a job is a plausible example of its group, not a measured fact. The persona demo adds an Occupation section from the persona’s country, age and sex.
+The **occupation** comparison varies only the education input (the four levels), keeping country, sex, call seed, age 35 and an employed status fixed. “Any” country and sex are resolved once. Under 15 a person is always a student with no job. Status, education and the occupation groups are measured (ILO labour force statistics; countries without a survey use a regional mean), while the job catalogue with its skills and gear is curated, so a job is a plausible example of its group, not a measured fact. An employed person has a gross annual income in the country's currency, from ILO earnings statistics by country, sex, occupation group, age and education. The comparison's Income row shows the education effect. The persona demo adds an Occupation section from the persona’s country, age and sex, with the income as a chip.
 
 The **name** demo offers 1, 5 or 10 alternatives with first-name, surname or first-name-plus-surname modes. Culture applies to all parts; gender filters first names only. The **nickname** demo offers the same alternative counts with an optional name input. Blank input uses wordlists; with a name, the library derives from it in one in four draws on average and otherwise still uses wordlists. There is no forced derivation/style control. The output shows each nickname's pre-transform source. Alternatives may repeat.
 

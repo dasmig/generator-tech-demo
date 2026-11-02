@@ -420,9 +420,11 @@ try {
   const child = await evaluate(`JSON.parse(ogMod.generateOccupation('BR', 'female', 8, ''))`);
   assert.equal(child.Status, 'student');
   assert.equal(child.Job, '-');
+  assert.equal(child.Income, '-');
   const worker = await evaluate(`JSON.parse(ogMod.generateOccupation('DE', 'male', 42, 'advanced'))`);
   assert.equal(worker.Education, 'advanced');
   assert.equal(worker.Country, 'DE');
+  if (worker.Status === 'employed') assert.match(worker.Income, /^EUR [0-9][0-9,]* a year$/);
   for (const [select, mod] of [['ph-country', 'phMod'], ['em-country', 'emMod']]) {
     const listed = await evaluate(`JSON.parse(${mod}.supportedCountries())`);
     assert.equal(listed.length, 195);

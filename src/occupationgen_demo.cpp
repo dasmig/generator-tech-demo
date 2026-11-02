@@ -44,6 +44,21 @@ std::string join(const std::vector<std::string>& items)
     return out.empty() ? "-" : out;
 }
 
+// "BRL 54,300 a year": the whole part grouped with commas, as
+// occupation::to_string() writes it; "-" without an income.
+std::string income_text(const std::optional<dasmig::core::money>& income)
+{
+    if (!income) return "-";
+    std::string text = income->decimal();
+    const auto dot = text.find('.');
+    std::string whole = text.substr(0, dot);
+    std::string fraction = dot == std::string::npos ? std::string{} : text.substr(dot);
+    while (fraction.size() > 1 && fraction.back() == '0') fraction.pop_back();
+    if (fraction.size() == 1) fraction.clear();
+    for (std::size_t end = whole.size(); end > 3; end -= 3) whole.insert(end - 3, 1, ',');
+    return income->currency + " " + whole + fraction + " a year";
+}
+
 // "" is unknown (drawn); otherwise one of the education_level names.
 std::optional<dasmig::education_level> parse_education(const std::string& name)
 {
@@ -84,6 +99,7 @@ std::string generate_occupation(const std::string& country, const std::string& s
         json += ",\"ISCO-08 group\":" + q(v.job ? v.job->isco + " " + v.job->isco_label : "-");
         json += ",\"Skills\":" + q(v.job ? join(v.job->skills) : "-");
         json += ",\"Gear\":" + q(v.job ? join(v.job->gear) : "-");
+        json += ",\"Income\":" + q(income_text(v.income));
         json += "}";
         return json;
     }

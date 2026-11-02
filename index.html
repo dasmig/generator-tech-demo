@@ -1722,7 +1722,7 @@
       <div class="demo-card" id="occupationgen-card">
         <h2>occupation-generator</h2>
         <p class="desc">
-          Generate a fictional employment status, education level and job from country, sex and age inputs, using ILO labour force statistics.
+          Generate a fictional employment status, education level, job and gross annual income from country, sex and age inputs, using ILO labour force and earnings statistics.
           Compare the four education levels while holding the country, sex and seed fixed. Outputs are synthetic, not predictions about individuals or groups.
           <a class="repo-link" href="https://github.com/dasmig/occupation-generator" target="_blank" rel="noopener">GitHub →</a>
         </p>
@@ -3063,7 +3063,8 @@
     const label = key => key.replace(/_/g, ' ').replace(/^./, c => c.toUpperCase());
     const rows = [['Job', item => item.occupation.job ? item.occupation.job.label : '-'],
       ['ISCO-08 group', item => item.occupation.job ? item.occupation.job.isco + ' ' + item.occupation.job.isco_label : '-'],
-      ['Skills', item => item.occupation.job ? item.occupation.job.skills.join(', ') : '-']];
+      ['Skills', item => item.occupation.job ? item.occupation.job.skills.join(', ') : '-'],
+      ['Income', item => incomeText(item.occupation.income) || '-']];
     byId('og-output').innerHTML = comparisonTable('Fictional occupations · only education input varies',
       ['Field', ...data.map(item => label(item.education))], rows.map(([name, value]) => [name, ...data.map(value)]))
       + '<p class="note">Fixed: ' + esc(data[0].occupation.country_code) + ', ' + esc(data[0].occupation.sex) + ', age 35, employed · Shared draw seed (hex): '
@@ -3202,6 +3203,10 @@
   const BIG_FIVE = [['openness', 'Openness'], ['conscientiousness', 'Conscientiousness'],
     ['extraversion', 'Extraversion'], ['agreeableness', 'Agreeableness'], ['neuroticism', 'Neuroticism']];
   const signed = value => (value >= 0 ? '+' : '') + value.toFixed(2);
+
+  // occupation-generator's income ({amount, currency}, major units) as its to_string() writes it: "BRL 54,300 a year".
+  const incomeText = income => income
+    ? income.currency + ' ' + income.amount.toLocaleString('en-US', { maximumFractionDigits: 4 }) + ' a year' : '';
 
   function chipsHtml(items, className = '') {
     const labels = (items || []).map(item => typeof item === 'string' ? item : item.label).filter(Boolean);
@@ -3515,7 +3520,7 @@
     html += '<div class="job-hero"><div class="job-icon" aria-hidden="true">' + jobIcon + '</div><div>'
       + '<div class="job-title">' + esc(job ? job.label : employment) + '</div>'
       + '<div class="job-sub">' + esc(job ? job.isco + ' · ' + job.isco_label : 'No occupation drawn') + '</div>'
-      + chipsHtml([employment, (occupation.education || '').replace(/_/g, ' ')].filter(Boolean)) + '</div></div>';
+      + chipsHtml([employment, (occupation.education || '').replace(/_/g, ' '), incomeText(occupation.income)].filter(Boolean)) + '</div></div>';
     html += '<div class="persona-row cols2">';
     html += statHtml('Skills', chipsHtml(job ? job.skills : [], 'muted'));
     html += statHtml('Gear', chipsHtml(job ? job.gear : [], 'muted'));
