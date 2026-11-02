@@ -18,7 +18,7 @@ The demos use the libraries' releases on [dasmig-core 1.3](https://github.com/da
 | city-generator | v4.2.2 |
 | biodata-generator | v5.0.2 |
 | interest-generator | v3.0.3 |
-| occupation-generator | v3.1.1 |
+| occupation-generator | v3.1.2 |
 | trait-generator | v2.1.4 |
 | phone-generator, email-generator | v2.1.3 |
 | address-generator | v2.1.2 |
