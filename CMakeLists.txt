@@ -31,6 +31,8 @@ set(RELGEN_GEN_DIR "${CMAKE_SOURCE_DIR}/../relationship-generator" CACHE PATH "P
 set(PERSONA_GEN_DIR "${CMAKE_SOURCE_DIR}/../persona-generator" CACHE PATH "Path to persona-generator repo")
 set(WEATHER_GEN_DIR "${CMAKE_SOURCE_DIR}/../weather-generator" CACHE PATH "Path to weather-generator repo")
 set(VEHICLE_GEN_DIR "${CMAKE_SOURCE_DIR}/../vehicle-generator" CACHE PATH "Path to vehicle-generator repo")
+set(ID_GEN_DIR "${CMAKE_SOURCE_DIR}/../id-generator" CACHE PATH "Path to id-generator repo")
+set(FINANCE_GEN_DIR "${CMAKE_SOURCE_DIR}/../finance-generator" CACHE PATH "Path to finance-generator repo")
 
 # ── Wasm modules ──
 #
@@ -131,6 +133,36 @@ target_link_options(vehiclegen_demo PRIVATE
   -sEXPORTED_RUNTIME_METHODS=['UTF8ToString','stringToUTF8']
   -sMODULARIZE=1
   -sEXPORT_NAME=createVehiclegenModule
+  -sENVIRONMENT=web
+)
+
+# id-generator demo: a birth and a name come first, for the documents' machine-readable zones. The page
+# shows what each number encodes from the survey the library's data was curated from.
+add_executable(idgen_demo src/idgen_demo.cpp)
+target_include_directories(idgen_demo PRIVATE "${ID_GEN_DIR}" "${BIRTH_GEN_DIR}" "${NAME_GEN_DIR}")
+target_compile_definitions(idgen_demo PRIVATE DASMIG_ID_EMBED DASMIG_BIRTH_EMBED DASMIG_NAME_EMBED)
+target_link_options(idgen_demo PRIVATE
+  --bind
+  -sWASM=1
+  -sALLOW_MEMORY_GROWTH=1
+  -sEXPORTED_RUNTIME_METHODS=['UTF8ToString','stringToUTF8']
+  -sMODULARIZE=1
+  -sEXPORT_NAME=createIdgenModule
+  -sENVIRONMENT=web
+  "SHELL:--preload-file ${ID_GEN_DIR}/scripts/curated/survey_numbers.tsv@/survey_numbers.tsv"
+)
+
+# finance-generator demo: a birth and a name come first, for the card's holder
+add_executable(fingen_demo src/fingen_demo.cpp)
+target_include_directories(fingen_demo PRIVATE "${FINANCE_GEN_DIR}" "${BIRTH_GEN_DIR}" "${NAME_GEN_DIR}")
+target_compile_definitions(fingen_demo PRIVATE DASMIG_FINANCE_EMBED DASMIG_BIRTH_EMBED DASMIG_NAME_EMBED)
+target_link_options(fingen_demo PRIVATE
+  --bind
+  -sWASM=1
+  -sALLOW_MEMORY_GROWTH=1
+  -sEXPORTED_RUNTIME_METHODS=['UTF8ToString','stringToUTF8']
+  -sMODULARIZE=1
+  -sEXPORT_NAME=createFingenModule
   -sENVIRONMENT=web
 )
 
@@ -246,8 +278,10 @@ set(USER_INCLUDE_DIRS
   "${PHONE_GEN_DIR}"
   "${EMAIL_GEN_DIR}"
   "${DEVICE_GEN_DIR}"
+  "${ID_GEN_DIR}" # user-generator 3.0.0 includes idgen.hpp and fingen.hpp; their data is not compiled in here
+  "${FINANCE_GEN_DIR}"
 )
-set(USER_EMBED DASMIG_COUNTRY_EMBED DASMIG_BIRTH_EMBED DASMIG_NAME_EMBED DASMIG_NICKNAME_EMBED
+set(USER_EMBED DASMIG_COUNTRY_EMBED DASMIG_COUNTRY_EMBED_LOCALE DASMIG_BIRTH_EMBED DASMIG_NAME_EMBED DASMIG_NICKNAME_EMBED
   DASMIG_PHONE_EMBED DASMIG_EMAIL_EMBED DASMIG_DEVICE_EMBED DASMIG_USER_EMBED)
 add_executable(usergen_demo src/usergen_demo.cpp)
 target_include_directories(usergen_demo PRIVATE ${USER_INCLUDE_DIRS})
@@ -324,6 +358,8 @@ set(PERSONA_INCLUDE_DIRS
   "${OCCUPATION_GEN_DIR}"
   "${TRAIT_GEN_DIR}"
   "${RELGEN_GEN_DIR}" # persona-generator 4.1.0 includes relgen.hpp; its data is not compiled in here
+  "${ID_GEN_DIR}" # and 4.2.0 idgen.hpp and fingen.hpp; nor is theirs
+  "${FINANCE_GEN_DIR}"
 )
 set(PERSONA_EMBED DASMIG_COUNTRY_EMBED DASMIG_CITY_EMBED DASMIG_BIRTH_EMBED DASMIG_BIODATA_EMBED
   DASMIG_NAME_EMBED DASMIG_INTEREST_EMBED DASMIG_OCCUPATION_EMBED DASMIG_TRAIT_EMBED)
