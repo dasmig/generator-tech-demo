@@ -1,10 +1,10 @@
 # generator-tech-demo
 
-Live WebAssembly demos for the [name-generator](https://github.com/dasmig/name-generator), [nickname-generator](https://github.com/dasmig/nickname-generator), [entity-generator](https://github.com/dasmig/entity-generator), [birth-generator](https://github.com/dasmig/birth-generator), [biodata-generator](https://github.com/dasmig/biodata-generator), [city-generator](https://github.com/dasmig/city-generator), [country-generator](https://github.com/dasmig/country-generator), [interest-generator](https://github.com/dasmig/interest-generator), [trait-generator](https://github.com/dasmig/trait-generator), [occupation-generator](https://github.com/dasmig/occupation-generator), [phone-generator](https://github.com/dasmig/phone-generator), [email-generator](https://github.com/dasmig/email-generator), [address-generator](https://github.com/dasmig/address-generator), [device-generator](https://github.com/dasmig/device-generator), [user-generator](https://github.com/dasmig/user-generator), [relationship-generator](https://github.com/dasmig/relationship-generator), [weather-generator](https://github.com/dasmig/weather-generator), [vehicle-generator](https://github.com/dasmig/vehicle-generator) and [persona-generator](https://github.com/dasmig/persona-generator) C++23 libraries.
+Live WebAssembly demos for the [id-generator](https://github.com/dasmig/id-generator), [finance-generator](https://github.com/dasmig/finance-generator), [name-generator](https://github.com/dasmig/name-generator), [nickname-generator](https://github.com/dasmig/nickname-generator), [entity-generator](https://github.com/dasmig/entity-generator), [birth-generator](https://github.com/dasmig/birth-generator), [biodata-generator](https://github.com/dasmig/biodata-generator), [city-generator](https://github.com/dasmig/city-generator), [country-generator](https://github.com/dasmig/country-generator), [interest-generator](https://github.com/dasmig/interest-generator), [trait-generator](https://github.com/dasmig/trait-generator), [occupation-generator](https://github.com/dasmig/occupation-generator), [phone-generator](https://github.com/dasmig/phone-generator), [email-generator](https://github.com/dasmig/email-generator), [address-generator](https://github.com/dasmig/address-generator), [device-generator](https://github.com/dasmig/device-generator), [user-generator](https://github.com/dasmig/user-generator), [relationship-generator](https://github.com/dasmig/relationship-generator), [weather-generator](https://github.com/dasmig/weather-generator), [vehicle-generator](https://github.com/dasmig/vehicle-generator) and [persona-generator](https://github.com/dasmig/persona-generator) C++23 libraries.
 
 Everything runs client-side in the browser — no server required.
 
-The demos use the libraries' releases on [dasmig-core 1.3](https://github.com/dasmig/dasmig-core) listed below, all with the **request-first API**. Every generation call supplies the library's request struct; deterministic calls supply the request followed by a call seed, without generator-wide seed or option controls. Their `lite` data is compiled into the modules (`DASMIG_*_EMBED`), so the same seed, inputs, date and data give the same result here as in a native build. The standalone birth demo accepts an **Age as of** reference date (1900–2100), defaulting to today's local date. Each draw generates a birthday and its completed-year age relative to that date; changing the reference does not age a previously generated birthday. The persona demo passes today's date (`src/today.hpp`) as its request's reference date. The libraries never read the clock themselves.
+The demos use the libraries' releases on [dasmig-core 1.4](https://github.com/dasmig/dasmig-core) listed below, all with the **request-first API**. Every generation call supplies the library's request struct; deterministic calls supply the request followed by a call seed, without generator-wide seed or option controls. Their `lite` data is compiled into the modules (`DASMIG_*_EMBED`), so the same seed, inputs, date and data give the same result here as in a native build. The standalone birth demo accepts an **Age as of** reference date (1900–2100), defaulting to today's local date. Each draw generates a birthday and its completed-year age relative to that date; changing the reference does not age a previously generated birthday. The persona demo passes today's date (`src/today.hpp`) as its request's reference date. The libraries never read the clock themselves.
 
 `.github/workflows/deploy.yml` checks out these release tags, so the site changes only when a tag moves. Advance the tags and smoke expectations together when adopting a newer API or dataset:
 
@@ -13,20 +13,23 @@ The demos use the libraries' releases on [dasmig-core 1.3](https://github.com/da
 | name-generator | v4.5.2 |
 | nickname-generator | v5.2.2 |
 | entity-generator | v4.2.3 |
-| country-generator | v3.3.1 |
+| country-generator | v3.4.0 |
 | birth-generator | v3.2.2 |
 | city-generator | v4.2.2 |
 | biodata-generator | v5.0.2 |
-| interest-generator, occupation-generator | v3.0.3 |
+| interest-generator | v3.0.3 |
+| occupation-generator | v3.1.2 |
 | trait-generator | v2.1.4 |
 | phone-generator, email-generator | v2.1.3 |
-| address-generator | v2.1.2 |
+| address-generator | v2.2.0 |
 | device-generator | v1.0.4 |
-| user-generator | v2.1.2 |
+| user-generator | v3.0.0 |
 | relationship-generator | v1.2.2 |
-| persona-generator | v4.1.3 |
+| persona-generator | v4.2.0 |
 | weather-generator | v2.0.1 |
 | vehicle-generator | v2.0.2 |
+| id-generator | v1.0.0 |
+| finance-generator | v1.0.0 |
 
 ## Prerequisites
 
@@ -70,6 +73,8 @@ Repo/
 ├── persona-generator/
 ├── weather-generator/
 ├── vehicle-generator/
+├── id-generator/
+├── finance-generator/
 └── generator-tech-demo/    ← this repo
 ```
 
@@ -79,7 +84,7 @@ emcmake cmake -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build
 ```
 
-This produces in `build/` a `.js` and a `.wasm` file per demo (`namegen_demo`, `nickgen_demo`, `entitygen_demo`, `birthgen_demo`, `biodatagen_demo`, `citygen_demo`, `countrygen_demo`, `interestgen_demo`, `occupationgen_demo`, `phonegen_demo`, `emailgen_demo`, `addressgen_demo`, `devicegen_demo`, `usergen_demo`, `relgen_demo`, `traitgen_demo`, `weathergen_demo`, `vehiclegen_demo`, `personagen_demo`), plus `personagen_demo.data`, which holds city-generator's admin1 names. The address and user demos read address-generator's data pack (`scripts/make_web_pack.py` in that repository) instead of compiled-in data.
+This produces in `build/` a `.js` and a `.wasm` file per demo (`idgen_demo`, `fingen_demo`, `namegen_demo`, `nickgen_demo`, `entitygen_demo`, `birthgen_demo`, `biodatagen_demo`, `citygen_demo`, `countrygen_demo`, `interestgen_demo`, `occupationgen_demo`, `phonegen_demo`, `emailgen_demo`, `addressgen_demo`, `devicegen_demo`, `usergen_demo`, `relgen_demo`, `traitgen_demo`, `weathergen_demo`, `vehiclegen_demo`, `personagen_demo`), plus `personagen_demo.data`, which holds city-generator's admin1 names. The address and user demos read address-generator's data pack (`scripts/make_web_pack.py` in that repository) instead of compiled-in data.
 
 ## The persona npm package
 
@@ -99,13 +104,17 @@ The **entity** demo identifies each field's `choice_component`, `range_component
 
 The **biodata** comparison varies only sex, keeping country and call seed fixed. The pinned API accepts optional age, but this demo leaves it unset to preserve the unadjusted comparison. The **interest** comparison varies only ages 8, 30 and 72, keeping country, sex input and call seed fixed. An unspecified interest age/sex applies no corresponding factor; it is not a randomly chosen demographic input. “Any” country is resolved once per comparison. Interest religion is country-weighted; age factors and limits apply to hobbies and genres. Matching outputs are possible. All profiles and comparisons are fictional model outputs, not measurements, medical advice or predictions about real people or groups.
 
-The **occupation** comparison varies only the education input (the four levels), keeping country, sex, call seed, age 35 and an employed status fixed. “Any” country and sex are resolved once. Under 15 a person is always a student with no job. Status, education and the occupation groups are measured (ILO labour force statistics; countries without a survey use a regional mean), while the job catalogue with its skills and gear is curated, so a job is a plausible example of its group, not a measured fact. The persona demo adds an Occupation section from the persona’s country, age and sex.
+The **occupation** comparison varies only the education input (the four levels), keeping country, sex, call seed, age 35 and an employed status fixed. “Any” country and sex are resolved once. Under 15 a person is always a student with no job. Status, education and the occupation groups are measured (ILO labour force statistics; countries without a survey use a regional mean), while the job catalogue with its skills and gear is curated, so a job is a plausible example of its group, not a measured fact. An employed person has a gross annual income in the country's currency, from ILO earnings statistics by country, sex, occupation group, age and education. The comparison's Income row shows the education effect. The persona demo adds an Occupation section from the persona’s country, age and sex, with the income as a chip.
 
 The **name** demo offers 1, 5 or 10 alternatives with first-name, surname or first-name-plus-surname modes. Culture applies to all parts; gender filters first names only. The **nickname** demo offers the same alternative counts with an optional name input. Blank input uses wordlists; with a name, the library derives from it in one in four draws on average and otherwise still uses wordlists. There is no forced derivation/style control. The output shows each nickname's pre-transform source. Alternatives may repeat.
 
 The standalone **trait** demo generates fictional traits and all five resolved Big Five scores. Choose a trait count and optionally enter a 64-bit seed as 1–16 hexadecimal digits (without `0x`). The output includes the replay seed; use it with the same count to reproduce a result. The explanation shows the actual random base, summed trait effects and resolved score, plus each selected trait's catalogue loadings. Each base is drawn from a normal distribution with mean 0 and standard deviation 1; base values also influence trait selection, alongside weights, exclusive groups, conflicts and synergies. Resolved scores add trait loadings and are unbounded model values, not percentages, percentiles or a personality assessment. Individual effects are obtained through the library's include-only requests with the same seed, not a duplicated score formula. The catalogue is embedded (`DASMIG_TRAIT_EMBED`), with no additional data file.
 
 The **one person, everywhere** card runs the persona, address, phone, email, device, vehicle and weather demos' libraries for one country on one call seed: the persona sets the name, age and city, the email is built from its name and birth year, and the weather is its city today. The parts are composed in the page, not by a library (persona-generator does not include vehicles or weather yet); a part the country has no data for is marked rather than hidden. `tests/consistency.mjs` checks that `deploy.yml`, this README, `CMakeLists.txt` and `index.html` list the same libraries.
+
+The **identity** demo draws a birth and a name, then the country's numbers and the documents asked for from them. It shows each number with what it encodes, from the survey the library's data was curated from, and a passport's or card's fields as a plain table with the machine-readable zone in monospace, with no likeness of a document. A generic format or validity is marked as such. "Safe for tests" is on by default; the values are test data, and the limits are stated on the card.
+
+The **finance** demo draws a birth and a name, then the accounts and the card asked for. It shows an account's parts with what each one means and a card's fields as a plain table, with no likeness of a card. Card numbers default to a payment sandbox's published test numbers, and "Safe for tests" is on by default; the values are test data, and the limits are stated on the card.
 
 The **vehicle** demo draws a car or motorcycle from the chosen country, plate region, make, kind, body, fuel and date (today by default, 2000 to 2050), with the odometer in the country's unit, kilometres or miles. The region and make lists are the country's (`plate_regions`, `makes`), and the kind limits the makes and bodies to cars or motorcycles; without a country, the region picks one that has it. Its comparison draws one call seed in Germany, the United Kingdom, Spain, the United States and Japan: each part draws from its own stream, so the same seed meets each country's fleet, plate format and factories. The safe option gives plates no authority issues and VINs whose WMI NHTSA vPIC does not know.
 

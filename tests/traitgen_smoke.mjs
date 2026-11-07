@@ -256,6 +256,55 @@ try {
   assert.ok(await evaluate('byId("ctg-output").querySelectorAll("table").length === 3'), 'Locales, zones and holidays tables');
   assert.ok(await evaluate('byId("ctg-output").textContent.includes("Asia/Tokyo")'));
 
+  // id-generator: numbers come with what they encode, documents with a monospace zone and no image.
+  const identity = (method, args) => evaluate(`JSON.parse(idMod.${method}(...${JSON.stringify(args)}))`);
+  const identityCountries = await evaluate('JSON.parse(idMod.supportedCountries())');
+  assert.ok(identityCountries.includes('BR') && identityCountries.length >= 90, 'The identity module lists the countries with names');
+  const yes = await identity('generateIdentitySeeded', ['BR', 'passport', '2023-07-01', false, '2a']);
+  assert.equal(yes.identity.country_code, 'BR');
+  assert.equal(yes.identity.numbers[0].scheme, 'br-cpf');
+  assert.ok(yes.encodes['br-cpf'].startsWith('place'), 'What a CPF encodes comes from the survey');
+  assert.ok(yes.identity.documents[0].mrz[0].startsWith('P<BRA'), 'A name gives a document its zone');
+  const safely = await identity('generateIdentitySeeded', ['BR', 'passport', '2023-07-01', true, '2a']);
+  assert.ok(safely.identity.numbers[0].reserved && safely.identity.documents[0].reserved);
+  assert.equal(JSON.stringify(await identity('generateIdentitySeeded', ['BR', 'passport', '2023-07-01', false, '2a'])), JSON.stringify(yes), 'A seed replays');
+  const drawnIds = await Promise.all(['1', '2', '3', '4', '5', '6', '7', '8'].map(seed => identity('generateIdentitySeeded', ['', '', '2023-07-01', true, seed])));
+  assert.ok(new Set(drawnIds.map(p => p.identity.country_code)).size > 2, 'Any country is drawn');
+  assert.ok(drawnIds.every(p => identityCountries.includes(p.identity.country_code)));
+  assert.ok((await identity('generateIdentity', ['XX', '', '', false])).error, 'An unknown country reports an error');
+  assert.ok((await identity('generateIdentity', ['BR', 'licence', '', false])).error, 'An unknown document reports an error');
+  assert.equal(await evaluate("byId('id-safe').value"), 'yes', 'Safe is on by default');
+  await evaluate("byId('id-country').value = 'MX'; byId('id-date').value = '2023-07-01'; byId('id-generate').click()");
+  await waitFor(() => evaluate("byId('id-output').querySelector('td.mrz') !== null"), 'identity zone');
+  assert.equal(await evaluate("getComputedStyle(byId('id-output').querySelector('td.mrz')).whiteSpace"), 'pre');
+  assert.ok(await evaluate("byId('id-output').textContent.includes('What the scheme encodes') && byId('id-output').textContent.includes('Machine-readable zone')"));
+  assert.equal(await evaluate("byId('id-output').querySelectorAll('img, canvas, svg').length"), 0, 'No likeness of a document');
+  assert.ok(await evaluate("byId('idgen-card').textContent.includes('Test data')"));
+
+  // finance-generator: accounts with what the parts mean, cards as a table, test numbers by default.
+  const wallet = (method, args) => evaluate(`JSON.parse(fgMod.${method}(...${JSON.stringify(args)}))`);
+  const financeCountries = await evaluate('JSON.parse(fgMod.supportedCountries())');
+  assert.ok(financeCountries.includes('DE') && financeCountries.length >= 90, 'The finance module lists the countries with names');
+  assert.ok((await wallet('networks', ['US'])).includes('visa'));
+  const german = await wallet('generateFinanceSeeded', ['DE', 'both', 'any', 'test_number', '', '2023-07-01', false, '2a']);
+  assert.equal(german.finance.accounts.length, 2);
+  assert.ok(german.finance.accounts[0].iban.startsWith('DE'));
+  assert.equal(german.finance.cards[0].source, 'test_number');
+  assert.ok(german.finance.cards[0].holder.length > 0, 'A name gives a card its holder');
+  assert.equal(JSON.stringify(await wallet('generateFinanceSeeded', ['DE', 'both', 'any', 'test_number', '', '2023-07-01', false, '2a'])), JSON.stringify(german), 'A seed replays');
+  const range = await wallet('generateFinanceSeeded', ['US', 'none', 'debit', 'network_range', 'visa', '2023-07-01', false, '3']);
+  assert.equal(range.finance.cards[0].network, 'visa');
+  assert.equal(range.finance.cards[0].security_code, '', 'No security code on a range number');
+  assert.ok((await wallet('generateFinance', ['US', 'none', 'debit', 'network_range', '', '', true])).error, 'Safe refuses a range number');
+  assert.ok((await wallet('generateFinance', ['XX', 'current', 'none', 'test_number', '', '', false])).error, 'An unknown country reports an error');
+  assert.equal(await evaluate("byId('fg-source').value"), 'test_number', 'Test numbers by default');
+  assert.equal(await evaluate("byId('fg-safe').value"), 'yes', 'Safe is on by default');
+  await evaluate("byId('fg-country').value = 'FR'; byId('fg-country').dispatchEvent(new Event('change')); byId('fg-date').value = '2023-07-01'; byId('fg-generate').click()");
+  await waitFor(() => evaluate("byId('fg-output').textContent.includes('What it means')"), 'finance tables');
+  assert.ok(await evaluate("byId('fg-output').textContent.includes('fields only, no likeness') && !byId('fg-network').disabled"));
+  assert.equal(await evaluate("byId('fg-output').querySelectorAll('img, canvas, svg').length"), 0, 'No likeness of a card');
+  assert.ok(await evaluate("byId('fingen-card').textContent.includes('card testing')"));
+
   // vehicle-generator: the lists are the library's, seeds replay its known answers, VINs carry valid check digits,
   // regions are honoured and safe gives unheld WMIs.
   const vehicle = (method, args) => evaluate(`JSON.parse(vhMod.${method}(...${JSON.stringify(args)}))`);
@@ -420,9 +469,11 @@ try {
   const child = await evaluate(`JSON.parse(ogMod.generateOccupation('BR', 'female', 8, ''))`);
   assert.equal(child.Status, 'student');
   assert.equal(child.Job, '-');
+  assert.equal(child.Income, '-');
   const worker = await evaluate(`JSON.parse(ogMod.generateOccupation('DE', 'male', 42, 'advanced'))`);
   assert.equal(worker.Education, 'advanced');
   assert.equal(worker.Country, 'DE');
+  if (worker.Status === 'employed') assert.match(worker.Income, /^EUR [0-9][0-9,]* a year$/);
   for (const [select, mod] of [['ph-country', 'phMod'], ['em-country', 'emMod']]) {
     const listed = await evaluate(`JSON.parse(${mod}.supportedCountries())`);
     assert.equal(listed.length, 195);

@@ -397,6 +397,7 @@
     .field, select, input { max-width: 100%; min-width: 0; }
     input[type="date"] { color-scheme: inherit; }
     .note { color: var(--text-muted); font-size: .85rem; margin: .75rem 0; }
+    .entity-table .mrz { font-family: var(--font-mono); white-space: pre; }
     .family-tree h3 {
       font-family: var(--font-mono);
       font-size: .7rem;
@@ -1183,6 +1184,8 @@
     <li><a href="#weathergen-card">weather</a></li>
     <li><a href="#addressgen-card">address</a></li>
     <li><a href="#vehiclegen-card">vehicle</a></li>
+    <li><a href="#idgen-card">identity</a></li>
+    <li><a href="#fingen-card">finance</a></li>
     <li><a href="#nickgen-card">nickname</a></li>
     <li><a href="#phonegen-card">phone</a></li>
     <li><a href="#emailgen-card">email</a></li>
@@ -1722,7 +1725,7 @@
       <div class="demo-card" id="occupationgen-card">
         <h2>occupation-generator</h2>
         <p class="desc">
-          Generate a fictional employment status, education level and job from country, sex and age inputs, using ILO labour force statistics.
+          Generate a fictional employment status, education level, job and gross annual income from country, sex and age inputs, using ILO labour force and earnings statistics.
           Compare the four education levels while holding the country, sex and seed fixed. Outputs are synthetic, not predictions about individuals or groups.
           <a class="repo-link" href="https://github.com/dasmig/occupation-generator" target="_blank" rel="noopener">GitHub →</a>
         </p>
@@ -1975,6 +1978,118 @@
         <div class="status" id="ad-status">Loading WebAssembly…</div>
       </div>
 
+
+      <!-- ─── Id Generator ─── -->
+      <div class="demo-card" id="idgen-card">
+        <h2>id-generator</h2>
+        <p class="desc">
+          Generate national numbers and documents that fit a person and a date: each number built from the birth date, sex, place and names where its country's format encodes them, and a passport or identity card with its machine-readable zone. Fields only, as a table; the library makes no image of a document.
+          <a class="repo-link" href="https://github.com/dasmig/id-generator" target="_blank" rel="noopener">GitHub →</a>
+        </p>
+        <p class="note"><strong>Test data.</strong> Without the safe option a number is structurally valid and may match a real person's; nothing is looked up. Never use these to identify anyone, to open an account or to pass an identity check. The safe option means something different per scheme: <a href="https://github.com/dasmig/id-generator#limits" target="_blank" rel="noopener">see the limits</a>.</p>
+        <div class="controls">
+          <div class="field">
+            <label for="id-country">Country</label>
+            <select id="id-country">
+              <option value="">Any</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="id-documents">Documents</label>
+            <select id="id-documents">
+              <option value="passport">Passport</option>
+              <option value="id_card">Identity card</option>
+              <option value="both">Both</option>
+              <option value="">Numbers only</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="id-date">Date</label>
+            <input type="date" id="id-date" min="1900-01-01" max="2100-12-31">
+          </div>
+          <div class="field">
+            <label for="id-safe">Safe for tests</label>
+            <select id="id-safe">
+              <option value="yes">Yes (by the scheme's safe method)</option>
+              <option value="no">No (may match a real person)</option>
+            </select>
+          </div>
+          <button class="btn" id="id-generate" disabled>Generate</button>
+        </div>
+        <p class="note">The person is an adult drawn for the country, with a name, and “Any” country is drawn by population among those with names. A country may have no national number at all, or none for that person yet. A country without an identity card gives no card.</p>
+        <div id="id-output">
+          <div class="output empty">Waiting for module to load…</div>
+        </div>
+        <div class="status" id="id-status" role="status" aria-live="polite">Loading WebAssembly…</div>
+      </div>
+
+      <!-- ─── Finance Generator ─── -->
+      <div class="demo-card" id="fingen-card">
+        <h2>finance-generator</h2>
+        <p class="desc">
+          Generate bank accounts and payment cards that fit a person, a country and a date: an IBAN or national account with its bank, branch and check digits right, and a card in a network sold there. Fields only, as a table; the library makes no image of a card, and no magnetic stripe, chip or PIN data.
+          <a class="repo-link" href="https://github.com/dasmig/finance-generator" target="_blank" rel="noopener">GitHub →</a>
+        </p>
+        <p class="note"><strong>Test data.</strong> Without the safe option an account is structurally valid and may match a real one, and a card number from a network's range may match a real card; nothing is looked up. Never use these on a live payment system or to pass a payment check: trying card numbers on a live system is card testing, which is fraud. For many accounts the safe option promises nothing: <a href="https://github.com/dasmig/finance-generator#limits" target="_blank" rel="noopener">see the limits</a>.</p>
+        <div class="controls">
+          <div class="field">
+            <label for="fg-country">Country</label>
+            <select id="fg-country">
+              <option value="">Any</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="fg-accounts">Accounts</label>
+            <select id="fg-accounts">
+              <option value="current">Current</option>
+              <option value="savings">Savings</option>
+              <option value="both">Both</option>
+              <option value="none">None</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="fg-card">Card</label>
+            <select id="fg-card">
+              <option value="any">Drawn by the country's mix</option>
+              <option value="debit">Debit</option>
+              <option value="credit">Credit</option>
+              <option value="prepaid">Prepaid</option>
+              <option value="none">None</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="fg-network">Network</label>
+            <select id="fg-network" disabled>
+              <option value="">Any</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="fg-source">Card numbers</label>
+            <select id="fg-source">
+              <option value="test_number">A sandbox's test number</option>
+              <option value="wrong_check">In range, wrong check digit</option>
+              <option value="network_range">In range, right check digit</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="fg-date">Date</label>
+            <input type="date" id="fg-date" min="1900-01-01" max="2100-12-31">
+          </div>
+          <div class="field">
+            <label for="fg-safe">Safe for tests</label>
+            <select id="fg-safe">
+              <option value="yes">Yes (by each method)</option>
+              <option value="no">No (may match a real account)</option>
+            </select>
+          </div>
+          <button class="btn" id="fg-generate" disabled>Generate</button>
+        </div>
+        <p class="note">The person is an adult drawn for the country, with a name, and “Any” country is drawn by population among those with names. A number in a network's range cannot be asked for with the safe option on. A test number has the sandbox's own expiry and security code.</p>
+        <div id="fg-output">
+          <div class="output empty">Waiting for module to load…</div>
+        </div>
+        <div class="status" id="fg-status" role="status" aria-live="polite">Loading WebAssembly…</div>
+      </div>
 
       <!-- ─── Vehicle Generator ─── -->
       <div class="demo-card" id="vehiclegen-card">
@@ -2443,6 +2558,8 @@
 <script src="citygen_demo.js"></script>
 <script src="weathergen_demo.js"></script>
 <script src="vehiclegen_demo.js"></script>
+<script src="idgen_demo.js"></script>
+<script src="fingen_demo.js"></script>
 <script src="birthgen_demo.js"></script>
 <script src="biodatagen_demo.js"></script>
 <script src="interestgen_demo.js"></script>
@@ -2894,6 +3011,110 @@
     return 'Compared one seed in ' + data.length + ' countries.';
   }));
 
+  // A two-column table of fields; a row may hold monospace lines (a machine-readable zone).
+  function fieldTable(caption, rows) {
+    return '<div class="table-scroll" tabindex="0" role="region" aria-label="' + esc(caption) + '">'
+      + '<table class="entity-table"><caption>' + esc(caption) + '</caption><thead><tr><th scope="col">Field</th><th scope="col">Value</th></tr></thead><tbody>'
+      + rows.map(([label, value, lines]) => '<tr><th scope="row">' + esc(label) + '</th>'
+        + (lines ? '<td class="mrz">' + value.map(esc).join('<br>') + '</td>' : '<td>' + esc(String(value)) + '</td>') + '</tr>').join('')
+      + '</tbody></table></div>';
+  }
+
+  // ─── Id Generator ───
+  let idMod = null;
+  loadDemo('id', () => createIdgenModule(), mod => mod.init(), mod => {
+    idMod = mod;
+    fillCountries('id-country', mod);
+  }, 'number schemes, documents, names and births loaded.');
+  byId('id-date').value = byId('bg-reference').value;
+
+  function idDocumentTable(d) {
+    const kind = d.kind === 'passport' ? 'Passport' : 'Identity card';
+    const rows = [['Number', d.number], ['Format', d.format], ['Issuing state', d.issuing_state], ['Issued', d.issued],
+      ['Expires', d.expires || 'Does not expire']];
+    if (d.mrz.length > 0) rows.push(['Machine-readable zone', d.mrz, true]);
+    else rows.push(['Machine-readable zone', 'None for this document or without a writable name']);
+    rows.push(['Number format', d.evidence === 'generic' ? 'Generic: no surveyed format for this country' : 'Surveyed (' + d.evidence + ')']);
+    rows.push(['Validity', d.generic_validity ? "Generic: no surveyed validity, the generic rule applied" : 'Surveyed']);
+    rows.push(['Made by the safe method', d.reserved ? 'Yes' : 'No']);
+    return fieldTable(kind + ' · fields only, no likeness', rows);
+  }
+
+  byId('id-generate').addEventListener('click', () => {
+    if (!idMod) return;
+    runDemo('id', () => {
+      const data = parseResult(idMod.generateIdentity(byId('id-country').value, byId('id-documents').value,
+        byId('id-date').value, byId('id-safe').value === 'yes'));
+      const person = data.identity;
+      let html = fieldTable('Fictional person', [['Name', data.name], ['Country', person.country_code],
+        ['Birth date', person.birth_date], ['Sex', person.sex], ['Seed (hex)', person.signature.seed]]);
+      if (person.numbers.length > 0) {
+        html += comparisonTable('Numbers', ['Number', 'Form', 'Electronic', 'Assigned', 'Place code', 'What the scheme encodes', 'Safe method'],
+          person.numbers.map(n => [n.label + ' (' + n.native_label + ')', n.formatted, n.value, n.assigned, n.place_code || '-',
+            data.encodes[n.scheme] || 'Not surveyed', n.reserved ? 'Yes' : 'No']));
+      } else {
+        html += '<p class="note">No national number for this person: the country has none in the data, or this person has none yet at this date.</p>';
+      }
+      for (const document_ of person.documents) html += idDocumentTable(document_);
+      byId('id-output').innerHTML = html;
+      return 'Generated ' + person.numbers.length + ' number' + (person.numbers.length === 1 ? '' : 's') + ' and '
+        + person.documents.length + ' document' + (person.documents.length === 1 ? '' : 's') + ' in ' + person.country_code + '.';
+    });
+  });
+
+  // ─── Finance Generator ───
+  let fgMod = null;
+  function fgRefill() {
+    const country = byId('fg-country').value;
+    fillChoices('fg-network', country ? JSON.parse(fgMod.networks(country)) : []);
+  }
+  loadDemo('fg', () => createFingenModule(), mod => mod.init(), mod => {
+    fgMod = mod;
+    fillCountries('fg-country', mod);
+  }, 'account schemes, banks, networks, names and births loaded.');
+  byId('fg-date').value = byId('bg-reference').value;
+  byId('fg-country').addEventListener('change', () => { if (fgMod) fgRefill(); });
+
+  function fgAccountTable(a) {
+    const rows = [];
+    if (a.iban) rows.push(['IBAN', a.formatted, 'The country, two check digits over the whole number, then the national account number']);
+    else rows.push(['Account', a.formatted, 'The account as the country writes it']);
+    rows.push(['Scheme', a.scheme, 'The structure this account follows']);
+    rows.push(['Bank code', a.bank_code || '-', 'Says which bank holds the account']);
+    rows.push(['Branch code', a.branch_code || '-', 'Says which branch; many schemes have none']);
+    rows.push(['Account number', a.account_number || '-', 'Follows the bank and the branch, with any final check digit of its own']);
+    rows.push(['Bank', a.bank_name || '-', a.bank_name ? 'The listed bank with this code' : 'Empty under the safe option, or when the code names no listed bank']);
+    rows.push(['BIC', a.bic || '-', 'The bank’s SWIFT address; a test BIC under the safe option']);
+    rows.push(['Currency', a.currency + ' (' + a.currency_digits + ' minor digits)', 'ISO 4217, with the digits after the decimal point']);
+    rows.push(['Opened', a.opened, 'Between the minimum age and the date']);
+    rows.push(['Structure', a.evidence === 'generic' ? 'Generic: ten digits, no surveyed structure' : 'Surveyed (' + a.evidence + ')', 'Where the structure comes from']);
+    rows.push(['Safe method', a.reserved ? 'Yes' : 'No', 'For many accounts the safe method promises nothing; see the limits']);
+    return comparisonTable(a.kind === 'savings' ? 'Savings account' : 'Current account', ['Part', 'Value', 'What it means'], rows);
+  }
+
+  function fgCardTable(c) {
+    const source = { test_number: 'A published test number (' + c.test_source + ')', wrong_check: 'In the range, wrong check digit', network_range: 'In the range, right check digit: may match a real card' };
+    return fieldTable(c.kind[0].toUpperCase() + c.kind.slice(1) + ' card · fields only, no likeness', [['Network', c.network], ['Number', c.formatted],
+      ['Number source', source[c.source]], ['Holder', c.holder || 'None: the name cannot be written on a card'], ['Bank', c.issuer || '-'],
+      ['Issued', c.issued], ['Expires', c.expires], ['Security code', c.security_code || 'None'], ['Reserved', c.reserved ? 'Yes' : 'No']]);
+  }
+
+  byId('fg-generate').addEventListener('click', () => {
+    if (!fgMod) return;
+    runDemo('fg', () => {
+      const data = parseResult(fgMod.generateFinance(byId('fg-country').value, byId('fg-accounts').value, byId('fg-card').value,
+        byId('fg-source').value, byId('fg-network').value, byId('fg-date').value, byId('fg-safe').value === 'yes'));
+      const held = data.finance;
+      let html = fieldTable('Fictional person', [['Name', data.name], ['Country', held.country_code], ['Birth date', held.birth_date],
+        ['Seed (hex)', held.signature.seed]]);
+      for (const account of held.accounts) html += fgAccountTable(account);
+      for (const card of held.cards) html += fgCardTable(card);
+      byId('fg-output').innerHTML = html;
+      return 'Generated ' + held.accounts.length + ' account' + (held.accounts.length === 1 ? '' : 's') + ' and '
+        + held.cards.length + ' card' + (held.cards.length === 1 ? '' : 's') + ' in ' + held.country_code + '.';
+    });
+  });
+
   // ─── Address data pack ───
   // address-generator's data is a pack: the shared tables are written into a module's /pack at
   // start, and a country's street file is fetched the first time that country is used. The
@@ -3063,7 +3284,8 @@
     const label = key => key.replace(/_/g, ' ').replace(/^./, c => c.toUpperCase());
     const rows = [['Job', item => item.occupation.job ? item.occupation.job.label : '-'],
       ['ISCO-08 group', item => item.occupation.job ? item.occupation.job.isco + ' ' + item.occupation.job.isco_label : '-'],
-      ['Skills', item => item.occupation.job ? item.occupation.job.skills.join(', ') : '-']];
+      ['Skills', item => item.occupation.job ? item.occupation.job.skills.join(', ') : '-'],
+      ['Income', item => incomeText(item.occupation.income) || '-']];
     byId('og-output').innerHTML = comparisonTable('Fictional occupations · only education input varies',
       ['Field', ...data.map(item => label(item.education))], rows.map(([name, value]) => [name, ...data.map(value)]))
       + '<p class="note">Fixed: ' + esc(data[0].occupation.country_code) + ', ' + esc(data[0].occupation.sex) + ', age 35, employed · Shared draw seed (hex): '
@@ -3202,6 +3424,10 @@
   const BIG_FIVE = [['openness', 'Openness'], ['conscientiousness', 'Conscientiousness'],
     ['extraversion', 'Extraversion'], ['agreeableness', 'Agreeableness'], ['neuroticism', 'Neuroticism']];
   const signed = value => (value >= 0 ? '+' : '') + value.toFixed(2);
+
+  // occupation-generator's income ({amount, currency}, major units) as its to_string() writes it: "BRL 54,300 a year".
+  const incomeText = income => income
+    ? income.currency + ' ' + income.amount.toLocaleString('en-US', { maximumFractionDigits: 4 }) + ' a year' : '';
 
   function chipsHtml(items, className = '') {
     const labels = (items || []).map(item => typeof item === 'string' ? item : item.label).filter(Boolean);
@@ -3515,7 +3741,7 @@
     html += '<div class="job-hero"><div class="job-icon" aria-hidden="true">' + jobIcon + '</div><div>'
       + '<div class="job-title">' + esc(job ? job.label : employment) + '</div>'
       + '<div class="job-sub">' + esc(job ? job.isco + ' · ' + job.isco_label : 'No occupation drawn') + '</div>'
-      + chipsHtml([employment, (occupation.education || '').replace(/_/g, ' ')].filter(Boolean)) + '</div></div>';
+      + chipsHtml([employment, (occupation.education || '').replace(/_/g, ' '), incomeText(occupation.income)].filter(Boolean)) + '</div></div>';
     html += '<div class="persona-row cols2">';
     html += statHtml('Skills', chipsHtml(job ? job.skills : [], 'muted'));
     html += statHtml('Gear', chipsHtml(job ? job.gear : [], 'muted'));
