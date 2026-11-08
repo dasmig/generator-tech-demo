@@ -33,6 +33,7 @@ set(WEATHER_GEN_DIR "${CMAKE_SOURCE_DIR}/../weather-generator" CACHE PATH "Path 
 set(VEHICLE_GEN_DIR "${CMAKE_SOURCE_DIR}/../vehicle-generator" CACHE PATH "Path to vehicle-generator repo")
 set(ID_GEN_DIR "${CMAKE_SOURCE_DIR}/../id-generator" CACHE PATH "Path to id-generator repo")
 set(FINANCE_GEN_DIR "${CMAKE_SOURCE_DIR}/../finance-generator" CACHE PATH "Path to finance-generator repo")
+set(PROPERTY_GEN_DIR "${CMAKE_SOURCE_DIR}/../property-generator" CACHE PATH "Path to property-generator repo")
 
 # ── Wasm modules ──
 #
@@ -357,12 +358,14 @@ set(PERSONA_INCLUDE_DIRS
   "${INTEREST_GEN_DIR}"
   "${OCCUPATION_GEN_DIR}"
   "${TRAIT_GEN_DIR}"
-  "${RELGEN_GEN_DIR}" # persona-generator 4.1.0 includes relgen.hpp; its data is not compiled in here
-  "${ID_GEN_DIR}" # and 4.2.0 idgen.hpp and fingen.hpp; nor is theirs
+  "${RELGEN_GEN_DIR}" # the home's household (persona-generator 4.3.0)
+  "${PROPERTY_GEN_DIR}" # the home
+  "${ID_GEN_DIR}" # persona-generator 4.2.0 includes idgen.hpp and fingen.hpp; their data is not compiled in here
   "${FINANCE_GEN_DIR}"
 )
 set(PERSONA_EMBED DASMIG_COUNTRY_EMBED DASMIG_CITY_EMBED DASMIG_BIRTH_EMBED DASMIG_BIODATA_EMBED
-  DASMIG_NAME_EMBED DASMIG_INTEREST_EMBED DASMIG_OCCUPATION_EMBED DASMIG_TRAIT_EMBED)
+  DASMIG_NAME_EMBED DASMIG_INTEREST_EMBED DASMIG_OCCUPATION_EMBED DASMIG_TRAIT_EMBED
+  DASMIG_RELATIONSHIP_EMBED DASMIG_PROPERTY_EMBED)
 add_executable(personagen_demo src/personagen_demo.cpp)
 target_include_directories(personagen_demo PRIVATE ${PERSONA_INCLUDE_DIRS})
 target_compile_definitions(personagen_demo PRIVATE ${PERSONA_EMBED})

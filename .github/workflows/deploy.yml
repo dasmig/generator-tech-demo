@@ -101,7 +101,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: dasmig/persona-generator
-          ref: v4.2.0
+          ref: v4.3.0
           path: persona-generator
 
       - name: Checkout phone-generator
@@ -123,14 +123,14 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: dasmig/address-generator
-          ref: v2.2.0
+          ref: v2.3.0
           path: address-generator
 
       - name: Checkout user-generator
         uses: actions/checkout@v4
         with:
           repository: dasmig/user-generator
-          ref: v3.0.0
+          ref: v3.1.0
           path: user-generator
 
       - name: Checkout device-generator
@@ -175,6 +175,13 @@ jobs:
           ref: v1.0.0
           path: finance-generator
 
+      - name: Checkout property-generator
+        uses: actions/checkout@v4
+        with:
+          repository: dasmig/property-generator
+          ref: v1.0.0
+          path: property-generator
+
       - name: Setup Emscripten
         uses: mymindstorm/setup-emsdk@v14
         with:
@@ -204,6 +211,7 @@ jobs:
           -DVEHICLE_GEN_DIR=${{ github.workspace }}/vehicle-generator
           -DID_GEN_DIR=${{ github.workspace }}/id-generator
           -DFINANCE_GEN_DIR=${{ github.workspace }}/finance-generator
+          -DPROPERTY_GEN_DIR=${{ github.workspace }}/property-generator
 
       - name: Build
         run: cmake --build build

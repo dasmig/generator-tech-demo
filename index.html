@@ -1303,6 +1303,13 @@
           <option value="female">Female</option>
         </select>
       </div>
+      <div class="field">
+        <label for="pg-home">Home</label>
+        <select id="pg-home">
+          <option value="yes">With a home</option>
+          <option value="no">Without</option>
+        </select>
+      </div>
       <button class="btn" id="pg-generate" disabled>Generate Persona</button>
     </div>
     <div id="pg-output">
@@ -3416,7 +3423,9 @@
     'personality': ['trait-generator', 'traits', 'Independent (3 traits)'],
     'interest': ['interest-generator', 'interest', 'country + birth (age and sex)'],
     'occupation': ['occupation-generator', 'occupation', 'country + birth (age and sex)'],
-    'signature': ['persona-generator', '—', 'Call seed + hash of the request and all eight libraries’ data']
+    'home': ['property-generator', '— (after the pipeline)', 'country + city population + a household from relationship-generator + household_income'],
+    'household_income': ['occupation-generator', '— (after the pipeline)', 'The persona’s income + one occupation draw per other member aged 15+'],
+    'signature': ['persona-generator', '—', 'Call seed + hash of the request and the libraries’ data']
   };
   loadDemo('pg', () => createPersonagenModule(), mod => mod.init(), mod => { pgMod = mod; }, 'all eight libraries loaded.');
 
@@ -3602,7 +3611,7 @@
   }
 
   function renderPersona() {
-    const d = parseResult(pgMod.generatePersona(byId('pg-country').value, byId('pg-sex').value));
+    const d = parseResult(pgMod.generatePersona(byId('pg-country').value, byId('pg-sex').value, byId('pg-home').value === 'yes'));
     if (personaMap) { personaMap.remove(); personaMap = null; }
     const { country, city, birth, biodata: body, personality, interest, occupation } = d;
 
@@ -3747,9 +3756,12 @@
     html += statHtml('Gear', chipsHtml(job ? job.gear : [], 'muted'));
     html += '</div>';
 
+    // Home: for a household of the persona's, costed by what everyone in it earns
+    if (d.home) html += homeHtml(d.home, d.household_income, section, stat, statHtml);
+
     html += '</div></div>';
     html += '<p class="note">Seed ' + esc(d.signature.seed) + ' · data ' + esc(d.signature.data)
-      + '. Physical values, interests and occupation use the persona’s country, age and sex. This is fictional composition, not an age-appropriate or medical profile.</p>';
+      + '. Physical values, interests and occupation use the persona’s country, age and sex' + (d.home ? '; the home fits a household drawn for the persona' : '') + '. This is fictional composition, not an age-appropriate or medical profile.</p>';
     html += '<details id="pg-provenance"><summary>Which library supplies each part?</summary>'
       + '<p class="note">persona-generator declares one entity-generator field per library, with its dependencies, and runs them in dependency order. Each field draws from its own stream split from the persona’s seed, so forcing a country or a sex does not shift the unrelated parts.</p>'
       + comparisonTable('Persona provenance', ['JSON key', 'Library', 'Pipeline field', 'Reads'],
@@ -3794,6 +3806,38 @@
   byId('pg-generate').addEventListener('click', () => {
     if (pgMod) runDemo('pg', renderPersona);
   });
+
+  // property-generator's home in the persona card. The cost is a share of the
+  // household's income; with nobody earning (pensions are not modelled) there is none.
+  const HOME_TYPES = { detached: ['Detached house', '🏡'], semi_detached: ['Semi-detached or terraced house', '🏘️'],
+    flat_small: ['Flat in a small building', '🏢'], flat_large: ['Flat in a large building', '🏙️'],
+    informal: ['Informal dwelling', '🛖'], other: ['Other dwelling', '🏠'] };
+  const HOME_TENURES = { owner_outright: 'Owner, no mortgage', owner_mortgage: 'Owner with a mortgage',
+    tenant_market: 'Tenant at market rent', tenant_reduced: 'Tenant at a reduced rent' };
+  const HOME_EVIDENCE = { measured: 'Measured: the country’s own census and survey tables',
+    filled: 'Filled: some parts from a similar country', modelled: 'Modelled: from the region’s pattern' };
+  function homeHtml(home, income, section, stat, statHtml) {
+    const [typeLabel, icon] = HOME_TYPES[home.type] || [home.type, '🏠'];
+    const money = m => m.currency + ' ' + m.amount.toLocaleString('en-US', { maximumFractionDigits: 2 });
+    const burden = home.monthly_cost && income && income.amount > 0
+      ? Math.round(100 * 12 * home.monthly_cost.amount / income.amount) : null;
+    let html = section('Home · property-generator').replace('<div class="persona-section-title"', '<div class="persona-section-title" id="pg-home-title"');
+    html += '<div class="job-hero"><div class="job-icon" aria-hidden="true">' + icon + '</div><div>'
+      + '<div class="job-title">' + esc(typeLabel) + '</div>'
+      + '<div class="job-sub">' + esc(HOME_TENURES[home.holding] || home.holding) + ' · ' + esc(home.area) + '</div>'
+      + chipsHtml([home.rooms + ' room' + (home.rooms === 1 ? '' : 's'), home.bedrooms + ' bedroom' + (home.bedrooms === 1 ? '' : 's'),
+        home.floor_area + ' m²', 'built ' + home.year_built]) + '</div></div>';
+    html += '<div class="persona-row">';
+    html += stat('Household', home.household_size + (home.household_size === 1 ? ' person · ' : ' people · ')
+      + home.household_type.replace(/_/g, ' '));
+    html += stat('Household income', income ? money(income) + ' a year' : 'Nobody earns');
+    html += statHtml('Monthly cost', home.monthly_cost
+      ? esc(money(home.monthly_cost)) + (burden !== null ? '<span class="stage"> ' + burden + '% of income</span>' : '')
+      : esc('None: no income to cost it from'));
+    html += '</div>';
+    html += '<div class="persona-row wide">' + stat('Data', HOME_EVIDENCE[home.evidence] || home.evidence) + '</div>';
+    return html;
+  }
 
   // ─── Weather Generator ───
   let wtMod = null;
@@ -4023,7 +4067,7 @@
     byId('ev-status').textContent = 'Generating…';
     byId('ev-status').className = 'status';
     try {
-      const persona = parseResult(pgMod.generatePersonaSeeded(byId('ev-country').value, byId('ev-sex').value, date, seed));
+      const persona = parseResult(pgMod.generatePersonaSeeded(byId('ev-country').value, byId('ev-sex').value, false, date, seed));
       const code = persona.country.cca2;
       const words = persona.name.split(/\s+/).filter(Boolean);
       const birthYear = Number(date.slice(0, 4)) - persona.age;
@@ -4296,7 +4340,7 @@
   function tickOnce() {
     if (!pgMod) return false;
     try {
-      const p = JSON.parse(pgMod.generatePersona('', ''));
+      const p = JSON.parse(pgMod.generatePersona('', '', false));
       if (p.error) return false;
       const job = p.occupation.job ? p.occupation.job.label : p.occupation.status.replace(/_/g, ' ');
       const line = flagEmoji(p.country.cca2) + ' ' + p.name + ' · ' + p.city.name + ' · ' + job;

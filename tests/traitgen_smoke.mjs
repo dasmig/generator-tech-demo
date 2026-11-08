@@ -703,12 +703,13 @@ try {
   assert.match(await evaluate('byId("og-output").textContent'), /only education input varies/);
   assert.equal(await evaluate('document.querySelectorAll("#eg-output tbody tr").length'), 10);
   assert.match(await evaluate('byId("eg-output").textContent'), /weighted_choice_component/);
-  const personaKeys = await evaluate(`Object.keys(JSON.parse(pgMod.generatePersona('BR', '')))`);
+  const personaKeys = await evaluate(`Object.keys(JSON.parse(pgMod.generatePersona('BR', '', true)))`);
   assert.deepEqual(await evaluate(`Array.from(byId('pg-country').options, option => option.value).filter(Boolean)`),
     await evaluate('JSON.parse(pgMod.supportedCountries())'), "The persona country list must be persona-generator's");
   assert.deepEqual(await evaluate('Object.keys(personaSources).sort()'), personaKeys.sort());
   assert.equal(await evaluate('document.querySelectorAll("#pg-provenance tbody tr").length'), personaKeys.length);
   assert.match(await evaluate('byId("pg-output").textContent'), /Fictional persona/);
+  assert.match(await evaluate('byId("pg-output").textContent'), /Home · property-generator/, 'The persona card shows its home');
   const countryButton = '#pg-output button[aria-controls="pg-country-details"]';
   await evaluate(`document.querySelector('${countryButton}').focus()`);
   await send('Input.dispatchKeyEvent', { type: 'keyDown', key: 'Enter', code: 'Enter', windowsVirtualKeyCode: 13, text: '\r' });
@@ -763,6 +764,7 @@ try {
   assert.equal(await evaluate(`Array.from(document.querySelectorAll('.status')).every(status =>
     status.getAttribute('role') === 'status')`), true);
   await capture('desktop-persona', '#personagen-card');
+  await capture('desktop-persona-home', '#pg-home-title');
   await capture('desktop-trait', '#traitgen-card');
   await capture('desktop-sampling', '#countrygen-card');
   await capture('desktop-occupation', '#occupationgen-card');
