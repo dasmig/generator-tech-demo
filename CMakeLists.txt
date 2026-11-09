@@ -167,6 +167,20 @@ target_link_options(fingen_demo PRIVATE
   -sENVIRONMENT=web
 )
 
+# property-generator demo: occupation-generator draws the earner whose income gives the home its cost
+add_executable(propertygen_demo src/propertygen_demo.cpp)
+target_include_directories(propertygen_demo PRIVATE "${PROPERTY_GEN_DIR}" "${OCCUPATION_GEN_DIR}")
+target_compile_definitions(propertygen_demo PRIVATE DASMIG_PROPERTY_EMBED DASMIG_OCCUPATION_EMBED)
+target_link_options(propertygen_demo PRIVATE
+  --bind
+  -sWASM=1
+  -sALLOW_MEMORY_GROWTH=1
+  -sEXPORTED_RUNTIME_METHODS=['UTF8ToString','stringToUTF8']
+  -sMODULARIZE=1
+  -sEXPORT_NAME=createPropertygenModule
+  -sENVIRONMENT=web
+)
+
 # birth-generator demo
 add_executable(birthgen_demo src/birthgen_demo.cpp)
 target_include_directories(birthgen_demo PRIVATE "${BIRTH_GEN_DIR}")

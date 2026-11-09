@@ -1186,6 +1186,7 @@
     <li><a href="#vehiclegen-card">vehicle</a></li>
     <li><a href="#idgen-card">identity</a></li>
     <li><a href="#fingen-card">finance</a></li>
+    <li><a href="#propertygen-card">property</a></li>
     <li><a href="#nickgen-card">nickname</a></li>
     <li><a href="#phonegen-card">phone</a></li>
     <li><a href="#emailgen-card">email</a></li>
@@ -2098,6 +2099,97 @@
         <div class="status" id="fg-status" role="status" aria-live="polite">Loading WebAssembly…</div>
       </div>
 
+      <!-- ─── Property Generator ─── -->
+      <div class="demo-card" id="propertygen-card">
+        <h2>property-generator</h2>
+        <p class="desc">
+          Generate a household's home in a country: the dwelling type by area and household size, tenure by household type, age and dwelling type, rooms, bedrooms, floor area and year built, and, given an income, the monthly cost, whose share of the income falls as the income rises. Sources are census and survey tables (EU-SILC, US ACS and AHS, national censuses), the UN housing compendium and DHS; where a country has none, a similar country's figures fill in, and the card says which.
+          <a class="repo-link" href="https://github.com/dasmig/property-generator" target="_blank" rel="noopener">GitHub →</a>
+        </p>
+        <div class="controls">
+          <div class="field">
+            <label for="pt-country">Country</label>
+            <select id="pt-country">
+              <option value="">Any (by population)</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="pt-area">Area</label>
+            <select id="pt-area">
+              <option value="">Drawn</option>
+              <option value="city">City</option>
+              <option value="town">Town or suburb</option>
+              <option value="rural">Rural</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="pt-household">Household</label>
+            <select id="pt-household">
+              <option value="">Drawn</option>
+              <option value="one_person">One person</option>
+              <option value="couple">Couple</option>
+              <option value="nuclear">Couple with children</option>
+              <option value="single_parent">Single parent</option>
+              <option value="with_parents">Adult living with parents</option>
+              <option value="multi_generation">Several generations</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="pt-size">People</label>
+            <input type="number" id="pt-size" min="1" max="30" placeholder="Drawn">
+          </div>
+          <div class="field">
+            <label for="pt-type">Dwelling</label>
+            <select id="pt-type">
+              <option value="">Drawn</option>
+              <option value="detached">Detached house</option>
+              <option value="semi_detached">Semi-detached or terraced</option>
+              <option value="flat_small">Flat, small building</option>
+              <option value="flat_large">Flat, large building</option>
+              <option value="informal">Informal dwelling</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="pt-tenure">Tenure</label>
+            <select id="pt-tenure">
+              <option value="">Drawn</option>
+              <option value="owner_outright">Owner, no mortgage</option>
+              <option value="owner_mortgage">Owner with a mortgage</option>
+              <option value="tenant_market">Tenant at market rent</option>
+              <option value="tenant_reduced">Tenant at a reduced rent</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="pt-age">Reference person's age</label>
+            <input type="number" id="pt-age" min="16" max="110" placeholder="18 to 80">
+          </div>
+          <div class="field">
+            <label for="pt-income">Income</label>
+            <select id="pt-income">
+              <option value="earner">One earner (occupation-generator)</option>
+              <option value="amount">An amount a year</option>
+              <option value="none">None (no cost)</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="pt-amount">Amount a year <span id="pt-currency"></span></label>
+            <input type="number" id="pt-amount" min="0" step="any" placeholder="Gross, all earners" disabled>
+          </div>
+          <div class="field">
+            <label for="pt-date">Date</label>
+            <input type="date" id="pt-date" min="1900-01-01" max="2100-12-31">
+          </div>
+          <button class="btn" id="pt-generate" disabled>Generate</button>
+        </div>
+        <p class="note">The earner is one employed person of the reference person's age in the country, drawn by occupation-generator; a household's other earners are not counted here (the persona card counts them all). No home is built after the date. A household whose type and size the country's table does not hold is drawn again from the type, then the size.</p>
+        <div id="pt-output">
+          <div class="output empty">Waiting for module to load…</div>
+        </div>
+        <div class="status" id="pt-status" role="status" aria-live="polite">Loading WebAssembly…</div>
+      </div>
+
       <!-- ─── Vehicle Generator ─── -->
       <div class="demo-card" id="vehiclegen-card">
         <h2>vehicle-generator</h2>
@@ -2567,6 +2659,7 @@
 <script src="vehiclegen_demo.js"></script>
 <script src="idgen_demo.js"></script>
 <script src="fingen_demo.js"></script>
+<script src="propertygen_demo.js"></script>
 <script src="birthgen_demo.js"></script>
 <script src="biodatagen_demo.js"></script>
 <script src="interestgen_demo.js"></script>
@@ -3119,6 +3212,58 @@
       byId('fg-output').innerHTML = html;
       return 'Generated ' + held.accounts.length + ' account' + (held.accounts.length === 1 ? '' : 's') + ' and '
         + held.cards.length + ' card' + (held.cards.length === 1 ? '' : 's') + ' in ' + held.country_code + '.';
+    });
+  });
+
+  // ─── Property Generator ───
+  let ptMod = null;
+  loadDemo('pt', () => createPropertygenModule(), mod => mod.init(), mod => {
+    ptMod = mod;
+    fillCountries('pt-country', mod);
+  }, 'housing tables and incomes loaded.');
+  byId('pt-date').value = byId('bg-reference').value;
+  const ptCurrency = () => {
+    const code = byId('pt-country').value;
+    byId('pt-currency').textContent = ptMod && code ? '(' + (ptMod.incomeCurrency(code) || 'none known') + ')' : '';
+  };
+  byId('pt-country').addEventListener('change', ptCurrency);
+  byId('pt-income').addEventListener('change', () => { byId('pt-amount').disabled = byId('pt-income').value !== 'amount'; });
+
+  function ptRooms(home) {
+    if (home.rooms === 1) return '1 (studio)';
+    return home.rooms + ' (' + home.bedrooms + (home.bedrooms === 1 ? ' bedroom)' : ' bedrooms)');
+  }
+
+  byId('pt-generate').addEventListener('click', () => {
+    if (!ptMod) return;
+    runDemo('pt', () => {
+      if (byId('pt-income').value === 'amount' && !byId('pt-country').value)
+        throw new Error('Choose a country to give an amount in its currency.');
+      const data = parseResult(ptMod.generateProperty(byId('pt-country').value, byId('pt-area').value,
+        byId('pt-household').value, byId('pt-size').value, byId('pt-type').value, byId('pt-tenure').value,
+        byId('pt-age').value, byId('pt-income').value, byId('pt-amount').value, byId('pt-date').value));
+      const home = data.home;
+      const money = m => m.currency + ' ' + m.amount.toLocaleString('en-US', { maximumFractionDigits: 2 });
+      const income = data.household_income;
+      const share = home.monthly_cost && income && income.amount > 0
+        ? ', ' + Math.round(100 * 12 * home.monthly_cost.amount / income.amount) + '% of the income' : '';
+      const typeLabel = (HOME_TYPES[home.type] || [home.type])[0];
+      const people = home.household_size + (home.household_size === 1 ? ' person, ' : ' people, ');
+      const earner = data.earner ? ' (' + (data.earner.job || 'employed') + ')' : '';
+      let html = fieldTable('Fictional home in ' + home.country_code, [
+        ['Dwelling', typeLabel], ['Tenure', HOME_TENURES[home.holding] || home.holding], ['Area', home.area],
+        ['Household', people + home.household_type.replace(/_/g, ' ')],
+        ['Reference person', data.anchor_age + ' years old'],
+        ['Rooms', ptRooms(home)], ['Floor area', home.floor_area + ' m²'], ['Year built', String(home.year_built)],
+        ['Income a year', income ? money(income) + earner : 'None'],
+        ['Monthly cost', home.monthly_cost ? money(home.monthly_cost) + share : 'None: no income to cost it from'],
+        ['Seed (hex)', home.signature.seed]]);
+      const ev = data.evidence;
+      html += comparisonTable('Evidence for ' + home.country_code + ' · ' + (HOME_EVIDENCE[home.evidence] || home.evidence),
+        ['Part', 'Evidence'], [['Area', ev.area], ['Household', ev.household], ['Dwelling type', ev.type], ['Tenure', ev.tenure],
+          ['Rooms', ev.rooms], ['Floor area', ev.floor_area], ['Year built', ev.period], ['Cost', ev.cost]]);
+      byId('pt-output').innerHTML = html;
+      return 'Generated a home in ' + home.country_code + '.';
     });
   });
 
