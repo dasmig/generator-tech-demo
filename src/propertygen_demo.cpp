@@ -4,6 +4,7 @@
 #include <array>
 #include <charconv>
 #include <cstdint>
+#include <cstdlib>
 #include <optional>
 #include <stdexcept>
 #include <string>
@@ -40,11 +41,12 @@ int whole(const std::string& text, int lo, int hi, const char* message)
     return value;
 }
 
+// strtod, not from_chars: Emscripten's libc++ has no floating-point from_chars.
 double amount_of(const std::string& text)
 {
-    double value{};
-    const auto result = std::from_chars(text.data(), text.data() + text.size(), value);
-    if (result.ec != std::errc{} || result.ptr != text.data() + text.size() || !(value >= 0.0) || value > 1e12)
+    char* end = nullptr;
+    const double value = text.empty() || text.front() == ' ' ? -1.0 : std::strtod(text.c_str(), &end);
+    if (end != text.c_str() + text.size() || !(value >= 0.0) || value > 1e12)
         throw std::invalid_argument("Income must be an amount from 0 to 10^12.");
     return value;
 }
