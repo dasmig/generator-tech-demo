@@ -25,12 +25,12 @@ The demos use the libraries' releases on [dasmig-core 1.4](https://github.com/da
 | device-generator | v1.0.4 |
 | user-generator | v3.1.0 |
 | relationship-generator | v1.2.2 |
-| persona-generator | v4.3.0 |
+| persona-generator | v4.3.1 |
 | weather-generator | v2.0.1 |
 | vehicle-generator | v2.0.2 |
 | id-generator | v1.0.0 |
 | finance-generator | v1.0.0 |
-| property-generator | v1.0.0 |
+| property-generator | v1.0.1 |
 
 ## Prerequisites
 

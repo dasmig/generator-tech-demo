@@ -101,7 +101,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: dasmig/persona-generator
-          ref: v4.3.0
+          ref: v4.3.1
           path: persona-generator
 
       - name: Checkout phone-generator
@@ -179,7 +179,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: dasmig/property-generator
-          ref: v1.0.0
+          ref: v1.0.1
           path: property-generator
 
       - name: Setup Emscripten
