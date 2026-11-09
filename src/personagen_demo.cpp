@@ -1,6 +1,7 @@
 // Persona Generator — persona-generator runs the pipeline (eight libraries
-// composed through entity-generator fields, in dependency order); this module
-// only turns the page's inputs into a persona_request and returns its JSON.
+// composed through entity-generator fields, in dependency order, and a home
+// from property-generator and relationship-generator); this module only turns
+// the page's inputs into a persona_request and returns its JSON.
 
 #include "cpp23_polyfill.hpp"
 #include <dasmig/personagen.hpp>
@@ -23,7 +24,7 @@ bool init()
     return cg.has_admin1() && dasmig::psg::instance().has_data();
 }
 
-dasmig::persona_request make_request(const std::string& country, const std::string& sex,
+dasmig::persona_request make_request(const std::string& country, const std::string& sex, bool home,
                                      std::chrono::year_month_day reference)
 {
     dasmig::persona_request request;
@@ -32,25 +33,28 @@ dasmig::persona_request make_request(const std::string& country, const std::stri
     else if (sex == "male") request.person_sex = dasmig::sex::male;
     else if (!sex.empty()) throw std::invalid_argument("Sex must be empty, male or female.");
     request.reference_date = reference;
+    // A home (property-generator) for a household drawn by relationship-generator,
+    // costed by what everyone in it earns; it changes nothing else.
+    if (home) request.home = dasmig::property_request{};
     return request;
 }
 
-std::string generate_persona(const std::string& country, const std::string& sex)
+std::string generate_persona(const std::string& country, const std::string& sex, bool home)
 {
     try
     {
-        return dasmig::psg::instance().get_persona(make_request(country, sex, today())).to_json();
+        return dasmig::psg::instance().get_persona(make_request(country, sex, home, today())).to_json();
     }
     catch (const std::exception& error) { return demo_error(error.what()); }
 }
 
-std::string generate_seeded(const std::string& country, const std::string& sex,
+std::string generate_seeded(const std::string& country, const std::string& sex, bool home,
                             const std::string& reference, const std::string& seed)
 {
     try
     {
         return dasmig::psg::instance()
-            .get_persona(make_request(country, sex, parse_reference_date(reference)), parse_demo_seed(seed))
+            .get_persona(make_request(country, sex, home, parse_reference_date(reference)), parse_demo_seed(seed))
             .to_json();
     }
     catch (const std::exception& error) { return demo_error(error.what()); }

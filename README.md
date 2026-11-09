@@ -1,6 +1,6 @@
 # generator-tech-demo
 
-Live WebAssembly demos for the [id-generator](https://github.com/dasmig/id-generator), [finance-generator](https://github.com/dasmig/finance-generator), [name-generator](https://github.com/dasmig/name-generator), [nickname-generator](https://github.com/dasmig/nickname-generator), [entity-generator](https://github.com/dasmig/entity-generator), [birth-generator](https://github.com/dasmig/birth-generator), [biodata-generator](https://github.com/dasmig/biodata-generator), [city-generator](https://github.com/dasmig/city-generator), [country-generator](https://github.com/dasmig/country-generator), [interest-generator](https://github.com/dasmig/interest-generator), [trait-generator](https://github.com/dasmig/trait-generator), [occupation-generator](https://github.com/dasmig/occupation-generator), [phone-generator](https://github.com/dasmig/phone-generator), [email-generator](https://github.com/dasmig/email-generator), [address-generator](https://github.com/dasmig/address-generator), [device-generator](https://github.com/dasmig/device-generator), [user-generator](https://github.com/dasmig/user-generator), [relationship-generator](https://github.com/dasmig/relationship-generator), [weather-generator](https://github.com/dasmig/weather-generator), [vehicle-generator](https://github.com/dasmig/vehicle-generator) and [persona-generator](https://github.com/dasmig/persona-generator) C++23 libraries.
+Live WebAssembly demos for the [id-generator](https://github.com/dasmig/id-generator), [finance-generator](https://github.com/dasmig/finance-generator), [name-generator](https://github.com/dasmig/name-generator), [nickname-generator](https://github.com/dasmig/nickname-generator), [entity-generator](https://github.com/dasmig/entity-generator), [birth-generator](https://github.com/dasmig/birth-generator), [biodata-generator](https://github.com/dasmig/biodata-generator), [city-generator](https://github.com/dasmig/city-generator), [country-generator](https://github.com/dasmig/country-generator), [interest-generator](https://github.com/dasmig/interest-generator), [trait-generator](https://github.com/dasmig/trait-generator), [occupation-generator](https://github.com/dasmig/occupation-generator), [phone-generator](https://github.com/dasmig/phone-generator), [email-generator](https://github.com/dasmig/email-generator), [address-generator](https://github.com/dasmig/address-generator), [device-generator](https://github.com/dasmig/device-generator), [user-generator](https://github.com/dasmig/user-generator), [relationship-generator](https://github.com/dasmig/relationship-generator), [weather-generator](https://github.com/dasmig/weather-generator), [vehicle-generator](https://github.com/dasmig/vehicle-generator), [property-generator](https://github.com/dasmig/property-generator) and [persona-generator](https://github.com/dasmig/persona-generator) C++23 libraries.
 
 Everything runs client-side in the browser — no server required.
 
@@ -21,15 +21,16 @@ The demos use the libraries' releases on [dasmig-core 1.4](https://github.com/da
 | occupation-generator | v3.1.2 |
 | trait-generator | v2.1.4 |
 | phone-generator, email-generator | v2.1.3 |
-| address-generator | v2.2.0 |
+| address-generator | v2.3.0 |
 | device-generator | v1.0.4 |
-| user-generator | v3.0.0 |
+| user-generator | v3.1.0 |
 | relationship-generator | v1.2.2 |
-| persona-generator | v4.2.0 |
+| persona-generator | v4.3.0 |
 | weather-generator | v2.0.1 |
 | vehicle-generator | v2.0.2 |
 | id-generator | v1.0.0 |
 | finance-generator | v1.0.0 |
+| property-generator | v1.0.0 |
 
 ## Prerequisites
 
@@ -75,6 +76,7 @@ Repo/
 ├── vehicle-generator/
 ├── id-generator/
 ├── finance-generator/
+├── property-generator/
 └── generator-tech-demo/    ← this repo
 ```
 
@@ -84,7 +86,7 @@ emcmake cmake -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build
 ```
 
-This produces in `build/` a `.js` and a `.wasm` file per demo (`idgen_demo`, `fingen_demo`, `namegen_demo`, `nickgen_demo`, `entitygen_demo`, `birthgen_demo`, `biodatagen_demo`, `citygen_demo`, `countrygen_demo`, `interestgen_demo`, `occupationgen_demo`, `phonegen_demo`, `emailgen_demo`, `addressgen_demo`, `devicegen_demo`, `usergen_demo`, `relgen_demo`, `traitgen_demo`, `weathergen_demo`, `vehiclegen_demo`, `personagen_demo`), plus `personagen_demo.data`, which holds city-generator's admin1 names. The address and user demos read address-generator's data pack (`scripts/make_web_pack.py` in that repository) instead of compiled-in data.
+This produces in `build/` a `.js` and a `.wasm` file per demo (`idgen_demo`, `fingen_demo`, `propertygen_demo`, `namegen_demo`, `nickgen_demo`, `entitygen_demo`, `birthgen_demo`, `biodatagen_demo`, `citygen_demo`, `countrygen_demo`, `interestgen_demo`, `occupationgen_demo`, `phonegen_demo`, `emailgen_demo`, `addressgen_demo`, `devicegen_demo`, `usergen_demo`, `relgen_demo`, `traitgen_demo`, `weathergen_demo`, `vehiclegen_demo`, `personagen_demo`), plus `personagen_demo.data`, which holds city-generator's admin1 names. The address and user demos read address-generator's data pack (`scripts/make_web_pack.py` in that repository) instead of compiled-in data.
 
 ## The persona npm package
 
@@ -116,13 +118,15 @@ The **identity** demo draws a birth and a name, then the country's numbers and t
 
 The **finance** demo draws a birth and a name, then the accounts and the card asked for. It shows an account's parts with what each one means and a card's fields as a plain table, with no likeness of a card. Card numbers default to a payment sandbox's published test numbers, and "Safe for tests" is on by default; the values are test data, and the limits are stated on the card.
 
+The **property** demo draws a home from the chosen country, area, household, dwelling type, tenure and reference person's age (18 to 80 when left blank). Its cost needs an income: by default one employed earner of that age is drawn from occupation-generator for the country, or an annual amount in the country's currency can be given, or none (no cost). It shows the home, the monthly cost as a share of the income, and the evidence behind each part of the country's data (measured, modelled or filled). property-generator's and occupation-generator's `lite` data is compiled in.
+
 The **vehicle** demo draws a car or motorcycle from the chosen country, plate region, make, kind, body, fuel and date (today by default, 2000 to 2050), with the odometer in the country's unit, kilometres or miles. The region and make lists are the country's (`plate_regions`, `makes`), and the kind limits the makes and bodies to cars or motorcycles; without a country, the region picks one that has it. Its comparison draws one call seed in Germany, the United Kingdom, Spain, the United States and Japan: each part draws from its own stream, so the same seed meets each country's fleet, plate format and factories. The safe option gives plates no authority issues and VINs whose WMI NHTSA vPIC does not know.
 
 The **device** demo draws a device from the chosen country, platform, browser, IP family, locale and date (today by default; a date after the data's newest release is seen as that date). Its comparison sees one call seed in June 2021, 2022, 2023 and 2024 and today, with the country and platform fixed: the address stays, while the model, OS and browser versions, user agent and client hints are those of each date. The safe option gives documentation addresses only (RFC 5737, RFC 3849).
 
 The **user** demo generates a user in the chosen country, with ages and account times as of today. With *Device* (on by default) it also shows the device of the last sign-in (user-generator's `user_request::device`): the account's platform and locale on a model, OS and browser of the last login's date, with its user agent and `Accept-Language` header; asking for it changes nothing else. *Compare safe* shows one call seed with and without the safe option: the email domain, the phone number and the device's IP address change, the person, username and address stay.
 
-The **persona** demo calls [persona-generator](https://github.com/dasmig/persona-generator): one `psg::get_persona(request, seed)` runs the eight libraries as entity-generator fields in dependency order, and the module returns the persona's `to_json()`. The page sends a `persona_request` with the chosen country and sex and today's date; the country list is persona-generator's `supported_countries()` (79 countries; South Korea needs name-generator's `full` tier). Body, interests and occupation are drawn for the persona's country, age and sex. Each field draws from its own stream split from the persona's seed, so the seed replays the whole persona, and forcing the sex changes only the parts that depend on it. All eight libraries' `lite` data is compiled in.
+The **persona** demo calls [persona-generator](https://github.com/dasmig/persona-generator): one `psg::get_persona(request, seed)` runs the eight libraries as entity-generator fields in dependency order, and the module returns the persona's `to_json()`. The page sends a `persona_request` with the chosen country and sex and today's date; the country list is persona-generator's `supported_countries()` (79 countries; South Korea needs name-generator's `full` tier). Body, interests and occupation are drawn for the persona's country, age and sex. Each field draws from its own stream split from the persona's seed, so the seed replays the whole persona, and forcing the sex changes only the parts that depend on it. With **Home** (on by default) the request also sets `home`, and the card adds the persona's home from [property-generator](https://github.com/dasmig/property-generator): the dwelling type, tenure, rooms, floor area and year built for a household relationship-generator draws for the persona, and the monthly cost as a share of `household_income`, what everyone in the household aged 15 or more earns (none when nobody earns, since pensions are not modelled). The home draws from its own stream, so it changes nothing else. The eight libraries' `lite` data, relationship-generator's and property-generator's is compiled in.
 
 ## Run locally
 

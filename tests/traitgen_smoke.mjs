@@ -305,6 +305,35 @@ try {
   assert.equal(await evaluate("byId('fg-output').querySelectorAll('img, canvas, svg').length"), 0, 'No likeness of a card');
   assert.ok(await evaluate("byId('fingen-card').textContent.includes('card testing')"));
 
+  // property-generator: the country list is the library's, forced fields are honoured, the earner's income gives
+  // a cost, no income gives none, a seed replays, and the card renders the home and the evidence.
+  const home = (method, args) => evaluate(`JSON.parse(ptMod.${method}(...${JSON.stringify(args)}))`);
+  const propertyCountries = await evaluate('JSON.parse(ptMod.supportedCountries())');
+  assert.ok(propertyCountries.includes('DE') && propertyCountries.length >= 190, 'The property module lists its countries');
+  assert.equal(await evaluate("ptMod.incomeCurrency('DE')"), 'EUR');
+  const flat = await home('generatePropertySeeded', ['DE', 'city', 'couple', '', 'flat_large', 'tenant_market', '40', 'earner', '', '2023-07-01', '2a']);
+  assert.equal(flat.home.country_code, 'DE');
+  assert.equal(flat.home.type, 'flat_large');
+  assert.equal(flat.home.holding, 'tenant_market');
+  assert.equal(flat.home.household_type, 'couple');
+  assert.equal(flat.anchor_age, 40);
+  assert.ok(flat.household_income && flat.household_income.currency === 'EUR', "The earner's income is in the country's currency");
+  assert.ok(flat.home.monthly_cost && flat.home.monthly_cost.amount > 0, 'An income gives the home a cost');
+  assert.ok(['measured', 'modelled', 'filled'].includes(flat.evidence.type));
+  assert.equal(JSON.stringify(await home('generatePropertySeeded', ['DE', 'city', 'couple', '', 'flat_large', 'tenant_market', '40', 'earner', '', '2023-07-01', '2a'])),
+    JSON.stringify(flat), 'A seed replays');
+  const given = await home('generatePropertySeeded', ['US', '', '', '3', '', '', '', 'amount', '85000', '2023-07-01', '3']);
+  assert.equal(given.home.household_size, 3);
+  assert.deepEqual(given.household_income, { amount: 85000, currency: 'USD' });
+  const free = await home('generatePropertySeeded', ['BR', '', '', '', '', '', '', 'none', '', '2023-07-01', '4']);
+  assert.equal(free.home.monthly_cost, null, 'No income, no cost');
+  assert.equal(free.earner, null);
+  assert.ok((await home('generateProperty', ['XX', '', '', '', '', '', '', 'none', '', ''])).error, 'An unknown country reports an error');
+  assert.ok((await home('generateProperty', ['DE', '', '', '', '', '', '12', 'none', '', ''])).error, 'An age under 16 reports an error');
+  await evaluate("byId('pt-country').value = 'FR'; byId('pt-country').dispatchEvent(new Event('change')); byId('pt-date').value = '2023-07-01'; byId('pt-generate').click()");
+  await waitFor(() => evaluate("byId('pt-output').textContent.includes('Evidence for FR')"), 'property tables');
+  assert.ok(await evaluate("byId('pt-output').textContent.includes('Fictional home in FR') && byId('pt-currency').textContent === '(EUR)'"));
+
   // vehicle-generator: the lists are the library's, seeds replay its known answers, VINs carry valid check digits,
   // regions are honoured and safe gives unheld WMIs.
   const vehicle = (method, args) => evaluate(`JSON.parse(vhMod.${method}(...${JSON.stringify(args)}))`);
@@ -703,12 +732,13 @@ try {
   assert.match(await evaluate('byId("og-output").textContent'), /only education input varies/);
   assert.equal(await evaluate('document.querySelectorAll("#eg-output tbody tr").length'), 10);
   assert.match(await evaluate('byId("eg-output").textContent'), /weighted_choice_component/);
-  const personaKeys = await evaluate(`Object.keys(JSON.parse(pgMod.generatePersona('BR', '')))`);
+  const personaKeys = await evaluate(`Object.keys(JSON.parse(pgMod.generatePersona('BR', '', true)))`);
   assert.deepEqual(await evaluate(`Array.from(byId('pg-country').options, option => option.value).filter(Boolean)`),
     await evaluate('JSON.parse(pgMod.supportedCountries())'), "The persona country list must be persona-generator's");
   assert.deepEqual(await evaluate('Object.keys(personaSources).sort()'), personaKeys.sort());
   assert.equal(await evaluate('document.querySelectorAll("#pg-provenance tbody tr").length'), personaKeys.length);
   assert.match(await evaluate('byId("pg-output").textContent'), /Fictional persona/);
+  assert.match(await evaluate('byId("pg-output").textContent'), /Home · property-generator/, 'The persona card shows its home');
   const countryButton = '#pg-output button[aria-controls="pg-country-details"]';
   await evaluate(`document.querySelector('${countryButton}').focus()`);
   await send('Input.dispatchKeyEvent', { type: 'keyDown', key: 'Enter', code: 'Enter', windowsVirtualKeyCode: 13, text: '\r' });
@@ -763,6 +793,7 @@ try {
   assert.equal(await evaluate(`Array.from(document.querySelectorAll('.status')).every(status =>
     status.getAttribute('role') === 'status')`), true);
   await capture('desktop-persona', '#personagen-card');
+  await capture('desktop-persona-home', '#pg-home-title');
   await capture('desktop-trait', '#traitgen-card');
   await capture('desktop-sampling', '#countrygen-card');
   await capture('desktop-occupation', '#occupationgen-card');

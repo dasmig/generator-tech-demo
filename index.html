@@ -1186,6 +1186,7 @@
     <li><a href="#vehiclegen-card">vehicle</a></li>
     <li><a href="#idgen-card">identity</a></li>
     <li><a href="#fingen-card">finance</a></li>
+    <li><a href="#propertygen-card">property</a></li>
     <li><a href="#nickgen-card">nickname</a></li>
     <li><a href="#phonegen-card">phone</a></li>
     <li><a href="#emailgen-card">email</a></li>
@@ -1301,6 +1302,13 @@
           <option value="">Any</option>
           <option value="male">Male</option>
           <option value="female">Female</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="pg-home">Home</label>
+        <select id="pg-home">
+          <option value="yes">With a home</option>
+          <option value="no">Without</option>
         </select>
       </div>
       <button class="btn" id="pg-generate" disabled>Generate Persona</button>
@@ -2091,6 +2099,97 @@
         <div class="status" id="fg-status" role="status" aria-live="polite">Loading WebAssembly…</div>
       </div>
 
+      <!-- ─── Property Generator ─── -->
+      <div class="demo-card" id="propertygen-card">
+        <h2>property-generator</h2>
+        <p class="desc">
+          Generate a household's home in a country: the dwelling type by area and household size, tenure by household type, age and dwelling type, rooms, bedrooms, floor area and year built, and, given an income, the monthly cost, whose share of the income falls as the income rises. Sources are census and survey tables (EU-SILC, US ACS and AHS, national censuses), the UN housing compendium and DHS; where a country has none, a similar country's figures fill in, and the card says which.
+          <a class="repo-link" href="https://github.com/dasmig/property-generator" target="_blank" rel="noopener">GitHub →</a>
+        </p>
+        <div class="controls">
+          <div class="field">
+            <label for="pt-country">Country</label>
+            <select id="pt-country">
+              <option value="">Any (by population)</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="pt-area">Area</label>
+            <select id="pt-area">
+              <option value="">Drawn</option>
+              <option value="city">City</option>
+              <option value="town">Town or suburb</option>
+              <option value="rural">Rural</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="pt-household">Household</label>
+            <select id="pt-household">
+              <option value="">Drawn</option>
+              <option value="one_person">One person</option>
+              <option value="couple">Couple</option>
+              <option value="nuclear">Couple with children</option>
+              <option value="single_parent">Single parent</option>
+              <option value="with_parents">Adult living with parents</option>
+              <option value="multi_generation">Several generations</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="pt-size">People</label>
+            <input type="number" id="pt-size" min="1" max="30" placeholder="Drawn">
+          </div>
+          <div class="field">
+            <label for="pt-type">Dwelling</label>
+            <select id="pt-type">
+              <option value="">Drawn</option>
+              <option value="detached">Detached house</option>
+              <option value="semi_detached">Semi-detached or terraced</option>
+              <option value="flat_small">Flat, small building</option>
+              <option value="flat_large">Flat, large building</option>
+              <option value="informal">Informal dwelling</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="pt-tenure">Tenure</label>
+            <select id="pt-tenure">
+              <option value="">Drawn</option>
+              <option value="owner_outright">Owner, no mortgage</option>
+              <option value="owner_mortgage">Owner with a mortgage</option>
+              <option value="tenant_market">Tenant at market rent</option>
+              <option value="tenant_reduced">Tenant at a reduced rent</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="pt-age">Reference person's age</label>
+            <input type="number" id="pt-age" min="16" max="110" placeholder="18 to 80">
+          </div>
+          <div class="field">
+            <label for="pt-income">Income</label>
+            <select id="pt-income">
+              <option value="earner">One earner (occupation-generator)</option>
+              <option value="amount">An amount a year</option>
+              <option value="none">None (no cost)</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="pt-amount">Amount a year <span id="pt-currency"></span></label>
+            <input type="number" id="pt-amount" min="0" step="any" placeholder="Gross, all earners" disabled>
+          </div>
+          <div class="field">
+            <label for="pt-date">Date</label>
+            <input type="date" id="pt-date" min="1900-01-01" max="2100-12-31">
+          </div>
+          <button class="btn" id="pt-generate" disabled>Generate</button>
+        </div>
+        <p class="note">The earner is one employed person of the reference person's age in the country, drawn by occupation-generator; a household's other earners are not counted here (the persona card counts them all). No home is built after the date. A household whose type and size the country's table does not hold is drawn again from the type, then the size.</p>
+        <div id="pt-output">
+          <div class="output empty">Waiting for module to load…</div>
+        </div>
+        <div class="status" id="pt-status" role="status" aria-live="polite">Loading WebAssembly…</div>
+      </div>
+
       <!-- ─── Vehicle Generator ─── -->
       <div class="demo-card" id="vehiclegen-card">
         <h2>vehicle-generator</h2>
@@ -2560,6 +2659,7 @@
 <script src="vehiclegen_demo.js"></script>
 <script src="idgen_demo.js"></script>
 <script src="fingen_demo.js"></script>
+<script src="propertygen_demo.js"></script>
 <script src="birthgen_demo.js"></script>
 <script src="biodatagen_demo.js"></script>
 <script src="interestgen_demo.js"></script>
@@ -3115,6 +3215,58 @@
     });
   });
 
+  // ─── Property Generator ───
+  let ptMod = null;
+  loadDemo('pt', () => createPropertygenModule(), mod => mod.init(), mod => {
+    ptMod = mod;
+    fillCountries('pt-country', mod);
+  }, 'housing tables and incomes loaded.');
+  byId('pt-date').value = byId('bg-reference').value;
+  const ptCurrency = () => {
+    const code = byId('pt-country').value;
+    byId('pt-currency').textContent = ptMod && code ? '(' + (ptMod.incomeCurrency(code) || 'none known') + ')' : '';
+  };
+  byId('pt-country').addEventListener('change', ptCurrency);
+  byId('pt-income').addEventListener('change', () => { byId('pt-amount').disabled = byId('pt-income').value !== 'amount'; });
+
+  function ptRooms(home) {
+    if (home.rooms === 1) return '1 (studio)';
+    return home.rooms + ' (' + home.bedrooms + (home.bedrooms === 1 ? ' bedroom)' : ' bedrooms)');
+  }
+
+  byId('pt-generate').addEventListener('click', () => {
+    if (!ptMod) return;
+    runDemo('pt', () => {
+      if (byId('pt-income').value === 'amount' && !byId('pt-country').value)
+        throw new Error('Choose a country to give an amount in its currency.');
+      const data = parseResult(ptMod.generateProperty(byId('pt-country').value, byId('pt-area').value,
+        byId('pt-household').value, byId('pt-size').value, byId('pt-type').value, byId('pt-tenure').value,
+        byId('pt-age').value, byId('pt-income').value, byId('pt-amount').value, byId('pt-date').value));
+      const home = data.home;
+      const money = m => m.currency + ' ' + m.amount.toLocaleString('en-US', { maximumFractionDigits: 2 });
+      const income = data.household_income;
+      const share = home.monthly_cost && income && income.amount > 0
+        ? ', ' + Math.round(100 * 12 * home.monthly_cost.amount / income.amount) + '% of the income' : '';
+      const typeLabel = (HOME_TYPES[home.type] || [home.type])[0];
+      const people = home.household_size + (home.household_size === 1 ? ' person, ' : ' people, ');
+      const earner = data.earner ? ' (' + (data.earner.job || 'employed') + ')' : '';
+      let html = fieldTable('Fictional home in ' + home.country_code, [
+        ['Dwelling', typeLabel], ['Tenure', HOME_TENURES[home.holding] || home.holding], ['Area', home.area],
+        ['Household', people + home.household_type.replace(/_/g, ' ')],
+        ['Reference person', data.anchor_age + ' years old'],
+        ['Rooms', ptRooms(home)], ['Floor area', home.floor_area + ' m²'], ['Year built', String(home.year_built)],
+        ['Income a year', income ? money(income) + earner : 'None'],
+        ['Monthly cost', home.monthly_cost ? money(home.monthly_cost) + share : 'None: no income to cost it from'],
+        ['Seed (hex)', home.signature.seed]]);
+      const ev = data.evidence;
+      html += comparisonTable('Evidence for ' + home.country_code + ' · ' + (HOME_EVIDENCE[home.evidence] || home.evidence),
+        ['Part', 'Evidence'], [['Area', ev.area], ['Household', ev.household], ['Dwelling type', ev.type], ['Tenure', ev.tenure],
+          ['Rooms', ev.rooms], ['Floor area', ev.floor_area], ['Year built', ev.period], ['Cost', ev.cost]]);
+      byId('pt-output').innerHTML = html;
+      return 'Generated a home in ' + home.country_code + '.';
+    });
+  });
+
   // ─── Address data pack ───
   // address-generator's data is a pack: the shared tables are written into a module's /pack at
   // start, and a country's street file is fetched the first time that country is used. The
@@ -3416,7 +3568,9 @@
     'personality': ['trait-generator', 'traits', 'Independent (3 traits)'],
     'interest': ['interest-generator', 'interest', 'country + birth (age and sex)'],
     'occupation': ['occupation-generator', 'occupation', 'country + birth (age and sex)'],
-    'signature': ['persona-generator', '—', 'Call seed + hash of the request and all eight libraries’ data']
+    'home': ['property-generator', '— (after the pipeline)', 'country + city population + a household from relationship-generator + household_income'],
+    'household_income': ['occupation-generator', '— (after the pipeline)', 'The persona’s income + one occupation draw per other member aged 15+'],
+    'signature': ['persona-generator', '—', 'Call seed + hash of the request and the libraries’ data']
   };
   loadDemo('pg', () => createPersonagenModule(), mod => mod.init(), mod => { pgMod = mod; }, 'all eight libraries loaded.');
 
@@ -3602,7 +3756,7 @@
   }
 
   function renderPersona() {
-    const d = parseResult(pgMod.generatePersona(byId('pg-country').value, byId('pg-sex').value));
+    const d = parseResult(pgMod.generatePersona(byId('pg-country').value, byId('pg-sex').value, byId('pg-home').value === 'yes'));
     if (personaMap) { personaMap.remove(); personaMap = null; }
     const { country, city, birth, biodata: body, personality, interest, occupation } = d;
 
@@ -3747,9 +3901,12 @@
     html += statHtml('Gear', chipsHtml(job ? job.gear : [], 'muted'));
     html += '</div>';
 
+    // Home: for a household of the persona's, costed by what everyone in it earns
+    if (d.home) html += homeHtml(d.home, d.household_income, section, stat, statHtml);
+
     html += '</div></div>';
     html += '<p class="note">Seed ' + esc(d.signature.seed) + ' · data ' + esc(d.signature.data)
-      + '. Physical values, interests and occupation use the persona’s country, age and sex. This is fictional composition, not an age-appropriate or medical profile.</p>';
+      + '. Physical values, interests and occupation use the persona’s country, age and sex' + (d.home ? '; the home fits a household drawn for the persona' : '') + '. This is fictional composition, not an age-appropriate or medical profile.</p>';
     html += '<details id="pg-provenance"><summary>Which library supplies each part?</summary>'
       + '<p class="note">persona-generator declares one entity-generator field per library, with its dependencies, and runs them in dependency order. Each field draws from its own stream split from the persona’s seed, so forcing a country or a sex does not shift the unrelated parts.</p>'
       + comparisonTable('Persona provenance', ['JSON key', 'Library', 'Pipeline field', 'Reads'],
@@ -3794,6 +3951,38 @@
   byId('pg-generate').addEventListener('click', () => {
     if (pgMod) runDemo('pg', renderPersona);
   });
+
+  // property-generator's home in the persona card. The cost is a share of the
+  // household's income; with nobody earning (pensions are not modelled) there is none.
+  const HOME_TYPES = { detached: ['Detached house', '🏡'], semi_detached: ['Semi-detached or terraced house', '🏘️'],
+    flat_small: ['Flat in a small building', '🏢'], flat_large: ['Flat in a large building', '🏙️'],
+    informal: ['Informal dwelling', '🛖'], other: ['Other dwelling', '🏠'] };
+  const HOME_TENURES = { owner_outright: 'Owner, no mortgage', owner_mortgage: 'Owner with a mortgage',
+    tenant_market: 'Tenant at market rent', tenant_reduced: 'Tenant at a reduced rent' };
+  const HOME_EVIDENCE = { measured: 'Measured: the country’s own census and survey tables',
+    filled: 'Filled: some parts from a similar country', modelled: 'Modelled: from the region’s pattern' };
+  function homeHtml(home, income, section, stat, statHtml) {
+    const [typeLabel, icon] = HOME_TYPES[home.type] || [home.type, '🏠'];
+    const money = m => m.currency + ' ' + m.amount.toLocaleString('en-US', { maximumFractionDigits: 2 });
+    const burden = home.monthly_cost && income && income.amount > 0
+      ? Math.round(100 * 12 * home.monthly_cost.amount / income.amount) : null;
+    let html = section('Home · property-generator').replace('<div class="persona-section-title"', '<div class="persona-section-title" id="pg-home-title"');
+    html += '<div class="job-hero"><div class="job-icon" aria-hidden="true">' + icon + '</div><div>'
+      + '<div class="job-title">' + esc(typeLabel) + '</div>'
+      + '<div class="job-sub">' + esc(HOME_TENURES[home.holding] || home.holding) + ' · ' + esc(home.area) + '</div>'
+      + chipsHtml([home.rooms + ' room' + (home.rooms === 1 ? '' : 's'), home.bedrooms + ' bedroom' + (home.bedrooms === 1 ? '' : 's'),
+        home.floor_area + ' m²', 'built ' + home.year_built]) + '</div></div>';
+    html += '<div class="persona-row">';
+    html += stat('Household', home.household_size + (home.household_size === 1 ? ' person · ' : ' people · ')
+      + home.household_type.replace(/_/g, ' '));
+    html += stat('Household income', income ? money(income) + ' a year' : 'Nobody earns');
+    html += statHtml('Monthly cost', home.monthly_cost
+      ? esc(money(home.monthly_cost)) + (burden !== null ? '<span class="stage"> ' + burden + '% of income</span>' : '')
+      : esc('None: no income to cost it from'));
+    html += '</div>';
+    html += '<div class="persona-row wide">' + stat('Data', HOME_EVIDENCE[home.evidence] || home.evidence) + '</div>';
+    return html;
+  }
 
   // ─── Weather Generator ───
   let wtMod = null;
@@ -4023,7 +4212,7 @@
     byId('ev-status').textContent = 'Generating…';
     byId('ev-status').className = 'status';
     try {
-      const persona = parseResult(pgMod.generatePersonaSeeded(byId('ev-country').value, byId('ev-sex').value, date, seed));
+      const persona = parseResult(pgMod.generatePersonaSeeded(byId('ev-country').value, byId('ev-sex').value, false, date, seed));
       const code = persona.country.cca2;
       const words = persona.name.split(/\s+/).filter(Boolean);
       const birthYear = Number(date.slice(0, 4)) - persona.age;
@@ -4296,7 +4485,7 @@
   function tickOnce() {
     if (!pgMod) return false;
     try {
-      const p = JSON.parse(pgMod.generatePersona('', ''));
+      const p = JSON.parse(pgMod.generatePersona('', '', false));
       if (p.error) return false;
       const job = p.occupation.job ? p.occupation.job.label : p.occupation.status.replace(/_/g, ' ');
       const line = flagEmoji(p.country.cca2) + ' ' + p.name + ' · ' + p.city.name + ' · ' + job;
