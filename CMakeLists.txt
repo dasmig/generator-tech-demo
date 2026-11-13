@@ -34,6 +34,7 @@ set(VEHICLE_GEN_DIR "${CMAKE_SOURCE_DIR}/../vehicle-generator" CACHE PATH "Path 
 set(ID_GEN_DIR "${CMAKE_SOURCE_DIR}/../id-generator" CACHE PATH "Path to id-generator repo")
 set(FINANCE_GEN_DIR "${CMAKE_SOURCE_DIR}/../finance-generator" CACHE PATH "Path to finance-generator repo")
 set(PROPERTY_GEN_DIR "${CMAKE_SOURCE_DIR}/../property-generator" CACHE PATH "Path to property-generator repo")
+set(COMPANY_GEN_DIR "${CMAKE_SOURCE_DIR}/../company-generator" CACHE PATH "Path to company-generator repo")
 
 # ── Wasm modules ──
 #
@@ -178,6 +179,20 @@ target_link_options(propertygen_demo PRIVATE
   -sEXPORTED_RUNTIME_METHODS=['UTF8ToString','stringToUTF8']
   -sMODULARIZE=1
   -sEXPORT_NAME=createPropertygenModule
+  -sENVIRONMENT=web
+)
+
+# company-generator demo
+add_executable(companygen_demo src/companygen_demo.cpp)
+target_include_directories(companygen_demo PRIVATE "${COMPANY_GEN_DIR}")
+target_compile_definitions(companygen_demo PRIVATE DASMIG_COMPANY_EMBED)
+target_link_options(companygen_demo PRIVATE
+  --bind
+  -sWASM=1
+  -sALLOW_MEMORY_GROWTH=1
+  -sEXPORTED_RUNTIME_METHODS=['UTF8ToString','stringToUTF8']
+  -sMODULARIZE=1
+  -sEXPORT_NAME=createCompanygenModule
   -sENVIRONMENT=web
 )
 
@@ -374,12 +389,13 @@ set(PERSONA_INCLUDE_DIRS
   "${TRAIT_GEN_DIR}"
   "${RELGEN_GEN_DIR}" # the home's household (persona-generator 4.3.0)
   "${PROPERTY_GEN_DIR}" # the home
+  "${COMPANY_GEN_DIR}" # the employer (persona-generator 4.4.0 includes companygen.hpp)
   "${ID_GEN_DIR}" # persona-generator 4.2.0 includes idgen.hpp and fingen.hpp; their data is not compiled in here
   "${FINANCE_GEN_DIR}"
 )
 set(PERSONA_EMBED DASMIG_COUNTRY_EMBED DASMIG_CITY_EMBED DASMIG_BIRTH_EMBED DASMIG_BIODATA_EMBED
   DASMIG_NAME_EMBED DASMIG_INTEREST_EMBED DASMIG_OCCUPATION_EMBED DASMIG_TRAIT_EMBED
-  DASMIG_RELATIONSHIP_EMBED DASMIG_PROPERTY_EMBED)
+  DASMIG_RELATIONSHIP_EMBED DASMIG_PROPERTY_EMBED DASMIG_COMPANY_EMBED)
 add_executable(personagen_demo src/personagen_demo.cpp)
 target_include_directories(personagen_demo PRIVATE ${PERSONA_INCLUDE_DIRS})
 target_compile_definitions(personagen_demo PRIVATE ${PERSONA_EMBED})

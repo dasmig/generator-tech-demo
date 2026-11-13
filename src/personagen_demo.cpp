@@ -24,7 +24,7 @@ bool init()
     return cg.has_admin1() && dasmig::psg::instance().has_data();
 }
 
-dasmig::persona_request make_request(const std::string& country, const std::string& sex, bool home,
+dasmig::persona_request make_request(const std::string& country, const std::string& sex, bool home, bool employer,
                                      std::chrono::year_month_day reference)
 {
     dasmig::persona_request request;
@@ -36,25 +36,28 @@ dasmig::persona_request make_request(const std::string& country, const std::stri
     // A home (property-generator) for a household drawn by relationship-generator,
     // costed by what everyone in it earns; it changes nothing else.
     if (home) request.home = dasmig::property_request{};
+    // The company the persona works for (company-generator), drawn by its staff in an
+    // industry that employs the persona's job; null for a persona who is not employed.
+    if (employer) request.employer = dasmig::company_request{};
     return request;
 }
 
-std::string generate_persona(const std::string& country, const std::string& sex, bool home)
+std::string generate_persona(const std::string& country, const std::string& sex, bool home, bool employer)
 {
     try
     {
-        return dasmig::psg::instance().get_persona(make_request(country, sex, home, today())).to_json();
+        return dasmig::psg::instance().get_persona(make_request(country, sex, home, employer, today())).to_json();
     }
     catch (const std::exception& error) { return demo_error(error.what()); }
 }
 
-std::string generate_seeded(const std::string& country, const std::string& sex, bool home,
+std::string generate_seeded(const std::string& country, const std::string& sex, bool home, bool employer,
                             const std::string& reference, const std::string& seed)
 {
     try
     {
         return dasmig::psg::instance()
-            .get_persona(make_request(country, sex, home, parse_reference_date(reference)), parse_demo_seed(seed))
+            .get_persona(make_request(country, sex, home, employer, parse_reference_date(reference)), parse_demo_seed(seed))
             .to_json();
     }
     catch (const std::exception& error) { return demo_error(error.what()); }

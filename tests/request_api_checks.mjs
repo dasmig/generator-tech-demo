@@ -37,7 +37,7 @@ export async function verifyRequestApis(call) {
       assert.ok(entity.components[key] >= 3 && entity.components[key] <= 18);
 
     for (const country of ['', 'BR', 'JP']) {
-      const args = [country, '', false, '2024-02-29', seed];
+      const args = [country, '', false, false, '2024-02-29', seed];
       const persona = await call('pgMod', 'generatePersonaSeeded', args);
       assert.equal(persona.error, undefined, persona.error);
       assert.equal(persona.signature.seed, seed.padStart(16, '0'));
@@ -47,23 +47,29 @@ export async function verifyRequestApis(call) {
       assert.equal(persona.biodata.age, persona.age, 'persona-generator passes the age to biodata');
       const [year, month, day] = persona.birth.date.split('-').map(Number);
       assert.equal(persona.age, 2024 - year - Number(month > 2 || (month === 2 && day > 29)));
-      await call('pgMod', 'generatePersonaSeeded', ['US', 'female', true, '2023-01-01', 'abcd']);
-      await call('pgMod', 'generatePersona', ['DE', '', true]);
+      await call('pgMod', 'generatePersonaSeeded', ['US', 'female', true, true, '2023-01-01', 'abcd']);
+      await call('pgMod', 'generatePersona', ['DE', '', true, true]);
       assert.deepEqual(await call('pgMod', 'generatePersonaSeeded', args), persona,
         'A persona must replay from its seed, not from singleton entropy');
       // Forcing the sex changes the parts that depend on it, not the others.
       const other = persona.sex === 'female' ? 'male' : 'female';
-      const forced = await call('pgMod', 'generatePersonaSeeded', [persona.country.cca2, other, false, '2024-02-29', seed]);
+      const forced = await call('pgMod', 'generatePersonaSeeded', [persona.country.cca2, other, false, false, '2024-02-29', seed]);
       assert.equal(forced.sex, other);
       assert.deepEqual([forced.city, forced.personality], [persona.city, persona.personality]);
       // A home changes nothing else, and is in the persona's country.
       const { home, household_income: earned, signature: s1, ...housed } = await call('pgMod', 'generatePersonaSeeded',
-        [country, '', true, '2024-02-29', seed]);
+        [country, '', true, false, '2024-02-29', seed]);
       const { signature: s2, ...plain } = persona;
       assert.deepEqual(housed, plain, 'A home changes nothing else about the persona');
       assert.equal(home.country_code, persona.country.cca2);
       assert.ok(home.rooms >= 1 && home.floor_area > 0 && home.household_size >= 1);
       assert.ok(earned === null || (earned.currency === home.monthly_cost.currency && earned.amount > 0));
+      // An employer changes nothing else either: null when the persona is not employed, else a company in its country.
+      const { employer, signature: s3, ...hired } = await call('pgMod', 'generatePersonaSeeded',
+        [country, '', false, true, '2024-02-29', seed]);
+      assert.deepEqual(hired, plain, 'An employer changes nothing else about the persona');
+      if (persona.occupation.status === 'employed') assert.equal(employer.country_code, persona.country.cca2);
+      else assert.equal(employer, null);
     }
   }
 
@@ -163,9 +169,9 @@ export async function verifyRequestApis(call) {
     ['phMod', 'generatePhoneSeeded', ['XX', '', false, '1']],
     ['phMod', 'generatePhoneSeeded', ['US', 'cell', false, '1']],
     ['emMod', 'generateEmailSeeded', ['XX', '', '', '', 0, false, '1']],
-    ['pgMod', 'generatePersonaSeeded', ['XX', '', false, '2024-02-29', '1']],
-    ['pgMod', 'generatePersonaSeeded', ['US', 'other', false, '2024-02-29', '1']],
-    ['pgMod', 'generatePersonaSeeded', ['US', '', false, '2024-02-29', '10000000000000000']]
+    ['pgMod', 'generatePersonaSeeded', ['XX', '', false, false, '2024-02-29', '1']],
+    ['pgMod', 'generatePersonaSeeded', ['US', 'other', false, false, '2024-02-29', '1']],
+    ['pgMod', 'generatePersonaSeeded', ['US', '', false, false, '2024-02-29', '10000000000000000']]
   ];
   for (const [module, method, args] of errors) assert.ok((await call(module, method, args)).error);
   for (const [module, method, args] of cases) {
