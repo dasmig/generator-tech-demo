@@ -1187,6 +1187,7 @@
     <li><a href="#idgen-card">identity</a></li>
     <li><a href="#fingen-card">finance</a></li>
     <li><a href="#propertygen-card">property</a></li>
+    <li><a href="#companygen-card">company</a></li>
     <li><a href="#nickgen-card">nickname</a></li>
     <li><a href="#phonegen-card">phone</a></li>
     <li><a href="#emailgen-card">email</a></li>
@@ -1308,6 +1309,13 @@
         <label for="pg-home">Home</label>
         <select id="pg-home">
           <option value="yes">With a home</option>
+          <option value="no">Without</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="pg-employer">Employer</label>
+        <select id="pg-employer">
+          <option value="yes">With an employer</option>
           <option value="no">Without</option>
         </select>
       </div>
@@ -2190,6 +2198,99 @@
         <div class="status" id="pt-status" role="status" aria-live="polite">Loading WebAssembly…</div>
       </div>
 
+      <!-- ─── Company Generator ─── -->
+      <div class="demo-card" id="companygen-card">
+        <h2>company-generator</h2>
+        <p class="desc">
+          Generate a company that fits its country: the industry, size and head count, legal form and founding date follow the country's business statistics, and the name, registration numbers (register, tax, VAT, LEI) and domain follow from them. Names are in the country's business-name languages and scripts. The safe option gives numbers no company holds and <code>.example</code> domains; realistic numbers pass their check digits and may belong to a real company. Nothing is looked up, and a name can coincide with a real firm's.
+          <a class="repo-link" href="https://github.com/dasmig/company-generator" target="_blank" rel="noopener">GitHub →</a>
+        </p>
+        <div class="controls">
+          <div class="field">
+            <label for="cp-country">Country</label>
+            <select id="cp-country">
+              <option value="">Any</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="cp-counts">Drawn by</label>
+            <select id="cp-counts">
+              <option value="enterprises">Businesses (mostly micro firms)</option>
+              <option value="employment">Staff (a worker's employer)</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="cp-industry">Industry</label>
+            <select id="cp-industry">
+              <option value="">Drawn</option>
+              <option value="A">Agriculture, forestry and fishing</option>
+              <option value="B">Mining and quarrying</option>
+              <option value="C">Manufacturing</option>
+              <option value="D">Electricity, gas and air conditioning</option>
+              <option value="E">Water supply and waste management</option>
+              <option value="F">Construction</option>
+              <option value="G">Wholesale and retail trade</option>
+              <option value="H">Transportation and storage</option>
+              <option value="I">Accommodation and food service</option>
+              <option value="J">Information and communication</option>
+              <option value="K">Financial and insurance</option>
+              <option value="L">Real estate</option>
+              <option value="M">Professional, scientific and technical</option>
+              <option value="N">Administrative and support service</option>
+              <option value="O">Public administration and defence</option>
+              <option value="P">Education</option>
+              <option value="Q">Human health and social work</option>
+              <option value="R">Arts, entertainment and recreation</option>
+              <option value="S">Other service activities</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="cp-size">Size</label>
+            <select id="cp-size">
+              <option value="">Drawn</option>
+              <option value="micro">Micro (1 to 9 persons)</option>
+              <option value="small">Small (10 to 49)</option>
+              <option value="medium">Medium (50 to 249)</option>
+              <option value="large">Large (250 or more)</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="cp-employees">Or a head count</label>
+            <input type="number" id="cp-employees" min="1" max="100000000" placeholder="Drawn">
+          </div>
+          <div class="field">
+            <label for="cp-form">Legal form</label>
+            <select id="cp-form">
+              <option value="">Drawn</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="cp-incorporated">Sole traders and partnerships</label>
+            <select id="cp-incorporated">
+              <option value="no">Included</option>
+              <option value="yes">Left out</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="cp-safe">Safe for tests</label>
+            <select id="cp-safe">
+              <option value="yes">Yes (no company holds the numbers)</option>
+              <option value="no">No (may belong to a real company)</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="cp-date">Date</label>
+            <input type="date" id="cp-date" min="1900-01-01" max="2100-12-31">
+          </div>
+          <button class="btn" id="cp-generate" disabled>Generate</button>
+        </div>
+        <p class="note">A forced industry, size or legal form that no company of the country can have is reported as an error. The legal forms offered are the chosen country's.</p>
+        <div id="cp-output">
+          <div class="output empty">Waiting for module to load…</div>
+        </div>
+        <div class="status" id="cp-status" role="status" aria-live="polite">Loading WebAssembly…</div>
+      </div>
+
       <!-- ─── Vehicle Generator ─── -->
       <div class="demo-card" id="vehiclegen-card">
         <h2>vehicle-generator</h2>
@@ -2660,6 +2761,7 @@
 <script src="idgen_demo.js"></script>
 <script src="fingen_demo.js"></script>
 <script src="propertygen_demo.js"></script>
+<script src="companygen_demo.js"></script>
 <script src="birthgen_demo.js"></script>
 <script src="biodatagen_demo.js"></script>
 <script src="interestgen_demo.js"></script>
@@ -3267,6 +3369,55 @@
     });
   });
 
+  // ─── Company Generator ───
+  let cpMod = null;
+  loadDemo('cp', () => createCompanygenModule(), mod => mod.init(), mod => {
+    cpMod = mod;
+    fillCountries('cp-country', mod);
+  }, 'business tables, word lists and number schemes loaded.');
+  byId('cp-date').value = byId('bg-reference').value;
+  // The legal forms of the chosen country; a head count and a size do not go together.
+  byId('cp-country').addEventListener('change', () => {
+    const select = byId('cp-form');
+    select.length = 1;
+    const code = byId('cp-country').value;
+    if (!cpMod || !code) return;
+    for (const form of JSON.parse(cpMod.legalForms(code)))
+      select.add(new Option((form.abbreviation || form.name) + (form.abbreviation && form.name ? ' · ' + form.name : ''),
+        form.code || form.abbreviation));
+  });
+  byId('cp-employees').addEventListener('input', () => { byId('cp-size').disabled = byId('cp-employees').value !== ''; });
+
+  const COMPANY_SIZES = { micro: 'Micro (1 to 9 persons)', small: 'Small (10 to 49)', medium: 'Medium (50 to 249)', large: 'Large (250 or more)' };
+  const COMPANY_GROUPS = { sole_proprietorship: 'Sole proprietorship', partnership: 'Partnership', limited_liability: 'Limited liability', other: 'Other' };
+  const COMPANY_EVIDENCE = { measured: 'Measured: the country’s own statistics', modelled: 'Modelled: from the region’s pattern',
+    filled: 'Filled: some parts from a similar country' };
+
+  byId('cp-generate').addEventListener('click', () => {
+    if (!cpMod) return;
+    runDemo('cp', () => {
+      const data = parseResult(cpMod.generateCompany(byId('cp-country').value, byId('cp-industry').value,
+        byId('cp-employees').value ? '' : byId('cp-size').value, byId('cp-employees').value, byId('cp-form').value,
+        byId('cp-counts').value, byId('cp-incorporated').value === 'yes', byId('cp-safe').value === 'yes', byId('cp-date').value));
+      const c = data.company;
+      let html = fieldTable('Fictional company in ' + c.country_code, [
+        ['Name', c.name], ['Industry', c.isic_label + ' (' + c.isic + ', section ' + c.isic_section + ')'],
+        ['Size', (COMPANY_SIZES[c.size] || c.size) + ' · ' + c.employees.toLocaleString('en-US') + (c.employees === 1 ? ' person' : ' persons')],
+        ['Legal form', c.legal_form + ' · ' + (COMPANY_GROUPS[c.legal_form_group] || c.legal_form_group)
+          + (c.legal_form_code ? ' · ISO 20275 ' + c.legal_form_code : '')],
+        ['Founded', c.founded], ['Domain', c.domain], ['Seed (hex)', c.signature.seed]]);
+      html += comparisonTable('Registration numbers', ['Scheme', 'Number', 'Safe'],
+        c.numbers.length ? c.numbers.map(n => [n.label + ' (' + n.scheme + ')', n.value, n.reserved ? 'Yes: no company holds it' : 'No: may belong to a real company'])
+          : [['None', 'This country has no number schemes yet', '']]);
+      const ev = data.evidence;
+      html += comparisonTable('Evidence for ' + c.country_code + ' · ' + (COMPANY_EVIDENCE[c.evidence] || c.evidence),
+        ['Part', 'Evidence'], [['Industry', ev.industry], ['Size', ev.size], ['Legal form', ev.legal_form], ['Founding date', ev.age],
+          ['Name', ev.name], ['Numbers', ev.numbers], ['Domain', ev.domain]]);
+      byId('cp-output').innerHTML = html;
+      return 'Generated a company in ' + c.country_code + '.';
+    });
+  });
+
   // ─── Address data pack ───
   // address-generator's data is a pack: the shared tables are written into a module's /pack at
   // start, and a country's street file is fetched the first time that country is used. The
@@ -3570,6 +3721,7 @@
     'occupation': ['occupation-generator', 'occupation', 'country + birth (age and sex)'],
     'home': ['property-generator', '— (after the pipeline)', 'country + city population + a household from relationship-generator + household_income'],
     'household_income': ['occupation-generator', '— (after the pipeline)', 'The persona’s income + one occupation draw per other member aged 15+'],
+    'employer': ['company-generator', '— (after the pipeline)', 'country + the persona’s occupation (ISCO group), a business drawn by its staff; null when not employed'],
     'signature': ['persona-generator', '—', 'Call seed + hash of the request and the libraries’ data']
   };
   loadDemo('pg', () => createPersonagenModule(), mod => mod.init(), mod => { pgMod = mod; }, 'all eight libraries loaded.');
@@ -3756,7 +3908,7 @@
   }
 
   function renderPersona() {
-    const d = parseResult(pgMod.generatePersona(byId('pg-country').value, byId('pg-sex').value, byId('pg-home').value === 'yes'));
+    const d = parseResult(pgMod.generatePersona(byId('pg-country').value, byId('pg-sex').value, byId('pg-home').value === 'yes', byId('pg-employer').value === 'yes'));
     if (personaMap) { personaMap.remove(); personaMap = null; }
     const { country, city, birth, biodata: body, personality, interest, occupation } = d;
 
@@ -3903,10 +4055,11 @@
 
     // Home: for a household of the persona's, costed by what everyone in it earns
     if (d.home) html += homeHtml(d.home, d.household_income, section, stat, statHtml);
+    if (d.employer) html += employerHtml(d.employer, section, stat);
 
     html += '</div></div>';
     html += '<p class="note">Seed ' + esc(d.signature.seed) + ' · data ' + esc(d.signature.data)
-      + '. Physical values, interests and occupation use the persona’s country, age and sex' + (d.home ? '; the home fits a household drawn for the persona' : '') + '. This is fictional composition, not an age-appropriate or medical profile.</p>';
+      + '. Physical values, interests and occupation use the persona’s country, age and sex' + (d.home ? '; the home fits a household drawn for the persona' : '') + (d.employer ? '; the employer is a business drawn by its staff, in an industry that employs the persona’s job' : '') + '. This is fictional composition, not an age-appropriate or medical profile.</p>';
     html += '<details id="pg-provenance"><summary>Which library supplies each part?</summary>'
       + '<p class="note">persona-generator declares one entity-generator field per library, with its dependencies, and runs them in dependency order. Each field draws from its own stream split from the persona’s seed, so forcing a country or a sex does not shift the unrelated parts.</p>'
       + comparisonTable('Persona provenance', ['JSON key', 'Library', 'Pipeline field', 'Reads'],
@@ -3961,6 +4114,23 @@
     tenant_market: 'Tenant at market rent', tenant_reduced: 'Tenant at a reduced rent' };
   const HOME_EVIDENCE = { measured: 'Measured: the country’s own census and survey tables',
     filled: 'Filled: some parts from a similar country', modelled: 'Modelled: from the region’s pattern' };
+  // The company the persona works for, from company-generator.
+  function employerHtml(c, section, stat) {
+    let html = section('Employer · company-generator');
+    html += '<div class="job-hero"><div class="job-icon" aria-hidden="true">🏢</div><div>'
+      + '<div class="job-title">' + esc(c.name) + '</div>'
+      + '<div class="job-sub">' + esc(c.isic_label) + '</div>'
+      + chipsHtml([c.employees.toLocaleString('en-US') + (c.employees === 1 ? ' person' : ' persons'), c.size, c.legal_form,
+        'founded ' + c.founded.slice(0, 4)]) + '</div></div>';
+    html += '<div class="persona-row">';
+    html += stat('Domain', c.domain);
+    const number = c.numbers.length ? c.numbers[0] : null;
+    html += stat(number ? number.label : 'Registration', number ? number.value : 'No number scheme for this country');
+    html += stat('Data', c.evidence);
+    html += '</div>';
+    return html;
+  }
+
   function homeHtml(home, income, section, stat, statHtml) {
     const [typeLabel, icon] = HOME_TYPES[home.type] || [home.type, '🏠'];
     const money = m => m.currency + ' ' + m.amount.toLocaleString('en-US', { maximumFractionDigits: 2 });
@@ -4212,7 +4382,7 @@
     byId('ev-status').textContent = 'Generating…';
     byId('ev-status').className = 'status';
     try {
-      const persona = parseResult(pgMod.generatePersonaSeeded(byId('ev-country').value, byId('ev-sex').value, false, date, seed));
+      const persona = parseResult(pgMod.generatePersonaSeeded(byId('ev-country').value, byId('ev-sex').value, false, false, date, seed));
       const code = persona.country.cca2;
       const words = persona.name.split(/\s+/).filter(Boolean);
       const birthYear = Number(date.slice(0, 4)) - persona.age;
@@ -4485,7 +4655,7 @@
   function tickOnce() {
     if (!pgMod) return false;
     try {
-      const p = JSON.parse(pgMod.generatePersona('', '', false));
+      const p = JSON.parse(pgMod.generatePersona('', '', false, false));
       if (p.error) return false;
       const job = p.occupation.job ? p.occupation.job.label : p.occupation.status.replace(/_/g, ' ');
       const line = flagEmoji(p.country.cca2) + ' ' + p.name + ' · ' + p.city.name + ' · ' + job;

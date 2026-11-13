@@ -334,6 +334,33 @@ try {
   await waitFor(() => evaluate("byId('pt-output').textContent.includes('Evidence for FR')"), 'property tables');
   assert.ok(await evaluate("byId('pt-output').textContent.includes('Fictional home in FR') && byId('pt-currency').textContent === '(EUR)'"));
 
+  // company-generator: the country list is the library's, forced fields are honoured, safe gives numbers nobody holds,
+  // a seed replays, the legal forms are the country's, and the card renders the company and the evidence.
+  const firm = (method, args) => evaluate(`JSON.parse(cpMod.${method}(...${JSON.stringify(args)}))`);
+  const companyCountries = await evaluate('JSON.parse(cpMod.supportedCountries())');
+  assert.ok(companyCountries.includes('DE') && companyCountries.length >= 190, 'The company module lists its countries');
+  const forms = await evaluate("JSON.parse(cpMod.legalForms('DE'))");
+  assert.ok(forms.some(form => form.abbreviation === 'GmbH'), "The legal forms are the country's");
+  const smith = ['DE', 'F', 'small', '', 'GmbH', 'enterprises', true, true, '2025-07-01', '2a'];
+  const built = await firm('generateCompanySeeded', smith);
+  assert.equal(built.company.country_code, 'DE');
+  assert.equal(built.company.isic_section, 'F');
+  assert.equal(built.company.size, 'small');
+  assert.equal(built.company.legal_form, 'GmbH');
+  assert.ok(built.company.domain.endsWith('.example') && built.company.numbers.every(number => number.reserved), 'Safe: no company holds the numbers');
+  assert.ok(['measured', 'modelled', 'filled'].includes(built.evidence.industry));
+  assert.equal(JSON.stringify(await firm('generateCompanySeeded', smith)), JSON.stringify(built), 'A seed replays');
+  const headed = await firm('generateCompanySeeded', ['US', '', '', '40', '', 'employment', false, false, '2025-07-01', '3']);
+  assert.equal(headed.company.employees, 40);
+  assert.equal(headed.company.size, 'small', 'A head count sets the size');
+  assert.ok((await firm('generateCompany', ['XX', '', '', '', '', 'enterprises', false, true, ''])).error, 'An unknown country reports an error');
+  assert.ok((await firm('generateCompany', ['DE', '', 'small', '7', '', 'enterprises', false, true, ''])).error, 'A size and a head count together report an error');
+  assert.ok((await firm('generateCompany', ['DE', '', '', '', '', 'both', false, true, ''])).error, 'Unknown counts report an error');
+  await evaluate("byId('cp-country').value = 'FR'; byId('cp-country').dispatchEvent(new Event('change')); byId('cp-date').value = '2025-07-01'; byId('cp-generate').click()");
+  await waitFor(() => evaluate("byId('cp-output').textContent.includes('Evidence for FR')"), 'company tables');
+  assert.ok(await evaluate("byId('cp-output').textContent.includes('Fictional company in FR') && byId('cp-output').textContent.includes('Registration numbers') && byId('cp-form').options.length > 2"));
+  assert.ok(await evaluate("byId('companygen-card').textContent.includes('may belong to a real company')"));
+
   // vehicle-generator: the lists are the library's, seeds replay its known answers, VINs carry valid check digits,
   // regions are honoured and safe gives unheld WMIs.
   const vehicle = (method, args) => evaluate(`JSON.parse(vhMod.${method}(...${JSON.stringify(args)}))`);
@@ -732,7 +759,7 @@ try {
   assert.match(await evaluate('byId("og-output").textContent'), /only education input varies/);
   assert.equal(await evaluate('document.querySelectorAll("#eg-output tbody tr").length'), 10);
   assert.match(await evaluate('byId("eg-output").textContent'), /weighted_choice_component/);
-  const personaKeys = await evaluate(`Object.keys(JSON.parse(pgMod.generatePersona('BR', '', true)))`);
+  const personaKeys = await evaluate(`Object.keys(JSON.parse(pgMod.generatePersona('BR', '', true, true)))`);
   assert.deepEqual(await evaluate(`Array.from(byId('pg-country').options, option => option.value).filter(Boolean)`),
     await evaluate('JSON.parse(pgMod.supportedCountries())'), "The persona country list must be persona-generator's");
   assert.deepEqual(await evaluate('Object.keys(personaSources).sort()'), personaKeys.sort());
